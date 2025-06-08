@@ -15,13 +15,13 @@ jobs:
           github-token: ${{ secrets.PROJECTS_TOKEN }}
           script: |
             const projectNumber = 3; // CHANGE to your Project number
-            const org = 'weekendclimber'; // Or repo owner
+            const owner = 'weekendclimber'; // Or repo owner
             const repo = 'BicepWhatIfReport';
 
             // 1. Get the project ID
             const projectQuery = `
-              query($org: String!, $number: Int!) {
-                organization(login: $org) {
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
                   projectV2(number: $number) {
                     id
                     fields(first: 20) {
