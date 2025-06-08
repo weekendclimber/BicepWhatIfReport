@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Debug Token Permissions
-        - env:
-          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+      - env:
+        GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
         run: |
           echo "Testing token permissions..."
           gh api https://api.github.com/repos/weekendclimber
