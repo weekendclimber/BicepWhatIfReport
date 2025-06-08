@@ -98,6 +98,10 @@ jobs:
                               optionId
                               updatedAt
                             }
+                            filter: {
+                              field: $statusFieldId
+                              optionId: $doneOptionId
+                            }
                           }
                         }
                       }
