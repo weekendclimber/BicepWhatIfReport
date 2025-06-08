@@ -9,6 +9,12 @@ jobs:
   close_done_issues:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug Token Permissions
+        run: |
+          echo "Testing token permissions..."
+          curl -H "Authorization: Bearer ${{ secrets.PROJECTS_TOKEN }}" \
+            https://api.github.com/weekendclimber
+    steps:
       - name: Close "Done" issues after 1 week in project
         uses: actions/github-script@v7
         with:
