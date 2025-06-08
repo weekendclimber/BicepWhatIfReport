@@ -46,7 +46,8 @@ jobs:
             `;
 
             const projectData = await github.graphql(projectQuery, {
-              org,
+              owner,
+              repo,
               number: projectNumber,
             });
             const project = projectData.organization.projectV2;
