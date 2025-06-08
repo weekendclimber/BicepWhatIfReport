@@ -130,7 +130,12 @@ jobs:
             const oneWeekAgo = new Date(now.getTime() - 7*24*60*60*1000);
 
             for (const item of itemsData.node.items.nodes) {
-              if (!item.fieldValues.nodes) continue;
+              if (!item.fieldValues.nodes) {
+                console.log('No field values found, skipping item.');
+                continue;
+              } else {
+                console.log('Field values found, processing item...');
+              }
               console.log('Processing items: ', item.content.title);
               console.log('Status Field ID: ', statusField.id);
               console.log('Done Option ID: ', doneOption.id);
