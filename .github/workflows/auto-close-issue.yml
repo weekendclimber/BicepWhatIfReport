@@ -73,7 +73,7 @@ jobs:
             // 2. Get items in "Done"
             // (For large projects, you may need to paginate)
             const itemsQuery = `
-              query($projectId: ID!, $statusFieldId: ID!, $doneOptionId: String!) {
+              query($projectId: ID!) {
                 node(id: $projectId) {
                   ... on ProjectV2 {
                     items(first: 50) {
@@ -108,8 +108,6 @@ jobs:
             `;
             const itemsData = await github.graphql(itemsQuery, {
               projectId: project.id,
-              statusFieldId: statusField.id,
-              doneOptionId: doneOption.id,
             });
 
             const now = new Date();
