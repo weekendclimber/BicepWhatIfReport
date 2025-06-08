@@ -142,6 +142,8 @@ jobs:
               const statusValue = item.fieldValues.nodes.find(
                 v => v.field.id === statusField.id && v.optionId === doneOption.id
               );
+              console.log('Gets here!!');
+              console.log('Status Value: ', statusValue);
               if (!statusValue) continue;
               const doneDate = new Date(statusValue.updatedAt);
               if (doneDate < oneWeekAgo) {
