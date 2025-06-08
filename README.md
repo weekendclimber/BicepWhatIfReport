@@ -19,7 +19,6 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 
 ## Repository Structure
 
-<pre>
 ```mermaid
 graph TD
   A[BicepWhatIfReport.sln]
@@ -47,4 +46,3 @@ graph TD
   C3 --> C3d[utils/]
   C3 --> C3e[templates/]
 ```
-</pre>
