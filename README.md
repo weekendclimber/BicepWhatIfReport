@@ -19,33 +19,29 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 
 ## Repository Structure
 
-```mermaid
-graph TD
-  A[BicepWhatIfReport.sln]
-  A --> B[AzureDevOpsExtension]
-  A --> C[GitHubAction]
+- **BicepWhatIfReport/**
+  - **src/**
+    - **AzureDevOpsExtension/**
+      - models/
+      - services/
+      - utils/
+      - reports/
+      - index.ts
+      - README.md
+    - **GitHubAction/**
+      - models/
+      - services/
+      - utils/
+      - templates/
+      - index.ts
+      - action.yml
+      - package.json
+      - README.md
+  - **tests/**
+    - AzureDevOpsExtension/
+    - GitHubAction/
+  - README.md
 
-  B --> B1[AzureDevOpsExtension.csproj]
-  B --> B2[Program.cs]
-  B --> B3[Models/]
-  B --> B4[Services/]
-  B --> B5[Utils/]
-  B --> B6[Reports/]
-  B --> B7[Tests/]
-  B --> B8[README.md]
-
-  C --> C1[action.yml]
-  C --> C2[package.json]
-  C --> C3[src/]
-  C --> C4[tests/]
-  C --> C5[README.md]
-
-  C3 --> C3a[index.js or index.ts]
-  C3 --> C3b[models/]
-  C3 --> C3c[services/]
-  C3 --> C3d[utils/]
-  C3 --> C3e[templates/]
-```
 ---
 
 ## Getting Started
