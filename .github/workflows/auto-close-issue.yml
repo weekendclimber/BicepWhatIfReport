@@ -8,12 +8,14 @@ on:
 jobs:
   close_done_issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: read
     steps:
       - env:
           GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
         run: |
           echo "Testing token permissions..."
-          gh api https://api.github.com/repos/weekendclimber
+          gh api https://api.github.com/repos/weekendclimber/BicepWhatIfReport/issues
 
       - name: Close "Done" issues after 1 week in project
         uses: actions/github-script@v7
