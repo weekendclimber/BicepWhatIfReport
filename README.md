@@ -19,6 +19,8 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 
 ## Repository Structure
 
+<pre>
+```
 graph TD
   A[BicepWhatIfReport.sln]
   A --> B[AzureDevOpsExtension]
@@ -44,3 +46,5 @@ graph TD
   C3 --> C3c[services/]
   C3 --> C3d[utils/]
   C3 --> C3e[templates/]
+```
+</pre>
