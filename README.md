@@ -20,7 +20,7 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 ## Repository Structure
 
 <pre>
-```
+```mermaid
 graph TD
   A[BicepWhatIfReport.sln]
   A --> B[AzureDevOpsExtension]
