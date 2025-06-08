@@ -58,7 +58,7 @@ jobs:
               repo,
               number: projectNumber,
             });
-            const project = projectData.organization.projectV2;
+            const project = projectData.repository.projectV2;
             const statusField = project.fields.nodes.find(
               f => f.name.toLowerCase() === 'status'
             );
