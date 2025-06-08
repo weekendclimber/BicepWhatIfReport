@@ -73,7 +73,7 @@ jobs:
             // 2. Get items in "Done"
             // (For large projects, you may need to paginate)
             const itemsQuery = `
-              query($projectId: ID!) {
+              query($projectId: ID!, $statusFieldId: ID!, $doneOptionId: String!) {
                 node(id: $projectId) {
                   ... on ProjectV2 {
                     items(first: 50) {
