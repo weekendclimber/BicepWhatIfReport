@@ -59,16 +59,29 @@ jobs:
               number: projectNumber,
             });
             const project = projectData.repository.projectV2;
+            console.log(JSON.stringify(project.fields.nodes, null, 2));
             const statusField = project.fields.nodes.find(
-              f => f.name.toLowerCase() === 'status'
+              f =>
+                f.name &&
+                f.name.toLowerCase() === 'status' &&
+                Array.isArray(f.options)
             );
 
+            if (!statusField) {
+              throw new Error('Could not find "Status" field with a selectable option in this project.')}
+
             const doneOption = statusField.options.find(
-              o => o.name === 'Done'
+              o => o.name.toLowerCase() === 'done'
             );
             const closedOption = statusField.options.find(
-              o => o.name === 'Closed'
+              o => o.name.toLowerCase() === 'closed'
             );
+
+            if(!doneOption) {
+              throw new Error('Could not find "Done" option in the "Status" field.');
+            }
+            if(!closedOption) {
+              throw new Error('Could not find "Closed" option in the "Status" field.');}
 
             // 2. Get items in "Done"
             // (For large projects, you may need to paginate)
