@@ -110,7 +110,7 @@ module.exports = async ({ github, context, core }) => {
     const oneWeekAgo = new Date(now.getTime() - 7*24*60*60*1000);
 
     for (const item of itemsData.node.items.nodes) {
-        if (!item.fieldValues.nodes.field.id) {
+        if (!item.fieldValues.nodes || !Array.isArray(item.fieldValues.nodes)) {
             console.log('No field id value found, skipping item.');
             continue;
         } else {
