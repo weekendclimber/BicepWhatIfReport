@@ -127,8 +127,11 @@ module.exports = async ({ github, context, core }) => {
             v => v.field.id === statusField.id && v.optionId === doneOption.id
         );
         //console.log('Gets here!!');
-        console.log('Status Value: ', statusValue);
-        if (!statusValue) continue;
+        //console.log('Status Value: ', statusValue);
+        if (!statusValue) {
+            console.log('No status value present!);
+            continue;
+        }
         const doneDate = new Date(statusValue.updatedAt);
         if (doneDate < oneWeekAgo) {
             // 3. Update status to Closed
