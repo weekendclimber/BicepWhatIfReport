@@ -38,8 +38,8 @@ module.exports = async ({ github, context, core }) => {
         }
     );
     const project = projectData.repository.projectV2;
-    console.log("project logging...");
-    console.log(JSON.stringify(project.fields.nodes, null, 2));
+    //console.log("project logging...");
+    //console.log(JSON.stringify(project.fields.nodes, null, 2));
     const statusField = project.fields.nodes.find(
         f =>
             f.name &&
