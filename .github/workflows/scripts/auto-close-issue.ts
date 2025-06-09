@@ -123,17 +123,20 @@ module.exports = async ({ github, context, core }) => {
         //console.log('Processing items: ', item.content.title);
         //console.log('Status Field ID: ', statusField.id);
         //console.log('Done Option ID: ', doneOption.id);
+
         const statusValue = validFieldValues.find(
             v => v.field.id === statusField.id && v.optionId === doneOption.id
         );
         //console.log('Gets here!!');
         //console.log('Status Value: ', statusValue);
+
         if (!statusValue) {
-            console.log('No status value present!');
+            //console.log('No status value present!');
             continue;
         } else {
             console.log('Status Value: ', statusValue);
         }
+
         const doneDate = new Date(statusValue.updatedAt);
         if (doneDate < oneWeekAgo) {
             // 3. Update status to Closed
