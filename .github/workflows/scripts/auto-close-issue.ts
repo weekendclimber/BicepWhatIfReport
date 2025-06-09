@@ -131,6 +131,8 @@ module.exports = async ({ github, context, core }) => {
         if (!statusValue) {
             console.log('No status value present!');
             continue;
+        } else {
+            console.log('Status Value: ' statusValue);
         }
         const doneDate = new Date(statusValue.updatedAt);
         if (doneDate < oneWeekAgo) {
