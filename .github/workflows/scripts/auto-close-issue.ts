@@ -105,6 +105,7 @@ module.exports = async ({ github, context, core }) => {
     });
     console.log("itemsData logging...")
     console.log(JSON.stringify(itemsData.node.items.nodes, null, 2));
+    console.log('Items found: ', itemsData.node.items.nodes.length);
 
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7*24*60*60*1000);
