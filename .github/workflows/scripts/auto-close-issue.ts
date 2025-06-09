@@ -129,7 +129,7 @@ module.exports = async ({ github, context, core }) => {
         //console.log('Gets here!!');
         //console.log('Status Value: ', statusValue);
         if (!statusValue) {
-            console.log('No status value present!);
+            console.log('No status value present!');
             continue;
         }
         const doneDate = new Date(statusValue.updatedAt);
