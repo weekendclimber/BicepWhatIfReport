@@ -11,22 +11,13 @@ jobs:
     permissions:
       issues: read
     steps:
-      - env:
-          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
-        run: |
-          echo "Testing token permissions..."
-          gh api https://api.github.com/repos/weekendclimber/BicepWhatIfReport/issues
-      
       - name: Checkout repository
         uses: actions/checkout@v4
-      - run: |
-          pwd
-          ls -la
 
       - name: Close "Done" issues after 1 week in project
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PROJECTS_TOKEN }}
           script: |
-            const script = require('${{ github.repository }}/.github/scripts/auto-close-issue.ts')
+            const script = require('${{ github.workspace }}/.github/workflows/scripts/auto-close-issue.ts')
             await script({github, context, core})
