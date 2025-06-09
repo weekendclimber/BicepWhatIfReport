@@ -111,16 +111,19 @@ module.exports = async ({ github, context, core }) => {
     const oneWeekAgo = new Date(now.getTime() - 7*24*60*60*1000);
 
     for (const item of itemsData.node.items.nodes) {
-        if (!item.fieldValues.nodes || !Array.isArray(item.fieldValues.nodes)) {
-            console.log('No field id value found, skipping item.');
+        const validFieldValues = item.fieldValues.nodes.filter(
+            v => v && v.field && typeof v.field.id !== 'undefined'
+        );
+
+        if (validFieldValues.length === 0) {
+            console.log('No valid field values found for item!');
             continue;
-        } else {
-            console.log('Field values found, processing item...');
         }
+
         console.log('Processing items: ', item.content.title);
         console.log('Status Field ID: ', statusField.id);
         console.log('Done Option ID: ', doneOption.id);
-        const statusValue = item.fieldValues.nodes.find(
+        const statusValue = validFieldValues.find(
             v => v.field.id === statusField.id && v.optionId === doneOption.id
         );
         console.log('Gets here!!');
