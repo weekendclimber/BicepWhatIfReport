@@ -16,9 +16,14 @@ jobs:
         run: |
           echo "Testing token permissions..."
           gh api https://api.github.com/repos/weekendclimber/BicepWhatIfReport/issues
+      
+      - name: Checkout repository
+        uses: actions/chechout@v4
 
       - name: Close "Done" issues after 1 week in project
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.PROJECTS_TOKEN }}
-          script-path: .github/scripts/close-done-issues.js
+          script: |
+            const script = require('.github/scripts/close-done-issues.js')
+            await script({github, context, core})
