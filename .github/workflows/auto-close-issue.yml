@@ -25,5 +25,5 @@ jobs:
         with:
           github-token: ${{ secrets.PROJECTS_TOKEN }}
           script: |
-            const script = require('${{ github.workspace }}/.github/scripts/auto-close-issue.ts')
+            const script = require('${{ github.repository }}/.github/scripts/auto-close-issue.ts')
             await script({github, context, core})
