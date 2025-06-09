@@ -19,6 +19,9 @@ jobs:
       
       - name: Checkout repository
         uses: actions/checkout@v4
+      - run: |
+          pwd
+          ls -la
 
       - name: Close "Done" issues after 1 week in project
         uses: actions/github-script@v7
