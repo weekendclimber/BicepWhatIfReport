@@ -1,0 +1,27 @@
+{
+  "name": "es6-string-polyfills",
+  "version": "1.0.0",
+  "description": "Polyfills for all new es6 string methods (except String.normalize).",
+  "main": "polyfill.min.js",
+  "scripts": {
+    "build": "npm run build:dev && npm run build:min",
+    "build:dev": "rollup -c rollup.config.js -o polyfill.js",
+    "build:min": "NODE_ENV=production rollup -c rollup.config.js -o polyfill.min.js"
+  },
+  "author": "Frederik Wessberg",
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^0.36.3",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "rollup-plugin-uglify": "^1.0.1",
+    "uglify-js": "github:mishoo/UglifyJS2#harmony"
+  },
+  "dependencies": {
+    "string.fromcodepoint": "^0.2.1",
+    "string.prototype.codepointat": "^0.2.0",
+    "string.prototype.endswith": "^0.2.0",
+    "string.prototype.includes": "^1.0.0",
+    "string.prototype.repeat": "^0.2.0",
+    "string.prototype.startswith": "^0.2.0"
+  }
+}

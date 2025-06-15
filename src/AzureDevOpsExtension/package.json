@@ -4,6 +4,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "azure-devops-extension-sdk": "^4.0.2"
+    "azure-devops-extension-api": "^4.254.0",
+    "azure-devops-extension-sdk": "^4.0.2",
+    "azure-devops-ui": "^2.257.0",
+    "azure-pipelines-task-lib": "^5.2.1"
   }
 }
