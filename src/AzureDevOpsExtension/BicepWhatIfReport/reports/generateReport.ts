@@ -23,12 +23,16 @@ function printParsedDataAsMarkdown(parsedData: any): string {
 
   parsedData.changes.forEach((change: any) => {
     const after = change.after || {};
+    const before = change.before || {};
     markdownData.push({ h2: `Resource: ${after.name || 'Unnamed Resource'}` });
     markdownData.push({
       ul: [
         `**Change Type**: ${change.changeType || 'Unknown Change Type'}`,
         `**Resource ID**: ${change.resourceId || 'Unknown ID'}`,
-        `**Type**: ${after.type || 'Unknown Type'}`,
+        `**After Type**: ${after.type || 'Unknown Type'}`,
+        {
+          ul: [`Before Type: ${before?.type || 'N/A'}`]
+        },
         `**Location**: ${after.location || 'Unknown Location'}`
       ]
     });
