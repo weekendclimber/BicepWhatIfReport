@@ -17,5 +17,8 @@
     "azure-pipelines-task-lib": "^5.2.1",
     "sync-request": "^6.1.0",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "json2md": "^2.0.3"
   }
 }

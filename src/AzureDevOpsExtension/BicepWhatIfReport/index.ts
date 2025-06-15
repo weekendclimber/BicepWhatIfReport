@@ -11,14 +11,15 @@ async function main() {
       tl.setResult(tl.TaskResult.Failed, 'Bad input was given');
       return;
     }
-    console.log('Hello', inputString);
+    //console.log('Hello', inputString);
 
   // Parse the what-if JSON
   const parsed = parseWhatIfJson(inputString as string);
-  console.log('Parsed what-if JSON:', parsed);
+  //console.log('Parsed what-if JSON:', parsed);
   
   // Generate a human-readable report
   const report = generateReport(parsed);
+  //const report = generateReport(inputString as string);
   console.log('Generated report:', report);
   
   } catch (err:any) {
