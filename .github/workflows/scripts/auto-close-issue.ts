@@ -103,9 +103,9 @@ module.exports = async ({ github, context, core }) => {
     const itemsData = await github.graphql(itemsQuery, {
         projectId: project.id,
     });
-    console.log("itemsData logging...")
-    console.log(JSON.stringify(itemsData.node.items.nodes, null, 2));
-    console.log('Items found: ', itemsData.node.items.nodes.length);
+    //console.log("itemsData logging...")
+    //console.log(JSON.stringify(itemsData.node.items.nodes, null, 2));
+    //console.log('Items found: ', itemsData.node.items.nodes.length);
 
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7*24*60*60*1000);
@@ -120,13 +120,13 @@ module.exports = async ({ github, context, core }) => {
             continue;
         }
 
-        console.log('Processing items: ', item.content.title);
-        console.log('Status Field ID: ', statusField.id);
-        console.log('Done Option ID: ', doneOption.id);
+        //console.log('Processing items: ', item.content.title);
+        //console.log('Status Field ID: ', statusField.id);
+        //console.log('Done Option ID: ', doneOption.id);
         const statusValue = validFieldValues.find(
             v => v.field.id === statusField.id && v.optionId === doneOption.id
         );
-        console.log('Gets here!!');
+        //console.log('Gets here!!');
         console.log('Status Value: ', statusValue);
         if (!statusValue) continue;
         const doneDate = new Date(statusValue.updatedAt);
