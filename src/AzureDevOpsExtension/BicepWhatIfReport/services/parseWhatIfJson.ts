@@ -6,6 +6,7 @@
 export function parseWhatIfJson(whatIfJson: string): any {
   // TODO: Implement robust parsing logic for Bicep what-if output
   try {
+    console.log('Parsing what-if JSON:', whatIfJson);
     const parsed = JSON.parse(whatIfJson);
     // TODO: Transform parsed data into a domain-specific structure if needed
     return parsed;

@@ -2,16 +2,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 // Entry point for Azure DevOps Extension
 const tl = require("azure-pipelines-task-lib/task");
-//import { parseWhatIfJson } from './services/parseWhatIfJson';
-//import { generateReport } from './reports/generateReport';
+const parseWhatIfJson_1 = require("./services/parseWhatIfJson");
+const generateReport_1 = require("./reports/generateReport");
 async function main() {
     try {
-        const inputString = tl.getInput('samplestring', true);
+        const inputString = tl.getInput('bicepWhatIfJSON', true);
         if (inputString == 'bad') {
             tl.setResult(tl.TaskResult.Failed, 'Bad input was given');
             return;
         }
         console.log('Hello', inputString);
+        // Parse the what-if JSON
+        const parsed = (0, parseWhatIfJson_1.parseWhatIfJson)(inputString);
+        console.log('Parsed what-if JSON:', parsed);
+        // Generate a human-readable report
+        const report = (0, generateReport_1.generateReport)(parsed);
+        console.log('Generated report:', report);
     }
     catch (err) {
         tl.setResult(tl.TaskResult.Failed, err.message);
@@ -19,11 +25,6 @@ async function main() {
     //  // Placeholder: Load what-if JSON from input (e.g., file, pipeline variable)
     //  const whatIfJson = '{}'; // Replace with actual input source
     //
-    //  // Parse the what-if JSON
-    //  const parsed = parseWhatIfJson(whatIfJson);
-    //
-    //  // Generate a human-readable report
-    //  const report = generateReport(parsed);
     //
     //  // Output the report (e.g., to pipeline summary, file, or console)
     //  console.log(report);
