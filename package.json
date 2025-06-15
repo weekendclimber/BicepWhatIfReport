@@ -1,6 +1,0 @@
-{
-  "devDependencies": {
-    "@types/node": "^24.0.1",
-    "@types/q": "^1.5.8"
-  }
-}
