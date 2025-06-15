@@ -1,0 +1,9 @@
+// filepath: .github/workflows/scripts/tsconfig.json
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2019",
+    "types": ["node"]
+  },
+  "include": ["*.ts"]
+}
