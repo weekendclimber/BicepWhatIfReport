@@ -7,14 +7,14 @@
 const json2md = require('json2md');
 //import json2md from 'json2md';
 
-export function generateReport(parsedData: any): string {
+export async function generateReport(parsedData: any): Promise<string> {
   // TODO: Implement report generation logic for Azure DevOps Extension
   // Example: Convert parsedData into a Markdown summary
   //return '# Bicep What-If Report\n\n_No changes detected or report logic not implemented yet._';
-  return printParsedDataAsMarkdown(parsedData) as string;
+  return printParsedDataAsMarkdown(parsedData) as Promise<string>;
 }
 
-function printParsedDataAsMarkdown(parsedData: any): string {
+async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
   //const markdown = `
   //\`\`\`json
   //${JSON.stringify(parsedData, null, 2)}

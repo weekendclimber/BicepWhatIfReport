@@ -1,6 +1,7 @@
 // Entry point for Azure DevOps Extension
 import tl = require('azure-pipelines-task-lib/task');
 
+//import md = require('azure-devops-ui/Markdown');
 import { parseWhatIfJson } from './services/parseWhatIfJson';
 import { generateReport } from './reports/generateReport';
 
@@ -25,18 +26,9 @@ async function main() {
   } catch (err:any) {
     tl.setResult(tl.TaskResult.Failed, err.message);
   }
-//  // Placeholder: Load what-if JSON from input (e.g., file, pipeline variable)
-//  const whatIfJson = '{}'; // Replace with actual input source
-
-//
-//
-//  // Output the report (e.g., to pipeline summary, file, or console)
-//  console.log(report);
 }
 
-main();
-
-//main().catch((err) => {
-//  console.error('Error:', err);
-//  process.exit(1);
-//});
+main().catch((err) => {
+  console.error('Error:', err);
+  process.exit(1);
+});
