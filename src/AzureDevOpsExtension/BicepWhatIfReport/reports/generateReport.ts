@@ -28,16 +28,38 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
     // identifiers
     // sympbolicname
     // unsupportedReason
-    if (change.ChangeType === 'NoChange') {
+    
+    // Get the before and after states: note before could be null
+    const after = change.after || {};
+    const before = change.before || {};
+
+    // Get the common header fields for each change
+    markdownData.push(
+      { h2: `Resource: ${after.name || 'Unnamed Resource'}` },
+      { h3: `Change Type: ${change.ChangeType}` }
+    );
+
+    // If change.ChangeType is 'NoChange' or 'Ignore', we can handle them the same way
+    if (change.ChangeType === 'NoChange' || change.changeType === 'Ignore') {
       //No change:
       // before and after are the same
       // delta is empty
       // resourceId is present
-    } else if (change.ChangeType === 'Ignore') {
-      //Ignore:
-      // before and after are the same
-      // delta is null
-      // resourceId is present
+      markdownData.push(
+        { h4: `**Details**` },
+        { ul: [
+          `**Name**: **${after.name || 'Unknown Name'}**`,
+          `Type: ${after.type || 'Unknown Type'}`,
+          `Location: ${after.location || 'Unknown Location'}`,
+          `API Version: ${after.apiVersion || 'Unknown API Version'}`,
+          `Resource ID: ${after.resourceId || 'Unknown Resource ID'}`
+        ]}
+      );
+    //} else if (change.ChangeType === 'Ignore') {
+    //  //Ignore:
+    //  // before and after are the same
+    //  // delta is null
+    //  // resourceId is present
     } else if (change.ChangeType === 'Modify') {
       //Modify:
       // before and after are different
@@ -50,10 +72,7 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
       // delta is null
       // resourceId is present
     }
-    const after = change.after || {};
-    const before = change.before || {};
-    markdownData.push({ h2: `Resource: ${after.name || 'Unnamed Resource'}` });
-    markdownData.push({ h3: `Change Type: ${change.changeType || 'Unknown Change Type'}` });
+    
     markdownData.push({
       h4: `**After Details**`,
       ul: [
