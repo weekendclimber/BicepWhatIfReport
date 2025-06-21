@@ -15,7 +15,7 @@ async function main() {
   } catch (err:any) {
     tl.setResult(tl.TaskResult.Failed, err.message);
   }
-//  // Placeholder: Load what-if JSON from input (e.g., file, pipeline variable)
+// Placeholder: Load what-if JSON from input (e.g., file, pipeline variable)
 //  const whatIfJson = '{}'; // Replace with actual input source
 //
 //  // Parse the what-if JSON
