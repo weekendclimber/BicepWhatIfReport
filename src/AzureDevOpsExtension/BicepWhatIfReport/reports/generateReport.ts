@@ -5,7 +5,6 @@
  */
 
 const json2md = require('json2md');
-//import json2md from 'json2md';
 
 export async function generateReport(parsedData: any): Promise<string> {
   // TODO: Implement report generation logic for Azure DevOps Extension
@@ -15,10 +14,6 @@ export async function generateReport(parsedData: any): Promise<string> {
 }
 
 async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
-  //const markdown = `
-  //\`\`\`json
-  //${JSON.stringify(parsedData, null, 2)}
-  //\`\`\``;
   const markdownData: any = []
   markdownData.push({ h1: 'Bicep What-If Report' });
 
@@ -81,12 +76,7 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
             `After: ${delta.after || 'N/A'}`,
             `Change Type: ${delta.propertyChangeType || 'Unknown Change Type'}`
         );
-        //if (children.length > 0) {
-        //  ulItems.push(
-        //    `Subresource(s):`,
-        //    //${children}
-        //  );
-        //}
+        
         markdownData.push(
             { h4: `**Change Details**`},
             { ul: ulItems },
@@ -101,24 +91,6 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
       // resourceId is present
     }
     
-    //markdownData.push({
-    //  h4: `**After Details**`,
-    //  ul: [
-    //    `**After Name**: **${after.name || 'Unknown Name'}**`,
-    //    `After Type: ${after.type || 'Unknown Type'}`,
-    //    `After Location: ${after.location || 'Unknown Location'}`,
-    //    `After API Version: ${after.apiVersion || 'Unknown API Version'}`
-    //  ],
-    //},
-    //{
-    //  h4: `**Before Details**`,
-    //  ul: [
-    //    `**Before Name**: **${before.name || 'Unknown Name'}**`,
-    //    `Before Type: ${before.type || 'Unknown Type'}`,
-    //    `Before Location: ${before?.location || 'N/A'}`,
-    //    `Before API Version: ${before.apiVersion || 'Unknown API Version'}`
-    //  ]
-    //});
     markdownData.push({ hr: "" });
   }
 );
@@ -142,7 +114,6 @@ if (parsedData.diagnostics) {
 
 // Recursive function to flatten delta objects and their children
 function flattenDelta(deltaArray: any[], parentPath: string = ''): any[] {
-  console.log('Processing parent path:', parentPath);
   if (!deltaArray) return [];
   let result: any[] = [];
 
@@ -155,14 +126,40 @@ function flattenDelta(deltaArray: any[], parentPath: string = ''): any[] {
       : parentPath;
 
     // Add the current delta with its full path
+    const beforeItems: any[] = [];
+    if (delta.before && Array.isArray(delta.before)) {
+      const subItems: string[] = [];
+      delta.before.forEach((element: any) => {
+        // Dynamically get all key/value pairs in the object
+        Object.entries(element).forEach(([key, value]) => {
+          subItems.push(`${key}: ${value}`);
+        });
+      });
+      beforeItems.push(`Before:`, { ul: subItems });
+    } else if (typeof delta.before === 'object' && delta.before !== null) {
+      const subItems: any[] = [];
+      const propertyNames = Object.keys(delta.before);
+      propertyNames.forEach(key => {
+        const subValues: any[] = [];
+        delta.before[key].forEach((value: any) => {
+          subValues.push(`${value}`);
+        })
+        subItems.push( `${key}:`, { ul: subValues})
+      })
+      beforeItems.push(`Before:`, { ul: subItems });
+    } else {
+      beforeItems.push(`Before: ${delta.before}`);
+    }
+
     result.push({
       ul: [`Subresource: ${fullPath}`,
         {
           ul: [
             `Property: ${fullPath}`,
-            `Before: ${delta.before}`,
+            `Change Type: ${delta.propertyChangeType}`,
+            //`Before: ${delta.before}`,
             `After: ${delta.after}`,
-            `Change Type: ${delta.propertyChangeType}`
+            beforeItems
           ]
         }
       ]
@@ -170,7 +167,7 @@ function flattenDelta(deltaArray: any[], parentPath: string = ''): any[] {
 
     // Recursively process children if present
     if (delta.children && Array.isArray(delta.children)) {
-      console.log('Processing children for path:', fullPath);
+      //console.log('Processing children for path:', fullPath);
       result.push( flattenDelta(delta.children, fullPath));
     }
   }

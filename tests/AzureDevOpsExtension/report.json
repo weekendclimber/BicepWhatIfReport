@@ -675,6 +675,8 @@
                                                                                     "after":  null,
                                                                                     "before":  {
                                                                                                    "addressPrefixes":  [
+                                                                                                                           "10.252.0.0/19",
+                                                                                                                           "10.251.0.0/19",
                                                                                                                            "10.252.0.0/19"
                                                                                                                        ]
                                                                                                },
@@ -685,6 +687,14 @@
                                                                                 {
                                                                                     "after":  null,
                                                                                     "before":  [
+                                                                                                   {
+                                                                                                       "id":  "/subscriptions/5e9773b6-9d27-4079-86c1-017db5a10eeb/resourceGroups/opp-hub-rg/providers/Microsoft.Network/virtualNetworkGateways/opp-hub-vpngw1",
+                                                                                                       "resourceGroup":  "opp-hub-rg"
+                                                                                                   },
+                                                                                                   {
+                                                                                                       "id":  "/subscriptions/5e9773b6-9d27-4079-86c1-017db5a10eeb/resourceGroups/opp-hub-rg/providers/Microsoft.Network/virtualNetworkGateways/opp-hub-vpngw1",
+                                                                                                       "resourceGroup":  "opp-hub-rg"
+                                                                                                   },
                                                                                                    {
                                                                                                        "id":  "/subscriptions/5e9773b6-9d27-4079-86c1-017db5a10eeb/resourceGroups/opp-hub-rg/providers/Microsoft.Network/virtualNetworkGateways/opp-hub-vpngw1",
                                                                                                        "resourceGroup":  "opp-hub-rg"
