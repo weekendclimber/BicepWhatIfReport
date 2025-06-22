@@ -53,11 +53,11 @@ async function main() {
         //console.log('Hello', inputString);
         // Parse the what-if JSON
         const parsed = (0, parseWhatIfJson_1.parseWhatIfJson)(inputString);
-        console.log('Parsed what-if JSON:', parsed);
+        //console.log('Parsed what-if JSON:', parsed);
         // Generate a human-readable report
         const report = (0, generateReport_1.generateReport)(parsed);
         //const report = generateReport(inputString as string);
-        console.log('Generated report:', report);
+        //console.log('Generated report:', report);
         fs.writeFileSync(outputFilePath, await report, 'utf-8');
     }
     catch (err) {

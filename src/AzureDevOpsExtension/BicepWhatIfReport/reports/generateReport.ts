@@ -36,36 +36,64 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
     // Get the common header fields for each change
     markdownData.push(
       { h2: `Resource: ${after.name || 'Unnamed Resource'}` },
-      { h3: `Change Type: ${change.ChangeType}` }
+      {code: { language: "text", content: `Resource ID: ${change.resourceId || 'Unknown Resource ID'}` } },
+      { h3: `Change Type: ${change.changeType}` }
     );
 
     // If change.ChangeType is 'NoChange' or 'Ignore', we can handle them the same way
-    if (change.ChangeType === 'NoChange' || change.changeType === 'Ignore') {
+    if (change.changeType === 'NoChange' || change.changeType === 'Ignore') {
       //No change:
       // before and after are the same
       // delta is empty
       // resourceId is present
-      markdownData.push(
-        { h4: `**Details**` },
-        { ul: [
-          `**Name**: **${after.name || 'Unknown Name'}**`,
-          `Type: ${after.type || 'Unknown Type'}`,
-          `Location: ${after.location || 'Unknown Location'}`,
-          `API Version: ${after.apiVersion || 'Unknown API Version'}`,
-          `Resource ID: ${after.resourceId || 'Unknown Resource ID'}`
-        ]}
+      markdownData.push({ h4: `**Details**` });
+
+      const ulItems: string[] = [];
+      ulItems.push(
+        `**Name**: **${after.name || 'Unknown Name'}**`,
+        `Type: ${after.type || 'Unknown Type'}`,
+        `Location: ${after.location || 'Unknown Location'}`
       );
-    //} else if (change.ChangeType === 'Ignore') {
-    //  //Ignore:
-    //  // before and after are the same
-    //  // delta is null
-    //  // resourceId is present
-    } else if (change.ChangeType === 'Modify') {
+      if (after.resourceGroup) {
+        ulItems.push(`Resource Group: ${after.resourceGroup || 'Unknown Resource Group'}`);
+      }
+      ulItems.push(
+        `API Version: ${after.apiVersion || 'Unknown API Version'}`,
+        `Resource ID: ${after.resourceId || 'Unknown Resource ID'}`
+      );
+      markdownData.push({ ul: ulItems });
+
+    } else if (change.changeType === 'Modify') {
       //Modify:
       // before and after are different
       // delta is present and lists the changes
       // resourceId is present
-    } else if (change.ChangeType === 'Create') {
+      change.delta.forEach((delta: any) => {
+        const children: any [] = [];
+        if (delta.children && Array.isArray(delta.children)) {
+          children.push(flattenDelta(delta.children, delta.path));
+        }
+
+        const ulItems: string[] = [];
+        ulItems.push(
+            `Property: ${delta.path || 'Unknown Property'}`,
+            `Before: ${delta.before || 'N/A'}`,
+            `After: ${delta.after || 'N/A'}`,
+            `Change Type: ${delta.propertyChangeType || 'Unknown Change Type'}`
+        );
+        //if (children.length > 0) {
+        //  ulItems.push(
+        //    `Subresource(s):`,
+        //    //${children}
+        //  );
+        //}
+        markdownData.push(
+            { h4: `**Change Details**`},
+            { ul: ulItems },
+            children
+        );
+      });
+    } else if (change.changeType === 'Create') {
       //Create:
       // before is null
       // after is present
@@ -73,25 +101,27 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
       // resourceId is present
     }
     
-    markdownData.push({
-      h4: `**After Details**`,
-      ul: [
-        `**After Name**: **${after.name || 'Unknown Name'}**`,
-        `After Type: ${after.type || 'Unknown Type'}`,
-        `After Location: ${after.location || 'Unknown Location'}`,
-        `After API Version: ${after.apiVersion || 'Unknown API Version'}`
-      ],
-    },
-    {
-      h4: `**Before Details**`,
-      ul: [
-        `**Before Name**: **${before.name || 'Unknown Name'}**`,
-        `Before Type: ${before.type || 'Unknown Type'}`,
-        `Before Location: ${before?.location || 'N/A'}`,
-        `Before API Version: ${before.apiVersion || 'Unknown API Version'}`
-      ]
-    });
-});
+    //markdownData.push({
+    //  h4: `**After Details**`,
+    //  ul: [
+    //    `**After Name**: **${after.name || 'Unknown Name'}**`,
+    //    `After Type: ${after.type || 'Unknown Type'}`,
+    //    `After Location: ${after.location || 'Unknown Location'}`,
+    //    `After API Version: ${after.apiVersion || 'Unknown API Version'}`
+    //  ],
+    //},
+    //{
+    //  h4: `**Before Details**`,
+    //  ul: [
+    //    `**Before Name**: **${before.name || 'Unknown Name'}**`,
+    //    `Before Type: ${before.type || 'Unknown Type'}`,
+    //    `Before Location: ${before?.location || 'N/A'}`,
+    //    `Before API Version: ${before.apiVersion || 'Unknown API Version'}`
+    //  ]
+    //});
+    markdownData.push({ hr: "" });
+  }
+);
 
 if (parsedData.diagnostics) {
   parsedData.diagnostics.forEach((diag: any) => {
@@ -108,4 +138,42 @@ if (parsedData.diagnostics) {
 
   const markdown: string = json2md(markdownData);
   return markdown;
+}
+
+// Recursive function to flatten delta objects and their children
+function flattenDelta(deltaArray: any[], parentPath: string = ''): any[] {
+  console.log('Processing parent path:', parentPath);
+  if (!deltaArray) return [];
+  let result: any[] = [];
+
+  for (const delta of deltaArray) {
+    // Build the full path for nested properties
+    const isInt = Number.isInteger(Number(delta.path));
+    const pathSegment = isInt ? `[${delta.path}]` : `${delta.path}`;
+    const fullPath = parentPath
+      ? `${parentPath}${isInt ? pathSegment : '.' + delta.path}`
+      : parentPath;
+
+    // Add the current delta with its full path
+    result.push({
+      ul: [`Subresource: ${fullPath}`,
+        {
+          ul: [
+            `Property: ${fullPath}`,
+            `Before: ${delta.before}`,
+            `After: ${delta.after}`,
+            `Change Type: ${delta.propertyChangeType}`
+          ]
+        }
+      ]
+  });
+
+    // Recursively process children if present
+    if (delta.children && Array.isArray(delta.children)) {
+      console.log('Processing children for path:', fullPath);
+      result.push( flattenDelta(delta.children, fullPath));
+    }
+  }
+
+  return result;
 }
