@@ -28,6 +28,8 @@ async function printParsedDataAsMarkdown(parsedData) {
         const before = change.before || {};
         // Get the common header fields for each change
         markdownData.push({ h2: `Resource: ${after.name || 'Unnamed Resource'}` }, { code: { language: "text", content: `Resource ID: ${change.resourceId || 'Unknown Resource ID'}` } }, { h3: `Change Type: ${change.changeType}` });
+        console.log(`Processing change for resource: ${after.name || 'Unnamed Resource'} with Change Type: ${change.changeType}`);
+        ///////NO CHANGE or IGNORE LOGIC//////
         // If change.ChangeType is 'NoChange' or 'Ignore', we can handle them the same way
         if (change.changeType === 'NoChange' || change.changeType === 'Ignore') {
             //No change:
@@ -43,6 +45,7 @@ async function printParsedDataAsMarkdown(parsedData) {
             ;
             ulItems.push(`API Version: ${after.apiVersion || 'Unknown API Version'}`, `Resource ID: ${after.resourceId || 'Unknown Resource ID'}`);
             markdownData.push({ ul: ulItems });
+            ///////MODIFY LOGIC//////
         }
         else if (change.changeType === 'Modify') {
             //Modify:
@@ -52,27 +55,32 @@ async function printParsedDataAsMarkdown(parsedData) {
             change.delta.forEach((delta) => {
                 const children = [];
                 if (delta.children && Array.isArray(delta.children)) {
-                    children.push(funcFlattenDelta(delta.children, delta.path));
+                    children.push({ h4: "Child Resource(s)" }, { ul: [funcDeltaChild(delta.children, delta.path)] });
                 }
                 ;
                 const ulItems = [];
                 ulItems.push(`Property: ${delta.path || 'Unknown Property'}`, `Change Type: ${delta.propertyChangeType || 'Unknown Change Type'}`);
-                if (delta.after !== null) {
+                if (Array.isArray(delta.after) || (typeof delta.after === 'object' && delta.after !== null)) {
                     ulItems.push(`After:`, { ul: [funcBeforeOrAfter(delta.after, delta.path)] });
                 }
                 else {
-                    ulItems.push(`After: null`);
+                    ulItems.push(`After: ${delta.after}`);
                 }
                 ;
-                if (delta.before !== null) {
+                if (Array.isArray(delta.before) || (typeof delta.before === 'object' && delta.before !== null)) {
                     ulItems.push(`Before:`, { ul: [funcBeforeOrAfter(delta.before, delta.path)] });
                 }
                 else {
-                    ulItems.push(`Before: null`);
+                    ulItems.push(`Before: ${delta.before}`);
                 }
                 ;
-                markdownData.push({ h4: `**Change Details**` }, { ul: ulItems }, children);
+                if (children.length > 0) {
+                    ulItems.push({ ul: children });
+                }
+                ;
+                markdownData.push({ h4: `**Change Details**` }, { ul: ulItems });
             });
+            ////////CREATE LOGIC//////
         }
         else if (change.changeType === 'Create') {
             //Create:
@@ -96,6 +104,7 @@ async function printParsedDataAsMarkdown(parsedData) {
                             ] }
                     ] });
             }
+            ////////UNKNOWN CHANGE TYPE LOGIC//////
         }
         else {
             markdownData.push({ p: "This change type is not handled in the report generation logic. Tell the developer to get his sh*t together!" });
@@ -120,46 +129,54 @@ async function printParsedDataAsMarkdown(parsedData) {
     return markdown;
 }
 ;
-// Recursive function to flatten delta objects and their children
-function funcFlattenDelta(deltaArray, parentPath = '') {
+// Recursive function to flatten delta children arrays and their children
+// Each child has an array of object with:
+//  after
+//  before
+//  children
+//  path
+//  propertyChangeType
+function funcDeltaChild(deltaArray, parentPath = '') {
     if (!deltaArray)
         return [];
     let result = [];
-    for (const delta of deltaArray) {
+    //for (const delta of deltaArray) {
+    deltaArray.forEach((child) => {
         // Build the full path for nested properties
-        const isInt = Number.isInteger(Number(delta.path));
-        const pathSegment = isInt ? `[${delta.path}]` : `${delta.path}`;
+        const isInt = Number.isInteger(Number(child.path));
+        const pathSegment = isInt ? `[${child.path}]` : `${child.path}`;
         const fullPath = parentPath
-            ? `${parentPath}${isInt ? pathSegment : '.' + delta.path}`
+            ? `${parentPath}${isInt ? pathSegment : '.' + child.path}`
             : parentPath;
-        // Add the current delta with its full path
-        const beforeItems = [];
-        const afterItems = [];
-        beforeItems.push(`Before:`, funcBeforeOrAfter(delta.before, delta.path));
-        afterItems.push(`After:`, funcBeforeOrAfter(delta.after, delta.path));
-        result.push({
-            ul: [
-                `Subresource: ${fullPath}`,
-                {
-                    ul: [
-                        `Property: ${fullPath}`,
-                        `Change Type: ${delta.propertyChangeType}`,
-                        //`After: ${delta.after}`,
-                        afterItems,
-                        //`Before: ${delta.before}`,
-                        beforeItems
-                    ]
-                }
-            ]
-        });
-        // Recursively process children if present
-        if (delta.children && Array.isArray(delta.children)) {
-            //console.log('Processing children for path:', fullPath);
-            result.push(funcFlattenDelta(delta.children, fullPath));
+        const ulItems = [];
+        ulItems.push(`Property: ${fullPath}`, `Change Type: ${child.propertyChangeType}`);
+        // Add the current child with its full path
+        if (Array.isArray(child.before) || (typeof child.before === 'object' && child.before !== null)) {
+            ulItems.push(`Before:`, { ul: [funcBeforeOrAfter(child.before, child.path)] });
+        }
+        else {
+            ulItems.push(`Before: ${child.before}`);
         }
         ;
-    }
-    ;
+        if (Array.isArray(child.after) || (typeof child.after === 'object' && child.after !== null)) {
+            ulItems.push(`After:`, { ul: [funcBeforeOrAfter(child.after, child.path)] });
+        }
+        else {
+            ulItems.push(`After: ${child.after}`);
+        }
+        ;
+        // Recursively process children if present
+        //const subList: any[] = [];
+        if (child.children && Array.isArray(child.children)) {
+            //console.log('Processing children for path:', fullPath);
+            ulItems.push({ hr: "Child Resource(s)" }, { ul: [funcDeltaChild(child.children, fullPath)] });
+        }
+        ;
+        result.push({ ul: ulItems });
+        //{ h5: "Subresource(s)"},
+        //{ ul: ulItems }
+        //);
+    });
     return result;
 }
 ;
@@ -185,7 +202,10 @@ function funcBeforeOrAfter(beforeOrAfter, path = '') {
             console.log('Finished processing array element:');
         });
         console.log('Finished processing array beforeOrAfter:', path);
-        return ([`${path}:`, [subItems]]);
+        return ([
+            { ul: `${path}:` },
+            { ul: [subItems] }
+        ]);
     }
     else if (typeof beforeOrAfter === 'object' && beforeOrAfter !== null) {
         console.log('Processing object beforeOrAfter:', path);
@@ -193,12 +213,13 @@ function funcBeforeOrAfter(beforeOrAfter, path = '') {
         const propertyNames = Object.keys(beforeOrAfter);
         propertyNames.forEach(key => {
             const subList = [];
-            if (Array.isArray(beforeOrAfter[key]) || (typeof beforeOrAfter[key] === 'object' && beforeOrAfter[key] !== null)) {
+            if (typeof beforeOrAfter[key] === 'object' && beforeOrAfter[key] !== null) {
                 console.log(`Processing if for beforeOrAfter[${key}] as '${typeof beforeOrAfter[key]}' - path:`, path);
                 subList.push({ ul: funcBeforeOrAfter(beforeOrAfter[key], key) });
-                //} else if (Array.isArray(beforeOrAfter[key])) {
-                //  console.log(`Processing object else if 'Array' beforeOrAfter[${key}] - path:`, path)
-                //  subList.push({ ul: funcBeforeOrAfter(beforeOrAfter[key], key)});
+            }
+            else if (Array.isArray(beforeOrAfter[key])) {
+                console.log(`Processing object else if 'Array' beforeOrAfter[${key}] - path:`, path);
+                subList.push({ ul: funcBeforeOrAfter(beforeOrAfter[key], key) });
             }
             else {
                 console.log(`Processing object else primitive beforeOrAfter[${key}] - path:`, path);
