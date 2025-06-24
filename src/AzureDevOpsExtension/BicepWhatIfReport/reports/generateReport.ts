@@ -10,7 +10,102 @@ export async function generateReport(parsedData: any): Promise<string> {
   // TODO: Implement report generation logic for Azure DevOps Extension
   // Example: Convert parsedData into a Markdown summary
   //return '# Bicep What-If Report\n\n_No changes detected or report logic not implemented yet._';
-  return printParsedDataAsMarkdown(parsedData) as Promise<string>;
+  //return printParsedDataAsMarkdown(parsedData) as Promise<string>;
+  return jsonToMarkdown(parsedData) as Promise<string>;
+};
+
+export async function jsonToMarkdown(jsonData: any): Promise<string> {
+  const markdownData: any = [{ h1: 'Bicep What-If Report' }];
+  console.log(`Generating Markdown report for ${jsonData.changes.length} changes.`);
+  jsonData.changes.forEach((change: any) => {
+    markdownData.push(...processChange(change));
+  });
+  const markdown: string = json2md(markdownData);
+  return markdown;
+};
+
+function processChange(change: any): any[] {
+  const markdownData: any[] = [];
+  const {after, changeType, delta, resourceId} = change;
+  
+  // Add common header fields for each change
+  const resName: string = after?.name?.toString() || 'Unnamed Resource';
+  const type: string = after?.type?.toString() || 'Unknown Type';
+  const location: string = after?.location?.toString() || 'Unknown Location';
+  const apiVersion: string = after?.apiVersion?.toString() || 'Unknown API Version';
+
+  console.log(`Processing change for resource: ${resName}, Type: ${type}, Location: ${location}, API Version: ${apiVersion}`);
+
+  const nestedList: any[] = []
+  const nestedHeader: any = []
+  if (changeType === 'Modify' && delta && Array.isArray(delta)) {
+    nestedHeader.push({ h4: 'Change Details' });
+    nestedList.push(...processDelta(delta, 1));
+  } else if (changeType === 'Create') {
+    nestedHeader.push({ h4: 'New Resource Details' });
+    nestedList.push(...processValue(after, 1));
+  };
+
+  markdownData.push(
+    {h2: `Resource Name: ${resName}`},
+    {code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` }},
+    {h3: `Change Type: ${changeType || 'Unknown Change Type'}`},
+    {h4: `Details`},
+    {ul: [
+      `**Name**: ${resName}`,
+      `Type: ${type}`,
+      `Location: ${location}`,
+      `API Version: ${apiVersion}`,
+      nestedHeader,
+      { ul: nestedList }
+    ]}
+  );
+  console.log(`Finished processing change for resource: ${resName}`);
+  return markdownData;
+};
+
+function processDelta(delta: any[], level: number): any[] {
+  const markdownData: any[] = [];
+
+  delta.forEach((change: any) => {
+    const { after, before, children, path, propertyChangeType } = change;
+    
+    markdownData.push(
+      `Resource Type: ${path || 'Unknown Resource Type'}`,
+      `Change Type: ${propertyChangeType || 'Unknown Change Type'}`,
+    );
+    
+    if (after !== undefined  && after !== null) {
+      markdownData.push(`After:` + [...processValue(after, level + 1)]);
+    };
+    if (before !== undefined && before !== null) {
+      markdownData.push(`Before:` + [...processValue(before, level + 1)]);
+    };
+
+    if (children && Array.isArray(children) && children.length > 0) {
+      markdownData.push(`Child Resource(s):` + [...processDelta(children, level + 1)]);
+    };
+  });
+
+  return markdownData;
+};
+
+function processValue(value: any, level: number): any[] {
+  const markdownData: any[] = [];
+
+  if (Array.isArray(value)) {
+    value.forEach((item: any, index: number) => {
+      markdownData.push(`Item ${index + 1}:` + [...processValue(item, level + 1)]);
+    });
+  } else if (typeof value === 'object' && value !== null) {
+    Object.entries(value).forEach(([key, val]) => {
+      markdownData.push(`${key}:` + [...processValue(val, level + 1)]);
+    });
+  } else {
+    markdownData.push(`${value !== null && value !== undefined ? value?.toString() : 'N/A'}`);
+  };
+
+  return markdownData;
 };
 
 async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
@@ -27,23 +122,26 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
     // Get the before and after states: note before could be null
     const after = change.after || {};
     const before = change.before || {};
+    const resName: string = after.name.toString() || null;
+    const chgType: string = change.changeType.toString() || null;
 
     // Get the common header fields for each change
     markdownData.push(
-      { h2: `Resource: ${after.name || 'Unnamed Resource'}` },
+      { h2: `Resource: ${resName || 'Unnamed Resource'}` },
       {code: { language: "text", content: `Resource ID: ${change.resourceId || 'Unknown Resource ID'}` } },
-      { h3: `Change Type: ${change.changeType}` }
+      { h3: `Change Type: ${chgType}` }
     );
 
-    console.log(`Processing change for resource: ${after.name || 'Unnamed Resource'} with Change Type: ${change.changeType}`);
+    console.log(`${resName}: Processing change type '${change.changeType}'`);
 
     ///////NO CHANGE or IGNORE LOGIC//////
     // If change.ChangeType is 'NoChange' or 'Ignore', we can handle them the same way
-    if (change.changeType === 'NoChange' || change.changeType === 'Ignore') {
+    if (chgType === 'NoChange' || chgType === 'Ignore') {
       //No change:
       // before and after are the same
       // delta is empty
       // resourceId is present
+      console.log(`${resName}: Change type is '${chgType}'. No detailed changes to report. Showing existing resource details.`);
       markdownData.push({ h4: `**Details**` });
 
       const ulItems: string[] = [];
@@ -62,36 +160,49 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
       markdownData.push({ ul: ulItems });
 
     ///////MODIFY LOGIC//////
-    } else if (change.changeType === 'Modify') {
+    } else if (chgType === 'Modify') {
+      console.log(`${resName}: Change type is '${chgType}'. Processing ${change.delta.length} detailed change(s).`);
       //Modify:
       // before and after are different
       // delta is present and lists the changes
       // resourceId is present
       change.delta.forEach((delta: any) => {
-        const children: any [] = [];
-        if (delta.children && Array.isArray(delta.children)) {
-          children.push( { h4: "Child Resource(s)" }, { ul: [funcDeltaChild(delta.children, delta.path)] });
-        };
-
+        let i: number = 0;
         const ulItems: any[] = [];
+        console.log(`${resName}: Processing delta change #${++i} for property path '${delta.path}'.`);
+        //const children: any [] = [];
+
         ulItems.push(
             `Property: ${delta.path || 'Unknown Property'}`,
             `Change Type: ${delta.propertyChangeType || 'Unknown Change Type'}`
         );
         if (Array.isArray(delta.after) || ( typeof delta.after === 'object' && delta.after !== null )) {
-          ulItems.push(`After:`, { ul: [funcBeforeOrAfter(delta.after, delta.path)]});
+          console.log(`${resName}: 'After' property for '${delta.path}' is complex type '${typeof delta.after}'. Processing...`);
+          ulItems.push(`After:` + [funcBeforeOrAfter(delta.after, delta.path)]);
         } else {
+          console.log(`${resName}: 'After' property for '${delta.path}' is primitive type '${typeof delta.after}'. Pushing to 'ulItmes'...`);
           ulItems.push(`After: ${delta.after}`);
         };
         
         if (Array.isArray(delta.before) || ( typeof delta.before === 'object' && delta.before !== null )) {
-          ulItems.push(`Before:`, { ul: [funcBeforeOrAfter(delta.before, delta.path)]});
+          console.log(`${resName}: 'Before' property for '${delta.path}' is complex type '${typeof delta.before}'. Processing...`);
+          ulItems.push(`Before:` + [funcBeforeOrAfter(delta.before, delta.path)]);
         } else {
+          console.log(`${resName}: 'Before' property for '${delta.path}' is primitive type '${typeof delta.before}'. Pushing to 'ulItmes'...`);
           ulItems.push(`Before: ${delta.before}`);
         };
 
-        if (children.length > 0) {
-          ulItems.push({ ul: children});
+        //if (children.length > 0) {
+        //  ulItems.push({ ul: children});
+        //};
+
+        if (delta.children && Array.isArray(delta.children)) {
+          console.log(`${resName}: Delta has '${delta.children.length}' child(ren). Processing children.`);
+          ulItems.push(
+              { h4: "Child Resource(s)" },
+              funcDeltaChild(delta.children, delta.path)
+          );
+          //ulItems.push( { h4: "Child Resource(s)" }, );
         };
 
         markdownData.push(
@@ -103,6 +214,7 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
     
     ////////CREATE LOGIC//////
     } else if (change.changeType === 'Create') {
+      console.log(`Change type is '${chgType}' for '${resName}'. Processing new resource details.`);
       //Create:
       // before is null
       // after is present
@@ -140,6 +252,7 @@ async function printParsedDataAsMarkdown(parsedData: any): Promise<string> {
 );
 
 if (parsedData.diagnostics) {
+  console.log(`There are '${parsedData.diagnostics.length}' diagnostic(s) to report. Processing...`);
   parsedData.diagnostics.forEach((diag: any) => {
     markdownData.push({ h2: `Diagnostic: ${diag.code || 'Unknown Diagnostic'}` });
     markdownData.push({
@@ -164,18 +277,23 @@ if (parsedData.diagnostics) {
 //  path
 //  propertyChangeType
 function funcDeltaChild(deltaArray: any[], parentPath: string = ''): any[] {
-  if (!deltaArray) return [];
+  if (!deltaArray) {
+    console.log('No deltaArray provided, returning empty array.');
+    return [];
+  } else {
+    console.log(`There are '${deltaArray.length}' delta child(ren) to process for parent path: '${parentPath}'`);
+  }
+
   let result: any[] = [];
 
-  //for (const delta of deltaArray) {
   deltaArray.forEach((child: any) => {
     // Build the full path for nested properties
-    const isInt = Number.isInteger(Number(child.path));
-    const pathSegment = isInt ? `[${child.path}]` : `${child.path}`;
-    const fullPath = parentPath
-      ? `${parentPath}${isInt ? pathSegment : '.' + child.path}`
-      : parentPath;
+    const fullPath = `${parentPath}${
+      Number.isInteger(Number(child.path))
+        ? '[' + child.path + ']' : '.' + child.path}`;
 
+    console.log(`Processing child with path: '${fullPath}' and change type: '${child.propertyChangeType}'`);
+    
     const ulItems: any[] = [];
     ulItems.push(
       `Property: ${fullPath}`,
@@ -184,29 +302,30 @@ function funcDeltaChild(deltaArray: any[], parentPath: string = ''): any[] {
 
     // Add the current child with its full path
     if (Array.isArray(child.before) || ( typeof child.before === 'object' && child.before !== null )) {
-      ulItems.push(`Before:`, {ul : [funcBeforeOrAfter(child.before, child.path)] });
+      console.log(`The 'Before' property for '${fullPath}' is a complex type. Processing...`);
+      ulItems.push(`Before:`, + [funcBeforeOrAfter(child.before, child.path)] );
     } else {
+      console.log(`The 'Before' property for '${fullPath}' is a primitive type. Pushing to 'ulItems'...`);
       ulItems.push(`Before: ${child.before}`);
     };
     if (Array.isArray(child.after) || ( typeof child.after === 'object' && child.after !== null )) {
-      ulItems.push(`After:`, { ul: [funcBeforeOrAfter(child.after, child.path)] });
+      console.log(`The 'After' property for '${fullPath}' is a complex type. Processing...`);
+      ulItems.push(`After:`, + [funcBeforeOrAfter(child.after, child.path)] );
     } else {
+      console.log(`The 'After' property for '${fullPath}' is a primitive type. Pushing to 'ulItems'...`);
       ulItems.push(`After: ${child.after}`);
     };
 
     // Recursively process children if present
-    //const subList: any[] = [];
     if (child.children && Array.isArray(child.children)) {
-      //console.log('Processing children for path:', fullPath);
-      ulItems.push({ hr: "Child Resource(s)"}, { ul: [funcDeltaChild(child.children, fullPath)] });
+      console.log(`The 'Children' property for '${fullPath}' has ${child.children.length} child(ren). Processing...`);
+      ulItems.push(
+        { h4: "Child Resource(s)"},
+        { ul: funcDeltaChild(child.children, fullPath) }
+      );
     };
 
-
-    result.push({ul: ulItems});
-      //{ h5: "Subresource(s)"},
-      //{ ul: ulItems }
-    //);
-    
+    result.push( ulItems );
   });
 
   return result;
@@ -214,23 +333,23 @@ function funcDeltaChild(deltaArray: any[], parentPath: string = ''): any[] {
 
 function funcBeforeOrAfter(beforeOrAfter: any, path: string = ''): any {
   if (beforeOrAfter && Array.isArray(beforeOrAfter)) {
-    console.log('Processing array beforeOrAfter:', path );
+    console.log(`Processing '${beforeOrAfter.length}' items in beforeOrAfter array in funcBeforeOrAfter for path '${path}'.` );
     const subItems: any[] = [];
     beforeOrAfter.forEach((element: any) => {
       const subList: any[] = [];
       //Dynamically get all key/value pairs in the object     
       if (Array.isArray(element) || ( typeof element === 'object' && element !== null )) {
-        console.log(`Processing array if '${typeof element}' - path:`, path );
+        console.log(`Recursing 'element' of type '${typeof element}' within path '${path}'` );
         subList.push({ ul: funcBeforeOrAfter(element, path) });
       //} else if (Array.isArray(element)) {
       //  console.log(`Processing array else if 'Array' element[${key}] - path:`, path);
       //  subList.push({ ul: funcBeforeOrAfter(value, key) });
       } else {
-        console.log(`Processing array else primitive element '${element} - path:`, path);
+        console.log(`Processing primitive 'element' of type '${typeof element}' with the value of '${element}' within path '${path}'`);
         subList.push(element);
       }
       subItems.push([subList]);
-      console.log('Finished processing array element:',);
+      console.log(`Finished processing 'element' of type '${typeof element}' in path '${path}'` );
     });
     console.log('Finished processing array beforeOrAfter:', path );
     return ([
@@ -238,16 +357,16 @@ function funcBeforeOrAfter(beforeOrAfter: any, path: string = ''): any {
       { ul: [subItems] }
     ]);
   } else if (typeof beforeOrAfter === 'object' && beforeOrAfter !== null) {
-    console.log('Processing object beforeOrAfter:', path );
+    console.log(`Processing object beforeOrAfter in funcBeforeOrAfter for path '${path}'` );
     const subItems: any[] = [];
     const propertyNames = Object.keys(beforeOrAfter);
     propertyNames.forEach(key => {
       const subList: any[] = [];
       if (typeof beforeOrAfter[key] === 'object' && beforeOrAfter[key] !== null ) {
-        console.log(`Processing if for beforeOrAfter[${key}] as '${typeof beforeOrAfter[key]}' - path:`, path )
+        console.log(`Processing object for beforeOrAfter[${key}] as '${typeof beforeOrAfter[key]}' - path:`, path )
         subList.push({ ul: funcBeforeOrAfter(beforeOrAfter[key], key) });
       } else if (Array.isArray(beforeOrAfter[key])) {
-        console.log(`Processing object else if 'Array' beforeOrAfter[${key}] - path:`, path)
+        console.log(`Processing array else if 'Array' beforeOrAfter[${key}] - path:`, path)
         subList.push({ ul: funcBeforeOrAfter(beforeOrAfter[key], key)});
       } else {
         console.log(`Processing object else primitive beforeOrAfter[${key}] - path:`, path)
