@@ -33,17 +33,29 @@ function processChange(change: any): any[] {
   const type: string = after?.type?.toString() || 'Unknown Type';
   const location: string = after?.location?.toString() || 'Unknown Location';
   const apiVersion: string = after?.apiVersion?.toString() || 'Unknown API Version';
+  const resGroup: string = after?.resourceGroup?.toString();
 
   console.log(`Processing change for resource: ${resName}, Type: ${type}, Location: ${location}, API Version: ${apiVersion}`);
 
-  const nestedList: any[] = []
-  const nestedHeader: any = []
+  const ulItems: any[] =[];
+  ulItems.push(
+    `**Name**: **${resName}**`,
+    `Type: ${type}`
+  );
+  if (resGroup) {
+    ulItems.push(`Resource Group: ${resGroup}`);
+  }
+  ulItems.push(
+    `Location: ${location}`,
+    `API Version: ${apiVersion}`
+  );
+
   if (changeType === 'Modify' && delta && Array.isArray(delta)) {
-    nestedHeader.push({ h4: 'Change Details' });
-    nestedList.push(...processDelta(delta, 1));
+    ulItems.push( '**Change Details**' );
+    ulItems.push({ ul: [...processDelta(delta)] });
   } else if (changeType === 'Create') {
-    nestedHeader.push({ h4: 'New Resource Details' });
-    nestedList.push(...processValue(after, 1));
+    ulItems.push( '**New Resource Details**' );
+    ulItems.push({ ul: [...processValue(after)] });
   };
 
   markdownData.push(
@@ -51,55 +63,75 @@ function processChange(change: any): any[] {
     {code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` }},
     {h3: `Change Type: ${changeType || 'Unknown Change Type'}`},
     {h4: `Details`},
-    {ul: [
-      `**Name**: ${resName}`,
-      `Type: ${type}`,
-      `Location: ${location}`,
-      `API Version: ${apiVersion}`,
-      nestedHeader,
-      { ul: nestedList }
-    ]}
+    {ul: ulItems}
   );
   console.log(`Finished processing change for resource: ${resName}`);
   return markdownData;
 };
 
-function processDelta(delta: any[], level: number): any[] {
+function processDelta(delta: any[], parentPath: string = ''): any[] {
   const markdownData: any[] = [];
 
   delta.forEach((change: any) => {
-    const { after, before, children, path, propertyChangeType } = change;
+    const { after, before, children, path, propertyChangeType }: any = change;
+    let fullpath: string = parentPath ? `${parentPath}${Number.isInteger(Number(path)) ? '[' + path + ']' : '.' + path}` : path;
     
     markdownData.push(
-      `Resource Type: ${path || 'Unknown Resource Type'}`,
+      `**Resource Type**: ${fullpath || 'Unknown Resource Type'}`,
       `Change Type: ${propertyChangeType || 'Unknown Change Type'}`,
     );
     
     if (after !== undefined  && after !== null) {
-      markdownData.push(`After:` + [...processValue(after, level + 1)]);
+      const afterVal: any [] = [...processValue(after)];
+      if (afterVal.length === 1 && typeof afterVal[0] === 'string' && !afterVal[0].includes(':')) {
+        markdownData.push(`After: ${afterVal[0]}`);
+      } else {
+        markdownData.push(`After:`, { Ul: [...processValue(after)] });
+      };
+    } else {
+      markdownData.push(`After: null`);
     };
     if (before !== undefined && before !== null) {
-      markdownData.push(`Before:` + [...processValue(before, level + 1)]);
+      const beforeVal: any [] = [...processValue(before)];
+      if (beforeVal.length === 1 && typeof beforeVal[0] === 'string' && !beforeVal[0].includes(':')) {
+        markdownData.push(`Before: ${beforeVal[0]}`);
+      } else {
+        markdownData.push(`Before:`, { ul: [...processValue(before)] });
+      };
+    } else {
+      markdownData.push(`Before: null`);
     };
 
     if (children && Array.isArray(children) && children.length > 0) {
-      markdownData.push(`Child Resource(s):` + [...processDelta(children, level + 1)]);
+      markdownData.push({hr: ""});
+      markdownData.push(`**Child Resource(s)**:`, {ul: [...processDelta(children, fullpath)] });
     };
   });
 
   return markdownData;
 };
 
-function processValue(value: any, level: number): any[] {
+function processValue(value: any): any[] {
   const markdownData: any[] = [];
 
   if (Array.isArray(value)) {
-    value.forEach((item: any, index: number) => {
-      markdownData.push(`Item ${index + 1}:` + [...processValue(item, level + 1)]);
+    let i: number = 0;
+    value.forEach((item: any) => {
+      if (typeof item === 'object' && item !== null) {
+        Object.entries(item).forEach(([key, val]) => {
+          markdownData.push(`${key}: ` + [...processValue(val)]);
+        });
+      } else {
+        markdownData.push([...processValue(item)]);
+      }
     });
   } else if (typeof value === 'object' && value !== null) {
     Object.entries(value).forEach(([key, val]) => {
-      markdownData.push(`${key}:` + [...processValue(val, level + 1)]);
+      if (Array.isArray(val)) {
+        markdownData.push(`${key}: `, { ul: [...processValue(val)] });
+      } else {
+        markdownData.push(`${key}: `, { ul: [...processValue(val)] });
+      };
     });
   } else {
     markdownData.push(`${value !== null && value !== undefined ? value?.toString() : 'N/A'}`);
