@@ -37,6 +37,12 @@ function processChange(change: any): any[] {
 
   console.log(`Processing change for resource: ${resName}, Type: ${type}, Location: ${location}, API Version: ${apiVersion}`);
 
+  markdownData.push(
+    { h2: `Resrource Name: ${resName}` },
+    { code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` } },
+    { h3: `Change Type: ${changeType || 'Unknown Change Type'}` },
+  );
+
   const ulItems: any[] =[];
   ulItems.push(
     `**Name**: **${resName}**`,
@@ -51,20 +57,17 @@ function processChange(change: any): any[] {
   );
 
   if (changeType === 'Modify' && delta && Array.isArray(delta)) {
-    ulItems.push( '**Change Details**' );
+    markdownData.push({ h3: "Change Details" });
     ulItems.push({ ul: [...processDelta(delta)] });
   } else if (changeType === 'Create') {
-    ulItems.push( '**New Resource Details**' );
+    markdownData.push({ h3: "New Resource Details" });
     ulItems.push({ ul: [...processValue(after)] });
+  } else {
+    markdownData.push({ h3: "Details" });
   };
 
-  markdownData.push(
-    {h2: `Resource Name: ${resName}`},
-    {code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` }},
-    {h3: `Change Type: ${changeType || 'Unknown Change Type'}`},
-    {h4: `Details`},
-    {ul: ulItems}
-  );
+  markdownData.push({ ul: ulItems });
+
   console.log(`Finished processing change for resource: ${resName}`);
   return markdownData;
 };
@@ -103,7 +106,7 @@ function processDelta(delta: any[], parentPath: string = ''): any[] {
     };
 
     if (children && Array.isArray(children) && children.length > 0) {
-      markdownData.push({hr: ""});
+      //markdownData.push({hr: ""});
       markdownData.push(`**Child Resource(s)**:`, {ul: [...processDelta(children, fullpath)] });
     };
   });
