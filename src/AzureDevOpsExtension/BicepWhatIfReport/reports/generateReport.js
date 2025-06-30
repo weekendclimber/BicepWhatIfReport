@@ -95,7 +95,7 @@ function processDelta(delta, parentPath = '') {
         }
         ;
         if (children && Array.isArray(children) && children.length > 0) {
-            markdownData.push({ hr: "" });
+            //markdownData.push({hr: ""});
             markdownData.push(`**Child Resource(s)**:`, { ul: [...processDelta(children, fullpath)] });
         }
         ;
