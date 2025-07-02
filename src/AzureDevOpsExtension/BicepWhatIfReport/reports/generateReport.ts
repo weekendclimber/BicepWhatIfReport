@@ -5,6 +5,8 @@
  */
 
 const json2md = require('json2md');
+import * as fs from 'fs';
+import * as path from 'path';
 
 export async function generateReport(parsedData: any): Promise<string> {
   // TODO: Implement report generation logic for Azure DevOps Extension
@@ -20,6 +22,10 @@ export async function jsonToMarkdown(jsonData: any): Promise<string> {
   jsonData.changes.forEach((change: any) => {
     markdownData.push(...processChange(change));
   });
+  
+  //const reportRaw: 
+  const outputFilePath = path.resolve(__dirname, 'raw.json')
+  fs.writeFileSync(outputFilePath, JSON.stringify(markdownData, null, 2), 'utf-8');
   const markdown: string = json2md(markdownData);
   return markdown;
 };
@@ -38,35 +44,48 @@ function processChange(change: any): any[] {
   console.log(`Processing change for resource: ${resName}, Type: ${type}, Location: ${location}, API Version: ${apiVersion}`);
 
   markdownData.push(
-    { h2: `Resrource Name: ${resName}` },
+    { h2: `Resource Name: ${resName}` },
     { code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` } },
     { h3: `Change Type: ${changeType || 'Unknown Change Type'}` },
   );
 
   const ulItems: any[] =[];
-  ulItems.push(
+  const mainItems: any[] = [];
+  //ulItems.push(
+  mainItems.push(
     `**Name**: **${resName}**`,
     `Type: ${type}`
   );
   if (resGroup) {
-    ulItems.push(`Resource Group: ${resGroup}`);
+    //ulItems.push(`Resource Group: ${resGroup}`);
+    mainItems.push(`Resource Group: ${resGroup}`);
   }
-  ulItems.push(
+  //ulItems.push(
+  mainItems.push(
     `Location: ${location}`,
     `API Version: ${apiVersion}`
   );
 
+  markdownData.push({ ul: mainItems });
+
   if (changeType === 'Modify' && delta && Array.isArray(delta)) {
-    markdownData.push({ h3: "Change Details" });
-    ulItems.push({ ul: [...processDelta(delta)] });
+    markdownData.push(
+      { h3: "Change Details" },
+      { ul: [...processDelta(delta)]}
+    );
+    //ulItems.push({ ul: [...processDelta(delta)] });
   } else if (changeType === 'Create') {
-    markdownData.push({ h3: "New Resource Details" });
-    ulItems.push({ ul: [...processValue(after)] });
+    markdownData.push(
+      { h3: "New Resource Details" },
+      { ul: [...processValue(after)] }
+    );
+    //ulItems.push({ ul: [...processValue(after)] });
   } else {
+    //TODO: No Changes so just show the details of the resource
     markdownData.push({ h3: "Details" });
   };
 
-  markdownData.push({ ul: ulItems });
+  //markdownData.push({ ul: ulItems });
 
   console.log(`Finished processing change for resource: ${resName}`);
   return markdownData;
@@ -77,38 +96,43 @@ function processDelta(delta: any[], parentPath: string = ''): any[] {
 
   delta.forEach((change: any) => {
     const { after, before, children, path, propertyChangeType }: any = change;
+    const ulItems: any[] = [];
+    const chUlIteam: any[] = [];
     let fullpath: string = parentPath ? `${parentPath}${Number.isInteger(Number(path)) ? '[' + path + ']' : '.' + path}` : path;
     
-    markdownData.push(
-      `**Resource Type**: ${fullpath || 'Unknown Resource Type'}`,
-      `Change Type: ${propertyChangeType || 'Unknown Change Type'}`,
-    );
+    ulItems.push(`Change Type: ${propertyChangeType || 'Unknown Change Type'}`);
     
     if (after !== undefined  && after !== null) {
       const afterVal: any [] = [...processValue(after)];
       if (afterVal.length === 1 && typeof afterVal[0] === 'string' && !afterVal[0].includes(':')) {
-        markdownData.push(`After: ${afterVal[0]}`);
+        ulItems.push(`After: ${afterVal[0]}`);
       } else {
-        markdownData.push(`After:`, { Ul: [...processValue(after)] });
+        ulItems.push(`After:`, { Ul: afterVal });
       };
     } else {
-      markdownData.push(`After: null`);
+      ulItems.push(`After: null`);
     };
     if (before !== undefined && before !== null) {
       const beforeVal: any [] = [...processValue(before)];
       if (beforeVal.length === 1 && typeof beforeVal[0] === 'string' && !beforeVal[0].includes(':')) {
-        markdownData.push(`Before: ${beforeVal[0]}`);
+        ulItems.push(`Before: ${beforeVal[0]}`);
       } else {
-        markdownData.push(`Before:`, { ul: [...processValue(before)] });
+        ulItems.push(`Before:`, { ul: beforeVal });
       };
     } else {
-      markdownData.push(`Before: null`);
+      ulItems.push(`Before: null`);
     };
 
     if (children && Array.isArray(children) && children.length > 0) {
       //markdownData.push({hr: ""});
-      markdownData.push(`**Child Resource(s)**:`, {ul: [...processDelta(children, fullpath)] });
+      ulItems.push(`**Child Resource(s)**:`, {ul: [...processDelta(children, fullpath)] });
     };
+
+    markdownData.push(
+      `**Resource Type**: ${fullpath || 'Unknown Resource Type'}`,
+      { ul: ulItems }
+    );
+
   });
 
   return markdownData;
@@ -120,22 +144,43 @@ function processValue(value: any): any[] {
   if (Array.isArray(value)) {
     let i: number = 0;
     value.forEach((item: any) => {
-      if (typeof item === 'object' && item !== null) {
+      if (Array.isArray(item) && item.length === 1) {
+        markdownData.push(`Item ${++i}: ${item[0].toString()}`);
+      } else if (Array.isArray(item)) {
+        markdownData.push(`Item ${++i}: `, { ul: [...processValue(item)] });
+      } else if (typeof item === 'object' && item !== null) {
+        const ulItems: any[] = [];
         Object.entries(item).forEach(([key, val]) => {
-          markdownData.push(`${key}: ` + [...processValue(val)]);
+          if (Array.isArray(val) && val.length === 1) {
+            ulItems.push(`${key}: ${val[0].toString()}`);
+            //markdownData.push(`${key}: ${val[0].toString()}`);
+          } else if (Array.isArray(val)) {
+            ulItems.push(`${key}: `, { ul: [...processValue(val)] });
+            //markdownData.push(`${key}: `, { ul: [...processValue(val)] });
+          } else {
+            //TODO: Handle nested objects
+            ulItems.push(`${key}: ${val}`);
+            //markdownData.push(`${key}: ${val}`)
+            //markdownData.push(`Item ${++i}:`, { ul: [`${key}: ${val}`] });
+          };
         });
+        markdownData.push(`Item ${++i}: `, { ul: ulItems });
       } else {
-        markdownData.push([...processValue(item)]);
-      }
-    });
-  } else if (typeof value === 'object' && value !== null) {
-    Object.entries(value).forEach(([key, val]) => {
-      if (Array.isArray(val)) {
-        markdownData.push(`${key}: `, { ul: [...processValue(val)] });
-      } else {
-        markdownData.push(`${key}: `, { ul: [...processValue(val)] });
+        markdownData.push(`Item ${++i}: ${item.toString()}`);  
       };
     });
+  } else if (typeof value === 'object' && value !== null) {
+    const ulItems: any[] = [];
+    Object.entries(value).forEach(([key, val]) => {
+      if (Array.isArray(val) && val.length === 1) {
+        ulItems.push(`${key}: ${val[0].toString()}`);
+      } else if (Array.isArray(val)) {
+        ulItems.push(`${key}: `, { ul: [...processValue(val)] });
+      } else {
+        ulItems.push(`${key}: `, { ul: [...processValue(val)] });
+      };
+    });
+    markdownData.push( ulItems );
   } else {
     markdownData.push(`${value !== null && value !== undefined ? value?.toString() : 'N/A'}`);
   };
