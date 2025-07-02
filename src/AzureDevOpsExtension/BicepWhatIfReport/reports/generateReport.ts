@@ -187,3 +187,13 @@ function processValue(value: any): any[] {
 
   return markdownData;
 };
+
+function processProperties(properties: object): any[] {
+  const markdownData: any[] = [];
+  Object.entries(properties).forEach(([key, value]) => {
+    if (Array.isArray(value) && value.length === 1) {
+      
+    }
+  });
+  return markdownData
+}
