@@ -1216,6 +1216,388 @@
                         "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001/virtualNetworkPeerings/sec-prod-vnet-001-to-opp-hub-vnet",
                         "symbolicName":  null,
                         "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2025-03-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg",
+                                      "location":  "westus2",
+                                      "name":  "sec-prod-rg",
+                                      "type":  "Microsoft.Resources/resourceGroups"
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2024-07-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Compute/virtualMachines/sec-ubuntu-prod-vm-001",
+                                      "location":  "westus2",
+                                      "name":  "sec-ubuntu-prod-vm-001",
+                                      "properties":  {
+                                                         "additionalCapabilities":  {
+                                                                                        "hibernationEnabled":  false,
+                                                                                        "ultraSSDEnabled":  false
+                                                                                    },
+                                                         "diagnosticsProfile":  {
+                                                                                    "bootDiagnostics":  {
+                                                                                                            "enabled":  false
+                                                                                                        }
+                                                                                },
+                                                         "hardwareProfile":  {
+                                                                                 "vmSize":  "Standard_B4als_v2"
+                                                                             },
+                                                         "networkProfile":  {
+                                                                                "networkInterfaces":  [
+                                                                                                          {
+                                                                                                              "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/networkInterfaces/sec-ubuntu-prod-nic-001",
+                                                                                                              "properties":  {
+                                                                                                                                 "deleteOption":  "Delete",
+                                                                                                                                 "primary":  true
+                                                                                                                             },
+                                                                                                              "resourceGroup":  "sec-prod-rg"
+                                                                                                          }
+                                                                                                      ]
+                                                                            },
+                                                         "osProfile":  {
+                                                                           "adminPassword":  "*******",
+                                                                           "adminUsername":  "[parameters(\u0027adminUsername\u0027)]",
+                                                                           "allowExtensionOperations":  true,
+                                                                           "computerName":  "sec-ubuntu-prod-vm-001",
+                                                                           "customData":  "*******",
+                                                                           "linuxConfiguration":  {
+                                                                                                      "disablePasswordAuthentication":  false,
+                                                                                                      "provisionVMAgent":  true
+                                                                                                  }
+                                                                       },
+                                                         "securityProfile":  {
+                                                                                 "encryptionAtHost":  true
+                                                                             },
+                                                         "storageProfile":  {
+                                                                                "imageReference":  {
+                                                                                                       "offer":  "0001-com-ubuntu-server-jammy",
+                                                                                                       "publisher":  "Canonical",
+                                                                                                       "sku":  "22_04-lts-gen2",
+                                                                                                       "version":  "latest"
+                                                                                                   },
+                                                                                "osDisk":  {
+                                                                                               "caching":  "ReadOnly",
+                                                                                               "createOption":  "FromImage",
+                                                                                               "deleteOption":  "Delete",
+                                                                                               "diskSizeGB":  128,
+                                                                                               "name":  "sec-ubuntu-prod-osdisk-001"
+                                                                                           }
+                                                                            },
+                                                         "userData":  "*******"
+                                                     },
+                                      "resourceGroup":  "sec-prod-rg",
+                                      "type":  "Microsoft.Compute/virtualMachines",
+                                      "zones":  [
+                                                    "1"
+                                                ]
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Compute/virtualMachines/sec-ubuntu-prod-vm-001",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2024-05-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/ipGroups/sec-prod-dest-ipg-001",
+                                      "location":  "westus2",
+                                      "name":  "sec-prod-dest-ipg-001",
+                                      "properties":  {
+                                                         "ipAddresses":  [
+                                                                             "10.252.32.0/19",
+                                                                             "10.252.96.0/19",
+                                                                             "10.252.64.0/19",
+                                                                             "10.250.0.0/22",
+                                                                             "10.200.94.0/24",
+                                                                             "10.200.95.0/24",
+                                                                             "10.252.128.0/19",
+                                                                             "10.250.4.0/22",
+                                                                             "10.160.4.0/23",
+                                                                             "10.201.0.0/22",
+                                                                             "10.162.4.0/24",
+                                                                             "10.161.4.0/23",
+                                                                             "10.168.1.0/24",
+                                                                             "10.150.0.0/24",
+                                                                             "10.167.1.0/24"
+                                                                         ]
+                                                     },
+                                      "resourceGroup":  "sec-prod-rg",
+                                      "type":  "Microsoft.Network/ipGroups"
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/ipGroups/sec-prod-dest-ipg-001",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2024-05-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/networkInterfaces/sec-ubuntu-prod-nic-001",
+                                      "location":  "westus2",
+                                      "name":  "sec-ubuntu-prod-nic-001",
+                                      "properties":  {
+                                                         "auxiliaryMode":  "None",
+                                                         "auxiliarySku":  "None",
+                                                         "disableTcpStateTracking":  false,
+                                                         "enableAcceleratedNetworking":  true,
+                                                         "enableIPForwarding":  false,
+                                                         "ipConfigurations":  [
+                                                                                  {
+                                                                                      "name":  "sec-ubuntu-prod-ipconfig-001",
+                                                                                      "properties":  {
+                                                                                                         "privateIPAddressVersion":  "IPv4",
+                                                                                                         "privateIPAllocationMethod":  "Dynamic",
+                                                                                                         "subnet":  {
+                                                                                                                        "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001/subnets/sec-vm-snet-001",
+                                                                                                                        "resourceGroup":  "sec-prod-rg"
+                                                                                                                    }
+                                                                                                     }
+                                                                                  }
+                                                                              ]
+                                                     },
+                                      "resourceGroup":  "sec-prod-rg",
+                                      "type":  "Microsoft.Network/networkInterfaces"
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/networkInterfaces/sec-ubuntu-prod-nic-001",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2023-04-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/routeTables/sec-vm-snet-rt-001",
+                                      "location":  "westus2",
+                                      "name":  "sec-vm-snet-rt-001",
+                                      "properties":  {
+                                                         "disableBgpRoutePropagation":  false,
+                                                         "routes":  [
+                                                                        {
+                                                                            "name":  "default",
+                                                                            "properties":  {
+                                                                                               "addressPrefix":  "0.0.0.0/0",
+                                                                                               "nextHopIpAddress":  "10.252.0.196",
+                                                                                               "nextHopType":  "VirtualAppliance"
+                                                                                           }
+                                                                        }
+                                                                    ]
+                                                     },
+                                      "resourceGroup":  "sec-prod-rg",
+                                      "type":  "Microsoft.Network/routeTables"
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/routeTables/sec-vm-snet-rt-001",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2024-05-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001",
+                                      "location":  "westus2",
+                                      "name":  "sec-prod-vnet-001",
+                                      "properties":  {
+                                                         "addressSpace":  {
+                                                                              "addressPrefixes":  [
+                                                                                                      "10.169.1.0/24"
+                                                                                                  ]
+                                                                          },
+                                                         "enableDdosProtection":  false,
+                                                         "subnets":  [
+                                                                         {
+                                                                             "name":  "sec-vm-snet-001",
+                                                                             "properties":  {
+                                                                                                "addressPrefix":  "10.169.1.0/28",
+                                                                                                "routeTable":  {
+                                                                                                                   "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/routeTables/sec-vm-snet-rt-001",
+                                                                                                                   "resourceGroup":  "sec-prod-rg"
+                                                                                                               }
+                                                                                            }
+                                                                         }
+                                                                     ],
+                                                         "virtualNetworkPeerings":  [
+                                                                                        {
+                                                                                            "name":  "sec-prod-vnet-001-to-opp-hub-vnet",
+                                                                                            "properties":  {
+                                                                                                               "allowForwardedTraffic":  true,
+                                                                                                               "allowGatewayTransit":  false,
+                                                                                                               "allowVirtualNetworkAccess":  true,
+                                                                                                               "doNotVerifyRemoteGateways":  true,
+                                                                                                               "remoteVirtualNetwork":  {
+                                                                                                                                            "id":  "[format(\u0027/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/virtualNetworks/{2}\u0027, parameters(\u0027hubVNetSubscriptionId\u0027), \u0027opp-hub-rg\u0027, \u0027opp-hub-vnet\u0027)]",
+                                                                                                                                            "resourceGroup":  "{1}"
+                                                                                                                                        },
+                                                                                                               "useRemoteGateways":  true
+                                                                                                           }
+                                                                                        }
+                                                                                    ]
+                                                     },
+                                      "resourceGroup":  "sec-prod-rg",
+                                      "type":  "Microsoft.Network/virtualNetworks"
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2024-05-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001/subnets/sec-vm-snet-001",
+                                      "name":  "sec-vm-snet-001",
+                                      "properties":  {
+                                                         "addressPrefix":  "10.169.1.0/28",
+                                                         "routeTable":  {
+                                                                            "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/routeTables/sec-vm-snet-rt-001",
+                                                                            "resourceGroup":  "sec-prod-rg"
+                                                                        }
+                                                     },
+                                      "resourceGroup":  "sec-prod-rg",
+                                      "type":  "Microsoft.Network/virtualNetworks/subnets"
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001/subnets/sec-vm-snet-001",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2024-01-01",
+                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001/virtualNetworkPeerings/sec-prod-vnet-001-to-opp-hub-vnet",
+                                      "name":  "sec-prod-vnet-001-to-opp-hub-vnet",
+                                      "properties":  {
+                                                         "allowForwardedTraffic":  true,
+                                                         "allowGatewayTransit":  false,
+                                                         "allowVirtualNetworkAccess":  true,
+                                                         "doNotVerifyRemoteGateways":  true,
+                                                         "remoteVirtualNetwork":  {
+                                                                                      "id":  "[format(\u0027/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/virtualNetworks/{2}\u0027, parameters(\u0027hubVNetSubscriptionId\u0027), \u0027opp-hub-rg\u0027, \u0027opp-hub-vnet\u0027)]",
+                                                                                      "resourceGroup":  "{1}"
+                                                                                  },
+                                                         "useRemoteGateways":  true
+                                                     },
+                                      "resourceGroup":  "sec-prod-rg",
+                                      "type":  "Microsoft.Network/virtualNetworks/virtualNetworkPeerings"
+                                  },
+                        "before":  null,
+                        "changeType":  "Create",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001/virtualNetworkPeerings/sec-prod-vnet-001-to-opp-hub-vnet",
+                        "symbolicName":  null,
+                        "unsupportedReason":  null
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2024-01-01",
+                                      "id":  "[format(\u0027/subscriptions/{0}/resourceGroups/opp-hub-rg/providers/Microsoft.Network/virtualNetworks/opp-hub-vnet/virtualNetworkPeerings/opp-hub-vnet-to-sec-prod-vnet-001\u0027, parameters(\u0027hubVNetSubscriptionId\u0027))]",
+                                      "name":  "opp-hub-vnet-to-sec-prod-vnet-001\u0027, parameters(\u0027hubVNetSubscriptionId\u0027))]",
+                                      "properties":  {
+                                                         "allowForwardedTraffic":  true,
+                                                         "allowGatewayTransit":  true,
+                                                         "allowVirtualNetworkAccess":  true,
+                                                         "doNotVerifyRemoteGateways":  true,
+                                                         "remoteVirtualNetwork":  {
+                                                                                      "id":  "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/virtualNetworks/sec-prod-vnet-001",
+                                                                                      "resourceGroup":  "sec-prod-rg"
+                                                                                  },
+                                                         "useRemoteGateways":  false
+                                                     },
+                                      "resourceGroup":  "opp-hub-rg",
+                                      "type":  "Microsoft.Network/virtualNetworks/virtualNetworkPeerings"
+                                  },
+                        "before":  null,
+                        "changeType":  "Unsupported",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "[format(\u0027/subscriptions/{0}/resourceGroups/opp-hub-rg/providers/Microsoft.Network/virtualNetworks/opp-hub-vnet/virtualNetworkPeerings/opp-hub-vnet-to-sec-prod-vnet-001\u0027, parameters(\u0027hubVNetSubscriptionId\u0027))]",
+                        "symbolicName":  null,
+                        "unsupportedReason":  "Changes to the resource declared at \u0027properties.template.resources[3].properties.template.resources[0]\u0027 on line 1 and column 75669 cannot be analyzed because its resource ID or API version cannot be calculated until the deployment is under way. Please see https://aka.ms/WhatIfUnidentifiableResource for more guidance."
+                    },
+                    {
+                        "after":  {
+                                      "apiVersion":  "2023-04-01",
+                                      "id":  "[format(\u0027/subscriptions/{0}/resourceGroups/opp-hub-rg/providers/Microsoft.Network/firewallPolicies/opp-hub-fwn01-policy/ruleCollectionGroups/SecurityVMRuleCollectionGroup\u0027, parameters(\u0027hubVNetSubscriptionId\u0027))]",
+                                      "name":  "SecurityVMRuleCollectionGroup\u0027, parameters(\u0027hubVNetSubscriptionId\u0027))]",
+                                      "properties":  {
+                                                         "priority":  300,
+                                                         "ruleCollections":  [
+                                                                                 {
+                                                                                     "action":  {
+                                                                                                    "type":  "Allow"
+                                                                                                },
+                                                                                     "name":  "Allow-Rule-prod",
+                                                                                     "priority":  100,
+                                                                                     "ruleCollectionType":  "FirewallPolicyFilterRuleCollection",
+                                                                                     "rules":  [
+                                                                                                   {
+                                                                                                       "destinationIpGroups":  [
+                                                                                                                                   "/subscriptions/d3e81098-f3ac-4453-8238-8c2e9bb46494/resourceGroups/sec-prod-rg/providers/Microsoft.Network/ipGroups/sec-prod-dest-ipg-001"
+                                                                                                                               ],
+                                                                                                       "destinationPorts":  [
+                                                                                                                                "22"
+                                                                                                                            ],
+                                                                                                       "ipProtocols":  [
+                                                                                                                           "TCP"
+                                                                                                                       ],
+                                                                                                       "name":  "Allow-Rule-prod",
+                                                                                                       "ruleType":  "NetworkRule",
+                                                                                                       "sourceAddresses":  [
+                                                                                                                               "10.169.1.0/24"
+                                                                                                                           ]
+                                                                                                   }
+                                                                                               ]
+                                                                                 }
+                                                                             ]
+                                                     },
+                                      "resourceGroup":  "opp-hub-rg",
+                                      "type":  "Microsoft.Network/firewallPolicies/ruleCollectionGroups"
+                                  },
+                        "before":  null,
+                        "changeType":  "Unsupported",
+                        "delta":  null,
+                        "deploymentId":  null,
+                        "identifiers":  null,
+                        "resourceId":  "[format(\u0027/subscriptions/{0}/resourceGroups/opp-hub-rg/providers/Microsoft.Network/firewallPolicies/opp-hub-fwn01-policy/ruleCollectionGroups/SecurityVMRuleCollectionGroup\u0027, parameters(\u0027hubVNetSubscriptionId\u0027))]",
+                        "symbolicName":  null,
+                        "unsupportedReason":  "Changes to the resource declared at \u0027properties.template.resources[5].properties.template.resources.ruleCollectionGroup\u0027 on line 1 and column 89570 cannot be analyzed because its resource ID or API version cannot be calculated until the deployment is under way. Please see https://aka.ms/WhatIfUnidentifiableResource for more guidance."
                     }
                 ],
     "diagnostics":  [
