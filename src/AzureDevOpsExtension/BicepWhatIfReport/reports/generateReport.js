@@ -57,6 +57,16 @@ async function jsonToMarkdown(jsonData) {
     jsonData.changes.forEach((change) => {
         markdownData.push(...processChange(change));
     });
+    // TODO: Implement diagnostics section if available
+    jsonData.diagnostics?.forEach((diag) => {
+        const diagMarkdown = [];
+        diagMarkdown.push({ h2: `Diagnostic Code: ${diag.code}` }, { h3: `Severity: ${diag.level || 'Unknown Level'}` }, { code: { language: "text", content: `Resource ID: ${diag.target || 'Unknown Resource ID'}` } }, { p: `**Message**: ${diag.message || 'Unknown Message'}` });
+        if (diag.additionalInfo !== null && diag.additionalInfo !== undefined) {
+            diagMarkdown.push({ p: `**Additional Info**: ${diag.additionalInfo}` });
+        }
+        ;
+        markdownData.push(...diagMarkdown);
+    });
     //const reportRaw: 
     const outputFilePath = path.resolve(__dirname, 'raw.json');
     fs.writeFileSync(outputFilePath, JSON.stringify(markdownData, null, 2), 'utf-8');
@@ -66,6 +76,7 @@ async function jsonToMarkdown(jsonData) {
 ;
 function processChange(change) {
     const markdownData = [];
+    const mainItems = [];
     const { after, changeType, delta, resourceId } = change;
     // Add common header fields for each change
     const resName = after?.name?.toString() || 'Unnamed Resource';
@@ -73,33 +84,58 @@ function processChange(change) {
     const location = after?.location?.toString() || 'Unknown Location';
     const apiVersion = after?.apiVersion?.toString() || 'Unknown API Version';
     const resGroup = after?.resourceGroup?.toString();
-    console.log(`Processing change for resource: ${resName}, Type: ${type}, Location: ${location}, API Version: ${apiVersion}`);
+    console.log(`Processing change for resource: ${resName}, Type: ${changeType}, Location: ${location}, API Version: ${apiVersion}`);
     markdownData.push({ h2: `Resource Name: ${resName}` }, { code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` } }, { h3: `Change Type: ${changeType || 'Unknown Change Type'}` });
-    const ulItems = [];
-    const mainItems = [];
-    //ulItems.push(
     mainItems.push(`**Name**: **${resName}**`, `Type: ${type}`);
     if (resGroup) {
-        //ulItems.push(`Resource Group: ${resGroup}`);
         mainItems.push(`Resource Group: ${resGroup}`);
     }
-    //ulItems.push(
     mainItems.push(`Location: ${location}`, `API Version: ${apiVersion}`);
     markdownData.push({ ul: mainItems });
     if (changeType === 'Modify' && delta && Array.isArray(delta)) {
+        console.log('Processing a Modify change with delta.');
         markdownData.push({ h3: "Change Details" }, { ul: [...processDelta(delta)] });
-        //ulItems.push({ ul: [...processDelta(delta)] });
     }
     else if (changeType === 'Create') {
-        markdownData.push({ h3: "New Resource Details" }, { ul: [...processValue(after)] });
-        //ulItems.push({ ul: [...processValue(after)] });
+        console.log('Processing a Create change.');
+        if (after && after.properties) {
+            markdownData.push({ h3: "New Resource Details" }, { ul: [...processProperties(after.properties)] });
+        }
+        ;
+    }
+    else if (changeType === 'Unsupported') {
+        console.log('Processing an Unsupported change.');
+        markdownData.push({ h3: "Unsupported Change" }, { p: `**Reason**: ${change.unsupportedReason}` });
+        if (after && after.properties) {
+            markdownData.push({ h3: "Resource Properties" }, { ul: [...processProperties(after.properties)] });
+        }
+        ;
+    }
+    else if (changeType === 'Ignore' || changeType === 'NoChange') {
+        //TODO: No Changes so just show the details of the resource
+        console.log('No changes detected or change ignored.');
+        markdownData.push({ h3: "Details" });
+        if (changeType === 'Ignore') {
+            console.log('Processing an Ignored change.');
+            markdownData.pop(); // Remove the Details header
+            markdownData.push({ p: `**Ignored Change**` });
+        }
+        else {
+            console.log('Processing a NoChange change.');
+            if (after && after.properties) {
+                markdownData.push({ ul: [...processProperties(after.properties)] });
+            }
+            else {
+                //Remove the Details header
+                markdownData.pop();
+            }
+        }
     }
     else {
-        //TODO: No Changes so just show the details of the resource
-        markdownData.push({ h3: "Details" });
+        console.log(`Processing an unknown or unimplemented change type: ${changeType}`);
+        markdownData.push({ h3: "Unknown Change Type" }, { p: `Change type "${changeType}" is not recognized or not implemented.` });
     }
     ;
-    //markdownData.push({ ul: ulItems });
     console.log(`Finished processing change for resource: ${resName}`);
     return markdownData;
 }
@@ -112,36 +148,30 @@ function processDelta(delta, parentPath = '') {
         const chUlIteam = [];
         let fullpath = parentPath ? `${parentPath}${Number.isInteger(Number(path)) ? '[' + path + ']' : '.' + path}` : path;
         ulItems.push(`Change Type: ${propertyChangeType || 'Unknown Change Type'}`);
-        if (after !== undefined && after !== null) {
-            const afterVal = [...processValue(after)];
-            if (afterVal.length === 1 && typeof afterVal[0] === 'string' && !afterVal[0].includes(':')) {
-                ulItems.push(`After: ${afterVal[0]}`);
-            }
-            else {
-                ulItems.push(`After:`, { Ul: afterVal });
-            }
-            ;
-        }
-        else {
-            ulItems.push(`After: null`);
-        }
-        ;
-        if (before !== undefined && before !== null) {
-            const beforeVal = [...processValue(before)];
-            if (beforeVal.length === 1 && typeof beforeVal[0] === 'string' && !beforeVal[0].includes(':')) {
-                ulItems.push(`Before: ${beforeVal[0]}`);
-            }
-            else {
-                ulItems.push(`Before:`, { ul: beforeVal });
-            }
-            ;
-        }
-        else {
-            ulItems.push(`Before: null`);
-        }
-        ;
+        ulItems.push([...processBeforeAfter(after, 'After')]);
+        ulItems.push([...processBeforeAfter(before, 'Before')]);
+        //if (after !== undefined  && after !== null) {
+        //  const afterVal: any [] = [...processValue(after)];
+        //  if (afterVal.length === 1 && typeof afterVal[0] === 'string' && !afterVal[0].includes(':')) {
+        //    ulItems.push(`After: ${afterVal[0]}`);
+        //  } else {
+        //    ulItems.push(`After:`, { Ul: afterVal });
+        //  };
+        //} else {
+        //  ulItems.push(`After: null`);
+        //};
+        //
+        //if (before !== undefined && before !== null) {
+        //  const beforeVal: any [] = [...processValue(before)];
+        //  if (beforeVal.length === 1 && typeof beforeVal[0] === 'string' && !beforeVal[0].includes(':')) {
+        //    ulItems.push(`Before: ${beforeVal[0]}`);
+        //  } else {
+        //    ulItems.push(`Before:`, { ul: beforeVal });
+        //  };
+        //} else {
+        //  ulItems.push(`Before: null`);
+        //};
         if (children && Array.isArray(children) && children.length > 0) {
-            //markdownData.push({hr: ""});
             ulItems.push(`**Child Resource(s)**:`, { ul: [...processDelta(children, fullpath)] });
         }
         ;
@@ -150,12 +180,29 @@ function processDelta(delta, parentPath = '') {
     return markdownData;
 }
 ;
+function processBeforeAfter(thing, what = '') {
+    const markdownData = [...processValue(thing)];
+    if (thing !== undefined && thing !== null) {
+        if (thing.length === 1 && typeof thing[0] === 'string' && !thing[0].includes(':')) {
+            markdownData.push(`${what}: ${thing[0].toString()}`);
+        }
+        else {
+            markdownData.push(`${what}: `, { ul: markdownData });
+        }
+        ;
+    }
+    else {
+        markdownData.push(`${what}: null`);
+    }
+    ;
+    return markdownData;
+}
 function processValue(value) {
     const markdownData = [];
     if (Array.isArray(value)) {
         let i = 0;
         value.forEach((item) => {
-            if (Array.isArray(item) && item.length === 1) {
+            if (Array.isArray(item) && item.length === 1 && typeof item[0] !== 'object') {
                 markdownData.push(`Item ${++i}: ${item[0].toString()}`);
             }
             else if (Array.isArray(item)) {
@@ -166,17 +213,12 @@ function processValue(value) {
                 Object.entries(item).forEach(([key, val]) => {
                     if (Array.isArray(val) && val.length === 1) {
                         ulItems.push(`${key}: ${val[0].toString()}`);
-                        //markdownData.push(`${key}: ${val[0].toString()}`);
                     }
-                    else if (Array.isArray(val)) {
-                        ulItems.push(`${key}: `, { ul: [...processValue(val)] });
-                        //markdownData.push(`${key}: `, { ul: [...processValue(val)] });
+                    else if (typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number') {
+                        ulItems.push(`${key}: ${val.toString()}`);
                     }
                     else {
-                        //TODO: Handle nested objects
-                        ulItems.push(`${key}: ${val}`);
-                        //markdownData.push(`${key}: ${val}`)
-                        //markdownData.push(`Item ${++i}:`, { ul: [`${key}: ${val}`] });
+                        ulItems.push(`${key}: `, { ul: [...processValue(val)] });
                     }
                     ;
                 });
@@ -189,20 +231,18 @@ function processValue(value) {
         });
     }
     else if (typeof value === 'object' && value !== null) {
-        const ulItems = [];
         Object.entries(value).forEach(([key, val]) => {
             if (Array.isArray(val) && val.length === 1) {
-                ulItems.push(`${key}: ${val[0].toString()}`);
+                markdownData.push(`${key}: ${val[0].toString()}`);
             }
-            else if (Array.isArray(val)) {
-                ulItems.push(`${key}: `, { ul: [...processValue(val)] });
+            else if (typeof val === 'string' || typeof val === 'boolean' || typeof val === 'number') {
+                markdownData.push(`${key}: ${val.toString()}`);
             }
             else {
-                ulItems.push(`${key}: `, { ul: [...processValue(val)] });
+                markdownData.push(`${key}: `, { ul: [...processValue(val)] });
             }
             ;
         });
-        markdownData.push(ulItems);
     }
     else {
         markdownData.push(`${value !== null && value !== undefined ? value?.toString() : 'N/A'}`);
@@ -211,3 +251,19 @@ function processValue(value) {
     return markdownData;
 }
 ;
+function processProperties(properties) {
+    const markdownData = [];
+    Object.entries(properties).forEach(([key, value]) => {
+        if (Array.isArray(value) && value.length === 1 && typeof value[0] !== 'object') {
+            markdownData.push(`${key}: ${value[0].toString()}`);
+        }
+        else if (typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number') {
+            markdownData.push(`${key}: ${value}`);
+        }
+        else {
+            markdownData.push(`${key}: `, { ul: [...processValue(value)] });
+        }
+        ;
+    });
+    return markdownData;
+}
