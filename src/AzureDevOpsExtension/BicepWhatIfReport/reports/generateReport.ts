@@ -46,8 +46,16 @@ export async function jsonToMarkdown(jsonData: any): Promise<string> {
   const outputFilePath: string = path.resolve(__dirname, 'raw.json')
   fs.writeFileSync(outputFilePath, JSON.stringify(markdownData, null, 2), 'utf-8');
   const markdown: string = json2md(markdownData);
-  return markdown;
+  const cleanedMarkdown: string = removeBlankLines(markdown);
+  return cleanedMarkdown;
 };
+
+function removeBlankLines(lines: string): string {
+  return lines
+    .split('\n')
+    .filter(line => line.trim() !== '')
+    .join('\n');
+}
 
 function processChange(change: any): any[] {
   const markdownData: any[] = [];
@@ -65,7 +73,7 @@ function processChange(change: any): any[] {
 
   markdownData.push(
     { h2: `Resource Name: ${resName}` },
-    { code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` } },
+    { blockquote: `**Resource ID**: ${resourceId || 'Unknown Resource ID'}` },
     { h3: `Change Type: ${changeType || 'Unknown Change Type'}` },
   );
   
@@ -117,8 +125,11 @@ function processChange(change: any): any[] {
     markdownData.push({ h3: "Details" });
     if (changeType === 'Ignore') {
       console.log('Processing an Ignored change.');
-      markdownData.pop(); // Remove the Details header
-      markdownData.push({ p: `**Ignored Change**`});
+      markdownData.push(
+        { ul: [...processBeforeAfter(after, 'After')] }
+      );
+      //markdownData.pop(); // Remove the Details header
+      //markdownData.push({ p: `**Ignored Change**`});
     } else {
       console.log('Processing a NoChange change.');
       if (after && after.properties) {
@@ -150,8 +161,14 @@ function processDelta(delta: any[], parentPath: string = ''): any[] {
     let fullpath: string = parentPath ? `${parentPath}${Number.isInteger(Number(path)) ? '[' + path + ']' : '.' + path}` : path;
     
     ulItems.push(`Change Type: ${propertyChangeType || 'Unknown Change Type'}`);
-    ulItems.push([...processBeforeAfter(after, 'After')]);
-    ulItems.push([...processBeforeAfter(before, 'Before')]);
+    const afterItems: any[] = [...processBeforeAfter(after, 'After')];
+    const beforeItems: any[] = [...processBeforeAfter(before, 'Before')];
+    ulItems.push({
+      ul: [
+        ...afterItems,
+        ...beforeItems
+      ]
+    });
 
     if (children && Array.isArray(children) && children.length > 0) {
       ulItems.push(`**Child Resource(s)**:`, {ul: [...processDelta(children, fullpath)] });
@@ -167,12 +184,15 @@ function processDelta(delta: any[], parentPath: string = ''): any[] {
 };
 
 function processBeforeAfter(thing: any[], what: string = ''): any[] {
-  const markdownData: any[] = [...processValue(thing)];
+  const markdownData: any[] = [];
   if (thing !== undefined && thing !== null) {
-    if( thing.length === 1 && typeof thing[0] === 'string' && !thing[0].includes(':')) {
-      markdownData.push(`${what}: ${thing[0].toString()}`);
+    const thingData: any[] = [...processValue(thing)];
+    if( thingData.length === 1 && typeof thingData[0] === 'string' && !thingData[0].includes(':')) {
+      markdownData.push(`${what}: ${thingData[0].toString()}`);
+    //} else if (thing.length === 1 && typeof thing[0] === 'object') {
+    //  markdownData.push(`${what}: `, { ul: thingData] });
     } else {
-      markdownData.push(`${what}: `, { ul: markdownData });
+      markdownData.push(`${what}: `, { ul: [...thingData] });
     };
   } else {
     markdownData.push(`${what}: null`);

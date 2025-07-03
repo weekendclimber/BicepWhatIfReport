@@ -71,9 +71,16 @@ async function jsonToMarkdown(jsonData) {
     const outputFilePath = path.resolve(__dirname, 'raw.json');
     fs.writeFileSync(outputFilePath, JSON.stringify(markdownData, null, 2), 'utf-8');
     const markdown = json2md(markdownData);
-    return markdown;
+    const cleanedMarkdown = removeBlankLines(markdown);
+    return cleanedMarkdown;
 }
 ;
+function removeBlankLines(lines) {
+    return lines
+        .split('\n')
+        .filter(line => line.trim() !== '')
+        .join('\n');
+}
 function processChange(change) {
     const markdownData = [];
     const mainItems = [];
@@ -85,7 +92,7 @@ function processChange(change) {
     const apiVersion = after?.apiVersion?.toString() || 'Unknown API Version';
     const resGroup = after?.resourceGroup?.toString();
     console.log(`Processing change for resource: ${resName}, Type: ${changeType}, Location: ${location}, API Version: ${apiVersion}`);
-    markdownData.push({ h2: `Resource Name: ${resName}` }, { code: { language: "text", content: `Resource ID: ${resourceId || 'Unknown Resource ID'}` } }, { h3: `Change Type: ${changeType || 'Unknown Change Type'}` });
+    markdownData.push({ h2: `Resource Name: ${resName}` }, { blockquote: `**Resource ID**: ${resourceId || 'Unknown Resource ID'}` }, { h3: `Change Type: ${changeType || 'Unknown Change Type'}` });
     mainItems.push(`**Name**: **${resName}**`, `Type: ${type}`);
     if (resGroup) {
         mainItems.push(`Resource Group: ${resGroup}`);
@@ -117,8 +124,9 @@ function processChange(change) {
         markdownData.push({ h3: "Details" });
         if (changeType === 'Ignore') {
             console.log('Processing an Ignored change.');
-            markdownData.pop(); // Remove the Details header
-            markdownData.push({ p: `**Ignored Change**` });
+            markdownData.push({ ul: [...processBeforeAfter(after, 'After')] });
+            //markdownData.pop(); // Remove the Details header
+            //markdownData.push({ p: `**Ignored Change**`});
         }
         else {
             console.log('Processing a NoChange change.');
@@ -148,29 +156,14 @@ function processDelta(delta, parentPath = '') {
         const chUlIteam = [];
         let fullpath = parentPath ? `${parentPath}${Number.isInteger(Number(path)) ? '[' + path + ']' : '.' + path}` : path;
         ulItems.push(`Change Type: ${propertyChangeType || 'Unknown Change Type'}`);
-        ulItems.push([...processBeforeAfter(after, 'After')]);
-        ulItems.push([...processBeforeAfter(before, 'Before')]);
-        //if (after !== undefined  && after !== null) {
-        //  const afterVal: any [] = [...processValue(after)];
-        //  if (afterVal.length === 1 && typeof afterVal[0] === 'string' && !afterVal[0].includes(':')) {
-        //    ulItems.push(`After: ${afterVal[0]}`);
-        //  } else {
-        //    ulItems.push(`After:`, { Ul: afterVal });
-        //  };
-        //} else {
-        //  ulItems.push(`After: null`);
-        //};
-        //
-        //if (before !== undefined && before !== null) {
-        //  const beforeVal: any [] = [...processValue(before)];
-        //  if (beforeVal.length === 1 && typeof beforeVal[0] === 'string' && !beforeVal[0].includes(':')) {
-        //    ulItems.push(`Before: ${beforeVal[0]}`);
-        //  } else {
-        //    ulItems.push(`Before:`, { ul: beforeVal });
-        //  };
-        //} else {
-        //  ulItems.push(`Before: null`);
-        //};
+        const afterItems = [...processBeforeAfter(after, 'After')];
+        const beforeItems = [...processBeforeAfter(before, 'Before')];
+        ulItems.push({
+            ul: [
+                ...afterItems,
+                ...beforeItems
+            ]
+        });
         if (children && Array.isArray(children) && children.length > 0) {
             ulItems.push(`**Child Resource(s)**:`, { ul: [...processDelta(children, fullpath)] });
         }
@@ -181,13 +174,16 @@ function processDelta(delta, parentPath = '') {
 }
 ;
 function processBeforeAfter(thing, what = '') {
-    const markdownData = [...processValue(thing)];
+    const markdownData = [];
     if (thing !== undefined && thing !== null) {
-        if (thing.length === 1 && typeof thing[0] === 'string' && !thing[0].includes(':')) {
-            markdownData.push(`${what}: ${thing[0].toString()}`);
+        const thingData = [...processValue(thing)];
+        if (thingData.length === 1 && typeof thingData[0] === 'string' && !thingData[0].includes(':')) {
+            markdownData.push(`${what}: ${thingData[0].toString()}`);
+            //} else if (thing.length === 1 && typeof thing[0] === 'object') {
+            //  markdownData.push(`${what}: `, { ul: thingData] });
         }
         else {
-            markdownData.push(`${what}: `, { ul: markdownData });
+            markdownData.push(`${what}: `, { ul: [...thingData] });
         }
         ;
     }
