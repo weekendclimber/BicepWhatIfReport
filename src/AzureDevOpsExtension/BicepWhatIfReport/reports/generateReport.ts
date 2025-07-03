@@ -5,8 +5,8 @@
  */
 
 const json2md = require('json2md');
-import * as fs from 'fs';
-import * as path from 'path';
+//import * as fs from 'fs';
+//import * as path from 'path';
 
 export async function generateReport(parsedData: any): Promise<string> {
   // TODO: Implement report generation logic for Azure DevOps Extension
@@ -43,8 +43,8 @@ export async function jsonToMarkdown(jsonData: any): Promise<string> {
   });
   
   //const reportRaw: 
-  const outputFilePath: string = path.resolve(__dirname, 'raw.json')
-  fs.writeFileSync(outputFilePath, JSON.stringify(markdownData, null, 2), 'utf-8');
+  //const outputFilePath: string = path.resolve(__dirname, 'raw.json')
+  //fs.writeFileSync(outputFilePath, JSON.stringify(markdownData, null, 2), 'utf-8');
   const markdown: string = json2md(markdownData);
   const cleanedMarkdown: string = removeBlankLines(markdown);
   return cleanedMarkdown;
