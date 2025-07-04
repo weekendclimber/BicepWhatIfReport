@@ -52,13 +52,16 @@ describe('BicepWhatIfReport Task Suite', function () {
             console.log(`Test completed successfully: ${tr.succeeded}`);
             assert.equal(tr.succeeded, false, 'task should have failed');
             assert.equal(tr.warningIssues.length, 0, 'task should not have any warnings');
+            console.log(`Error count: ${tr.errorIssues.length}`);
             assert.equal(tr.errorIssues.length, 1, 'task should have one error');
-            console.log(`Error issues: ${tr.errorIssues[0]}`)
-            assert.equal(tr.errorIssues[0], 'Bad input was given','should have printed the expected error message');
+            console.log(`Error issue 1: ${tr.errorIssues[0]}`)
+            //console.log(`Error issue 2: ${tr.errorIssues[0]}`)
+            assert.equal(tr.errorIssues[0], 'Failed to parse what-if JSON: Unexpected token \'b\', "bad" is not valid JSON','should have printed the expected error message');
+            //assert.equal(tr.errorIssues[1], 'No JSON input was given!','should have printed the expected error message');
             assert.equal(tr.stdout.indexOf(testResultContent), -1, 'should not have printed the expected output');
             done();
-        }) //.catch((err: any) => {
-            //done(`Test failed with error: ${err}`);
-        //});
+        }).catch((err: any) => {
+            done(`Test failed with error: ${err}`);
+        });
     });
 });
