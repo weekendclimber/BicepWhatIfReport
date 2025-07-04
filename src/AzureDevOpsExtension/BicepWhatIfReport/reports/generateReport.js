@@ -20,7 +20,7 @@ async function generateReport(parsedData) {
 ;
 async function jsonToMarkdown(jsonData) {
     const markdownData = [{ h1: 'Bicep What-If Report' }];
-    console.log(`Generating Markdown report for ${jsonData.changes.length} changes.`);
+    console.debug(`Generating Markdown report for ${jsonData.changes.length} changes.`);
     jsonData.changes.forEach((change) => {
         markdownData.push(...processChange(change));
     });
@@ -58,7 +58,7 @@ function processChange(change) {
     const location = after?.location?.toString() || 'Unknown Location';
     const apiVersion = after?.apiVersion?.toString() || 'Unknown API Version';
     const resGroup = after?.resourceGroup?.toString();
-    console.log(`Processing change for resource: ${resName}, Type: ${changeType}, Location: ${location}, API Version: ${apiVersion}`);
+    console.debug(`Processing change for resource: ${resName}, Type: ${changeType}, Location: ${location}, API Version: ${apiVersion}`);
     markdownData.push({ h2: `Resource Name: ${resName}` }, { blockquote: `**Resource ID**: ${resourceId || 'Unknown Resource ID'}` }, { h3: `Change Type: ${changeType || 'Unknown Change Type'}` });
     mainItems.push(`**Name**: **${resName}**`, `Type: ${type}`);
     if (resGroup) {
@@ -67,18 +67,18 @@ function processChange(change) {
     mainItems.push(`Location: ${location}`, `API Version: ${apiVersion}`);
     markdownData.push({ ul: mainItems });
     if (changeType === 'Modify' && delta && Array.isArray(delta)) {
-        console.log('Processing a Modify change with delta.');
+        console.debug('Processing a Modify change with delta.');
         markdownData.push({ h3: "Change Details" }, { ul: [...processDelta(delta)] });
     }
     else if (changeType === 'Create') {
-        console.log('Processing a Create change.');
+        console.debug('Processing a Create change.');
         if (after && after.properties) {
             markdownData.push({ h3: "New Resource Details" }, { ul: [...processProperties(after.properties)] });
         }
         ;
     }
     else if (changeType === 'Unsupported') {
-        console.log('Processing an Unsupported change.');
+        console.debug('Processing an Unsupported change.');
         markdownData.push({ h3: "Unsupported Change" }, { p: `**Reason**: ${change.unsupportedReason}` });
         if (after && after.properties) {
             markdownData.push({ h3: "Resource Properties" }, { ul: [...processProperties(after.properties)] });
@@ -87,16 +87,16 @@ function processChange(change) {
     }
     else if (changeType === 'Ignore' || changeType === 'NoChange') {
         //TODO: No Changes so just show the details of the resource
-        console.log('No changes detected or change ignored.');
+        console.debug('No changes detected or change ignored.');
         markdownData.push({ h3: "Details" });
         if (changeType === 'Ignore') {
-            console.log('Processing an Ignored change.');
+            console.debug('Processing an Ignored change.');
             markdownData.push({ ul: [...processBeforeAfter(after, 'After')] });
             //markdownData.pop(); // Remove the Details header
             //markdownData.push({ p: `**Ignored Change**`});
         }
         else {
-            console.log('Processing a NoChange change.');
+            console.debug('Processing a NoChange change.');
             if (after && after.properties) {
                 markdownData.push({ ul: [...processProperties(after.properties)] });
             }
@@ -107,11 +107,11 @@ function processChange(change) {
         }
     }
     else {
-        console.log(`Processing an unknown or unimplemented change type: ${changeType}`);
+        console.debug(`Processing an unknown or unimplemented change type: ${changeType}`);
         markdownData.push({ h3: "Unknown Change Type" }, { p: `Change type "${changeType}" is not recognized or not implemented.` });
     }
     ;
-    console.log(`Finished processing change for resource: ${resName}`);
+    console.debug(`Finished processing change for resource: ${resName}`);
     return markdownData;
 }
 ;

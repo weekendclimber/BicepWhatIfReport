@@ -33,6 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+//import ma = require('azure-pipelines-task-lib/mock-answer');
 const tmrm = require("azure-pipelines-task-lib/mock-run");
 const path = require("path");
 const fs = __importStar(require("fs"));

@@ -31,10 +31,12 @@ async function main() {
   } catch (err:any) {
     console.error('Error:', err.message);
     tl.setResult(tl.TaskResult.Failed, err.message);
+    process.exit(1);
   }
 }
 
 main().catch((err) => {
   console.error('Error:', err);
+  tl.setResult(tl.TaskResult.Failed, err.message);
   process.exit(1);
 });
