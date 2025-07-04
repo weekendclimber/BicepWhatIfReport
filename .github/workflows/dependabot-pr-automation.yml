@@ -6,6 +6,10 @@ on:
     branches:
       - main  # Change if your default branch is different
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   handle_dependabot_pr:
     if: github.actor == 'dependabot[bot]'
@@ -14,7 +18,7 @@ jobs:
       - name: Add PR to project and set priority
         uses: actions/add-to-project@v0.5.0
         with:
-          project-url: https://github.com/users/weekendclimber/projects/3
+          project-url: ${{ variables.PROJECT_URL }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fields: |
             Priority: High
