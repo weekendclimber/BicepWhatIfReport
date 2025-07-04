@@ -1,0 +1,20 @@
+name: Handle Dependabot PRs
+
+on:
+  pull_request:
+    types: [opened]
+    branches:
+      - main  # Change if your default branch is different
+
+jobs:
+  handle_dependabot_pr:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add PR to project and set priority
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/weekendclimber/projects/3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fields: |
+            Priority: High
