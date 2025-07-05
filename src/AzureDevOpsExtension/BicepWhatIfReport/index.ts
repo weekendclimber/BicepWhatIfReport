@@ -57,8 +57,8 @@ async function run() {
     }
 
     await Promise.all(jsonFiles.map(async file => {
-      const filePath: string = path.join(baseDirectory, file);
-      const outputFilePath: string = path.join(baseDirectory, `${file.replace('.json', '.md')}`);
+      const filePath: string = file; // Use file directly since it is already an absolute path
+      const outputFilePath: string = path.join(baseDirectory, path.basename(file).replace('.json', '.md')); // Derive relative filename for output
       let report: string;
 
       // Check if the file exists
