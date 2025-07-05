@@ -14,7 +14,7 @@ export async function parseWhatIfJson(file: string): Promise<object> {
   let parsed: object;
 
   try {
-    tl.debug(`Tyring to parse what-if JSON file: ${file}`);
+    tl.debug(`Trying to parse what-if JSON file: ${file}`);
     tl.debug(`Trying to parse what-if JSON file: ${file}`);
     if (!fs.existsSync(file)) {
       tl.debug(`The file does not exist: ${file}`);
