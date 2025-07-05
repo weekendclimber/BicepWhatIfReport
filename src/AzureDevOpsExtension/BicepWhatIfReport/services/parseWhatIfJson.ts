@@ -1,17 +1,35 @@
 /**
  * Parses Bicep what-if JSON output and returns a structured object.
- * @param whatIfJson - The raw JSON string from Bicep what-if output.
- * @returns Parsed representation of the what-if changes.
+ * @param file - The absolute file path to the raw JSON file from the Bicep what-if command.
+ * @returns Parsed representation of the what-if changes as object.
  */
+// File and path imports
+import * as fs from 'fs';
 
-export function parseWhatIfJson(whatIfJson: string): object {
+// Entry point for Azure DevOps Extension
+import tl = require('azure-pipelines-task-lib/task');
+
+export async function parseWhatIfJson(file: string): Promise<object> {
   // TODO: Implement robust parsing logic for Bicep what-if output
+  let parsed: object;
+
   try {
-    //console.log('Parsing what-if JSON:', whatIfJson);
-    const parsed: object = JSON.parse(whatIfJson);
-    // TODO: Transform parsed data into a domain-specific structure if needed
-    return parsed;
+    tl.debug(`Trying to parse what-if JSON file: ${file}`);
+    if (!fs.existsSync(file)) {
+      tl.debug(`The file does not exist: ${file}`);
+      tl.setResult(tl.TaskResult.Failed, `The file does not exist: ${file}`);
+      throw new Error(`The file does not exist: ${file}`);
+    } else {
+      tl.debug(`Reading what-if JSON file: ${file}`);
+      let fileContent: string = await fs.promises.readFile(file, 'utf8');
+      parsed = JSON.parse( fileContent );
+      return parsed;
+    }
   } catch (err: any) {
-    throw new Error(`Failed to parse what-if JSON: ${err.message}`);
+    if (err instanceof Error) {
+      throw new Error(`Failed to parse what-if JSON: ${err.message}`);
+    } else {
+      throw new Error(`Failed to parse what-if JSON: ${err}`);
+    }
   }
 }
