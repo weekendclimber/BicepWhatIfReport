@@ -9,7 +9,8 @@ jobs:
   close_done_issues:
     runs-on: ubuntu-latest
     permissions:
-      issues: read
+      issues: write
+      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
