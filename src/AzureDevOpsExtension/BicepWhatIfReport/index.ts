@@ -21,8 +21,8 @@ async function run() {
     // Get the base directory from the task input
     const whatIfJSONPath: string | undefined = tl.getInput('bicepWhatIfJSONPath', true);
     if (!whatIfJSONPath) {
-      tl.debug('Markdown path input is not provided.');
-      tl.setResult(tl.TaskResult.Failed, 'Markdown path is required.');
+      tl.debug('What-If JSON path input is not provided.');
+      tl.setResult(tl.TaskResult.Failed, 'What-If JSON path is required.');
       return;
     } else {
       tl.debug(`Markdown path input: ${whatIfJSONPath}`);
