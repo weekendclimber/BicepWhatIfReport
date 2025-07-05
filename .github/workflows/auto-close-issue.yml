@@ -9,7 +9,7 @@ jobs:
   close_done_issues:
     runs-on: ubuntu-latest
     permissions:
-      issues: read
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,7 +17,7 @@ jobs:
       - name: Close "Done" issues after 1 week in project
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.PROJECTS_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const script = require('${{ github.workspace }}/.github/workflows/scripts/auto-close-issue.ts')
             await script({github, context, core})
