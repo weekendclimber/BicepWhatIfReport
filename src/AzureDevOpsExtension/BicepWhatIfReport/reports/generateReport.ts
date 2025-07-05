@@ -13,7 +13,7 @@ export async function generateReport(parsedData: any): Promise<string> {
   // Example: Convert parsedData into a Markdown summary
   //return '# Bicep What-If Report\n\n_No changes detected or report logic not implemented yet._';
   //return printParsedDataAsMarkdown(parsedData) as Promise<string>;
-  return jsonToMarkdown(await parsedData) as Promise<string>;
+  return jsonToMarkdown(parsedData) as Promise<string>;
 };
 
 export async function jsonToMarkdown(jsonData: any): Promise<string> {

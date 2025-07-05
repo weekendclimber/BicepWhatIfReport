@@ -79,7 +79,7 @@ async function run() {
       } else {
         tl.debug(`Writing report to file: ${outputFilePath}`);
         reports.push(outputFilePath);
-        fs.promises.writeFile(outputFilePath, report, 'utf-8');
+        await fs.promises.writeFile(outputFilePath, report, 'utf-8');
       }
     }));
 

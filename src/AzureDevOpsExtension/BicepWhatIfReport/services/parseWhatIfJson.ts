@@ -5,7 +5,6 @@
  */
 // File and path imports
 import * as fs from 'fs';
-import * as path from 'path';
 
 // Entry point for Azure DevOps Extension
 import tl = require('azure-pipelines-task-lib/task');
@@ -16,7 +15,7 @@ export async function parseWhatIfJson(file: string): Promise<object> {
 
   try {
     tl.debug(`Tyring to parse what-if JSON file: ${file}`);
-    //Get the content of the files if it exists
+    tl.debug(`Trying to parse what-if JSON file: ${file}`);
     if (!fs.existsSync(file)) {
       tl.debug(`The file does not exist: ${file}`);
       tl.setResult(tl.TaskResult.Failed, `The file does not exist: ${file}`);
