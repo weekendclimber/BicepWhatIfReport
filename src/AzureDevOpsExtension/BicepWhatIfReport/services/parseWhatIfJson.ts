@@ -15,7 +15,6 @@ export async function parseWhatIfJson(file: string): Promise<object> {
 
   try {
     tl.debug(`Trying to parse what-if JSON file: ${file}`);
-    tl.debug(`Trying to parse what-if JSON file: ${file}`);
     if (!fs.existsSync(file)) {
       tl.debug(`The file does not exist: ${file}`);
       tl.setResult(tl.TaskResult.Failed, `The file does not exist: ${file}`);
