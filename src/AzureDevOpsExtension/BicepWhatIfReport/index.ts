@@ -1,36 +1,52 @@
+
+//import * as fs from 'fs';
+//import * as path from 'path';
+
 // Entry point for Azure DevOps Extension
 import tl = require('azure-pipelines-task-lib/task');
+import { parseWhatIfJson } from './services/parseWhatIfJson';
+import { generateReport } from './reports/generateReport';
 
-//import { parseWhatIfJson } from './services/parseWhatIfJson';
-//import { generateReport } from './reports/generateReport';
-
-async function main() {
+async function run() {
   try {
-    const inputString: string | undefined = tl.getInput('samplestring', true);
-    if (inputString == 'bad') {
-      tl.setResult(tl.TaskResult.Failed, 'Bad input was given');
-      return;
+    //const inputFilePath = path.resolve(__dirname, '../../../tests/AzureDevOpsExtension/report.json');
+    //const outputFilePath = path.resolve(__dirname, 'test.md');
+    //const inputString = fs.readFileSync(inputFilePath, 'utf8');
+    let parsed: object;
+    let report: Promise<string>;
+
+    const inputString: string | undefined = tl.getInput('bicepWhatIfJSON', true);
+    if (inputString === undefined) {
+      const errorMessage = 'No JSON input was given!';
+      //tl.setResult(tl.TaskResult.Failed, errorMessage);
+      throw new Error(`Error: ${errorMessage}`);
     }
-    console.log('Hello', inputString);
-  } catch (err:any) {
-    tl.setResult(tl.TaskResult.Failed, err.message);
+
+    // Parse the what-if JSON
+    parsed = parseWhatIfJson(inputString as string);
+    // Generate a human-readable report
+    report = generateReport(parsed);
+    //fs.writeFileSync(outputFilePath, await report, 'utf-8');
+    return tl.setResult(tl.TaskResult.Succeeded, await report); 
+  } catch (err: any) {
+    if (err instanceof Error) {
+      console.error(`Error: ${err.message}`);
+      tl.setResult(tl.TaskResult.Failed, err.message);
+    } else {
+      console.error(`Unknown Error: ${err}`);
+      tl.setResult(tl.TaskResult.Failed, `err: ${err}`);
+    }
+    //process.exit(1);
   }
-// Placeholder: Load what-if JSON from input (e.g., file, pipeline variable)
-//  const whatIfJson = '{}'; // Replace with actual input source
-//
-//  // Parse the what-if JSON
-//  const parsed = parseWhatIfJson(whatIfJson);
-//
-//  // Generate a human-readable report
-//  const report = generateReport(parsed);
-//
-//  // Output the report (e.g., to pipeline summary, file, or console)
-//  console.log(report);
 }
 
-main();
-
-//main().catch((err) => {
-//  console.error('Error:', err);
-//  process.exit(1);
-//});
+run()
+  //.catch((err: any) => {
+  //  if (err instanceof Error) {
+  //    console.error(`Runtime Error: ${err.message}`);
+  //    tl.setResult(tl.TaskResult.Failed, err.message);
+  //  } else {
+  //    console.error(`Unknown Error: ${err}`);
+  //    tl.setResult(tl.TaskResult.Failed, `err: ${err}`);
+  //  }
+  //});

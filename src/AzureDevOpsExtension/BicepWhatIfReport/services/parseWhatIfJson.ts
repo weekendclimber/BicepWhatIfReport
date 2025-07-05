@@ -3,13 +3,15 @@
  * @param whatIfJson - The raw JSON string from Bicep what-if output.
  * @returns Parsed representation of the what-if changes.
  */
-export function parseWhatIfJson(whatIfJson: string): any {
+
+export function parseWhatIfJson(whatIfJson: string): object {
   // TODO: Implement robust parsing logic for Bicep what-if output
   try {
-    const parsed = JSON.parse(whatIfJson);
+    //console.log('Parsing what-if JSON:', whatIfJson);
+    const parsed: object = JSON.parse(whatIfJson);
     // TODO: Transform parsed data into a domain-specific structure if needed
     return parsed;
-  } catch (error) {
-    throw new Error('Failed to parse what-if JSON: ' + error);
+  } catch (err: any) {
+    throw new Error(`Failed to parse what-if JSON: ${err.message}`);
   }
 }

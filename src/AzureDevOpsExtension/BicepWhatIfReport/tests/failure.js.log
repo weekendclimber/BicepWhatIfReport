@@ -1,0 +1,530 @@
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Bad input was given
+##vso[task.complete result=Failed;]Bad input was given
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse JSON input: Error parsing JSON input: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loaded 0
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Input required: bicepWhatIfJSON
+##vso[task.complete result=Failed;]Input required: bicepWhatIfJSON
+
+STDERR: Error: Input required: bicepWhatIfJSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loaded 0
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Input required: bicepWhatIfJSON
+##vso[task.complete result=Failed;]Input required: bicepWhatIfJSON
+
+STDERR: Error: Input required: bicepWhatIfJSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loaded 0
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Input required: bicepWhatIfJSON
+##vso[task.complete result=Failed;]Input required: bicepWhatIfJSON
+
+STDERR: Error: Input required: bicepWhatIfJSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+##vso[task.debug]system.debug=undefined
+##vso[task.debug]DistributedTask.Tasks.Node.SkipDebugLogsWhenDebugModeOff=undefined
+##vso[task.debug]agent.TempDirectory=undefined
+##vso[task.debug]agent.workFolder=undefined
+##vso[task.debug]loading inputs and endpoints
+##vso[task.debug]loading INPUT_BICEPWHATIFJSON
+##vso[task.debug]loaded 1
+##vso[task.debug]Agent.ProxyUrl=undefined
+##vso[task.debug]Agent.CAInfo=undefined
+##vso[task.debug]Agent.ClientCert=undefined
+##vso[task.debug]Agent.SkipCertValidation=undefined
+##vso[task.debug]bicepWhatIfJSON=bad
+##vso[task.debug]task result: Failed
+##vso[task.issue type=error;source=TaskInternal;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+##vso[task.complete result=Failed;]Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
+STDERR: Error: Failed to parse what-if JSON: Unexpected token 'b', "bad" is not valid JSON
+
