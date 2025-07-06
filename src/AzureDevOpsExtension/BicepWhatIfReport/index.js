@@ -1,30 +1,128 @@
 "use strict";
-//import * as fs from 'fs';
-//import * as path from 'path';
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 // Entry point for Azure DevOps Extension
 const tl = require("azure-pipelines-task-lib/task");
 const parseWhatIfJson_1 = require("./services/parseWhatIfJson");
 const generateReport_1 = require("./reports/generateReport");
+//import { get } from 'http';
+const ATTACHMENT_TYPE = 'bicepwhatifreport';
 async function run() {
     try {
         //const inputFilePath = path.resolve(__dirname, '../../../tests/AzureDevOpsExtension/report.json');
         //const outputFilePath = path.resolve(__dirname, 'test.md');
         //const inputString = fs.readFileSync(inputFilePath, 'utf8');
-        let parsed;
-        let report;
-        const inputString = tl.getInput('bicepWhatIfJSON', true);
-        if (inputString === undefined) {
-            const errorMessage = 'No JSON input was given!';
-            //tl.setResult(tl.TaskResult.Failed, errorMessage);
-            throw new Error(`Error: ${errorMessage}`);
+        let reports = [];
+        let baseDirectory = '';
+        // Get the base directory from the task input
+        const whatIfJSONPath = tl.getInput('bicepWhatIfJSONPath', true);
+        if (!whatIfJSONPath) {
+            tl.debug('What-If JSON path input is not provided.');
+            tl.setResult(tl.TaskResult.Failed, 'What-If JSON path is required.');
+            return;
         }
-        // Parse the what-if JSON
-        parsed = (0, parseWhatIfJson_1.parseWhatIfJson)(inputString);
-        // Generate a human-readable report
-        report = (0, generateReport_1.generateReport)(parsed);
-        //fs.writeFileSync(outputFilePath, await report, 'utf-8');
-        return tl.setResult(tl.TaskResult.Succeeded, await report);
+        else {
+            tl.debug(`Markdown path input: ${whatIfJSONPath}`);
+        }
+        // Check if the provided path is absolute
+        if (!path.isAbsolute(whatIfJSONPath)) {
+            // Convert relative path to absolute path
+            baseDirectory = path.join(tl.getVariable('System.DefaultWorkingDirectory') || '', whatIfJSONPath);
+            tl.debug(`Converted relative path to absolute path: ${baseDirectory}`);
+        }
+        else {
+            // Use the absolute path as is
+            baseDirectory = whatIfJSONPath;
+            tl.debug(`Base directory is already absolute: ${baseDirectory}`);
+        }
+        // Check if the base directory exists
+        if (!fs.statSync(baseDirectory).isDirectory()) {
+            tl.debug(`The provided path is not a directory: ${baseDirectory}`);
+            tl.setResult(tl.TaskResult.Failed, `The provided path is not a directory: ${baseDirectory}`);
+            return;
+        }
+        else {
+            tl.debug(`Base directory exists: ${baseDirectory}`);
+        }
+        // Get all JSON files in the base directory, assuming that they are the bicep what-if reports
+        const jsonFiles = await getFiles(baseDirectory);
+        if (!jsonFiles || jsonFiles.length === 0) {
+            tl.debug(`No JSON files found in the directory: ${baseDirectory}`);
+            tl.setResult(tl.TaskResult.Succeeded, `No JSON files found in the directory: ${baseDirectory}`);
+            return;
+        }
+        else {
+            tl.debug(`Found JSON '${jsonFiles.length}' files:\n\t${jsonFiles.join(`\n\t`)}`);
+        }
+        await Promise.all(jsonFiles.map(async (file) => {
+            const filePath = file; // Use file directly since it is already an absolute path
+            const outputFilePath = path.join(baseDirectory, path.basename(file).replace('.json', '.md')); // Derive relative filename for output
+            let report;
+            // Check if the file exists
+            if (!fs.existsSync(filePath)) {
+                tl.setResult(tl.TaskResult.Failed, `The file '${file}' does not exist at path: ${filePath}`);
+                return;
+            }
+            else {
+                tl.debug(`Parsing file '${file}' at path: ${filePath}`);
+                let parsed = await (0, parseWhatIfJson_1.parseWhatIfJson)(filePath);
+                tl.debug(`Generating report for file: ${file}`);
+                report = await (0, generateReport_1.generateReport)(parsed);
+            }
+            // Write report to output file
+            if (!report) {
+                tl.setResult(tl.TaskResult.Failed, `Failed to generate report for file '${file}' in path: ${filePath}`);
+                return;
+            }
+            else {
+                tl.debug(`Writing report to file: ${outputFilePath}`);
+                reports.push(outputFilePath);
+                await fs.promises.writeFile(outputFilePath, report, 'utf-8');
+            }
+        }));
+        // Add attachments for all generated reports
+        if (reports.length > 0) {
+            tl.debug(`Adding attachments for '${reports.length}' generated reports:\n\t${reports.join(`\n\t`)}`);
+            addAttachments(reports, baseDirectory);
+        }
+        // All reports have been parsed, generate, written, and attached.
+        tl.debug(`Generated reports for '${reports.length}' files:\n\t${reports.join(`\n\t`)}`);
+        tl.setResult(tl.TaskResult.Succeeded, `Generated reports for '${reports.length}' files:\n\t${reports.join(`\n\t`)}`);
+        return;
     }
     catch (err) {
         if (err instanceof Error) {
@@ -48,3 +146,35 @@ run();
 //    tl.setResult(tl.TaskResult.Failed, `err: ${err}`);
 //  }
 //});
+// Function to get all JSON files in a directory
+async function getFiles(dir) {
+    const dirents = (await fs.promises.readdir(dir, { withFileTypes: true })).filter(file => file.name.endsWith('.json'));
+    const files = await Promise.all(dirents.map((dirent) => {
+        const res = path.resolve(dir, dirent.name);
+        return res;
+    }));
+    return Array.prototype.concat(...files);
+}
+function addAttachments(files, baseDir) {
+    const absoluteFiles = files.map(file => path.resolve(baseDir, file));
+    const relativeFiles = files.map(file => path.relative(baseDir, file));
+    absoluteFiles.forEach((absoluteFile, index) => {
+        const relativeFile = relativeFiles[index];
+        const name = escapeFilename(relativeFile);
+        tl.addAttachment(ATTACHMENT_TYPE, name, absoluteFile);
+    });
+}
+function escapeFilename(filename) {
+    const ESCAPED_CHARACTERS = '<>|:*?\\/ ';
+    const LOG_ESCAPE_CHARACTER = "^";
+    filename = "md/" + replaceAll(filename, "\\", "/");
+    const chars = LOG_ESCAPE_CHARACTER + ESCAPED_CHARACTERS;
+    for (let i = 0; i < chars.length; i++) {
+        const num = `${i}`.padStart(2, "0");
+        filename = replaceAll(filename, chars[i], `${LOG_ESCAPE_CHARACTER}${num}`);
+    }
+    return filename;
+}
+function replaceAll(text, pattern, replacement) {
+    return text.split(pattern).join(replacement);
+}
