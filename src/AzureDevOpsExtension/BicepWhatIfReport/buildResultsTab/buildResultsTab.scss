@@ -1,0 +1,25 @@
+.markdown-container {
+  padding: 20px;
+  background-color: #f3f3f3;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+}
+
+.markdown-container p {
+  font-size: 14px;
+  color: #333;
+}
+
+.markdown-container h1, h2, h3 {
+  color: #0078d4;
+}
+
+.markdown-container a {
+  color: #005a9e;
+  text-decoration: none;
+}
+
+.markdown-container a:hover {
+  text-decoration: underline;
+}
