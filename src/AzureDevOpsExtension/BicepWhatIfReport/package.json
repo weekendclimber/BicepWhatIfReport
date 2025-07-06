@@ -18,7 +18,8 @@
     "azure-devops-ui": "^2.257.0",
     "azure-pipelines-task-lib": "^5.2.1",
     "sync-request": "^6.1.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vss-web-extension-sdk": "^5.141.0"
   },
   "dependencies": {
     "json2md": "^2.0.3"
