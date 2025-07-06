@@ -15,29 +15,33 @@ async function initializeTab() {
   
   // Get the attachments from the build within the directory
   // Note: The buildId and projectId should be available in the SDK configuration
-  
-
-  // Use getArtifacts to get the list of artifacts for the build
-  const artifacts = await buildClient.getArtifacts(projectId, buildId);
+  const attachments = await buildClient.getAttachments(projectId, buildId, "text/markdown");
 
   // If you have a MarkdownRenderer, instantiate it here
   // const markdownRenderer = new MarkdownRenderer();
   const container: HTMLElement | null = document.getElementById("markdown-container");
 
-  if (artifacts.length > 0) {
-    for (const artifact of artifacts) {
-      // Only process artifacts of type "Container" or as needed
-      if (artifact.resource && artifact.resource.type === "Container") {
-        // Download the artifact content (you may need to fetch the file from the artifact's URL)
-        const response = await fetch(artifact.resource.downloadUrl);
-        const markdownContent = await response.text();
-        // If you have a MarkdownRenderer, use it to render
-        // const renderedHtml = markdownRenderer.render(markdownContent);
-        // For now, just display the markdown as plain text
-        const div = document.createElement("div");
-        div.innerText = markdownContent;
-        container?.appendChild(div);
+  if (attachments.length > 0) {
+    for (const attachment of attachments) {
+      // Fetch the attachment content
+      //const content = await buildClient //.getAttachmentContent(projectId, buildId, attachment.id);
+      
+      // Create a new div for each attachment
+      const attachmentDiv = document.createElement("div");
+      attachmentDiv.className = "markdown-attachment";
+      
+      // Set the inner HTML of the div to the content
+      attachmentDiv.innerHTML = content;
+
+      // Append the attachment div to the container
+      if (container) {
+        container.appendChild(attachmentDiv);
+      } else {
+        console.error("Container not found for appending markdown content.");
       }
+
+      // If you have a MarkdownRenderer, you can use it here to render the content
+      // markdownRenderer.render(content, attachmentDiv);
     }
   } else if (container) {
     container.innerHTML = "<p>No markdown files found for this build.</p>";
