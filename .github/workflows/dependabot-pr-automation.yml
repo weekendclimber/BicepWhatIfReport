@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Add PR to project and set priority
-        uses: actions/add-to-project@v0.5.0
+        uses: actions/add-to-project@v1.0.2
         with:
           project-url: ${{ variables.PROJECT_URL }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
