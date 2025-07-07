@@ -1,8 +1,10 @@
 name: Handle Dependabot PRs
 
 on:
+  workflow_dispatch:
   pull_request:
-    types: [opened]
+    types:
+      - opened
     branches:
       - main  # Change if your default branch is different
 
@@ -15,10 +17,42 @@ jobs:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Add PR to project and set priority
-        uses: actions/add-to-project@v0.5.0
+      #- name: Add PR to project and set priority
+      #  uses: actions/add-to-project@v1.0.2
+      #  with:
+      #    project-url: ${{ vars.PROJECT_URL }}
+      #    github-token: ${{ secrets.GITHUB_TOKEN }}
+      #    labeled: dependabot
+      #    #fields: |
+      #    #  Priority: High
+      
+      - name: Add Assignee to Dependabot PR
+        uses: actions-ecosystem/action-add-assignees@v1.0.0
         with:
-          project-url: ${{ variables.PROJECT_URL }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          fields: |
-            Priority: High
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: ${{ vars.PR_ASSIGNEES }}  # Set this in your repository secrets or environment variables
+
+      - name: Add Priority Field as High
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/graphql \
+            -d '{
+              "query": "mutation($input: UpdatePullRequest!) {
+                updatePullRequest(input: $input) {
+                  pullRequest {
+                    id
+                  }
+                }
+              }",
+              "variables": {
+                "input": {
+                  "pullRequestId": "'${{ github.event.pull_request.node_id}}'",
+                  "body": "Priority: High"
+                }
+              }
+            }'

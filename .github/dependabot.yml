@@ -8,7 +8,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependabot"
+      - "dependencies"
+      - "github-actions"
   - package-ecosystem: "npm"
     directory: "/src/AzureDevOpsExtension/BicepWhatIfReport"
     schedule: 
       interval: "weekly"
+    labels:
+      - "dependabot"
+      - "dependencies"
+      - "javascript"
