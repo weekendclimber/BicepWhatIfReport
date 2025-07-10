@@ -16,14 +16,6 @@ jobs:
         if: github.actor == 'dependabot[bot]'
         runs-on: ubuntu-latest
         steps:
-            #- name: Add PR to project and set priority
-            #  uses: actions/add-to-project@v0.5.0
-            #  with:
-            #    project-url: ${{ variables.PROJECT_URL }}
-            #    github-token: ${{ secrets.GITHUB_TOKEN }}
-            #    fields: |
-            #      Priority: High
-
             - name: Add Assignee to Dependabot PR
               uses: actions-ecosystem/action-add-assignees@v1.0.0
               with:
@@ -42,7 +34,7 @@ jobs:
                     https://api.github.com/graphql \
                     -d '{
                       "query": "query {
-                        repository(owner: \"YOUR_ORG_OR_USER\", name: \"YOUR_REPO_NAME\") {
+                        repository(owner: \"weekendclimber\", name: \"BicepWhatIfReport\") {
                           projectsV2(first: 10) {
                             nodes {
                               id
@@ -53,7 +45,34 @@ jobs:
                       }"
                     }' | jq -r '.data.repository.projectsV2.nodes[0].id')
                   echo "Project ID: $PROJECT_ID"
-                  echo "::set-output name=project_id::$PROJECT_ID"
+                  echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+
+            - name: Get Field ID for Priority
+              id: get_field_id
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  FIELD_ID=$(curl -X POST \
+                    -H "Authorization: Bearer $GITHUB_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -H "Accept: application/vnd.github.v3+json" \
+                    https://api.github.com/graphql \
+                    -d '{
+                      "query": "query {
+                        node(id: \"${{ steps.get_project_id.outputs.project_id }}\") {
+                          ... on ProjectV2 {
+                            fields(first: 10) {
+                              nodes {
+                                id
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }"
+                    }' | jq -r '.data.node.fields.nodes[] | select(.name=="Priority") | .id')
+                  echo "Field ID: $FIELD_ID"
+                  echo "field_id=$FIELD_ID" >> $GITHUB_OUTPUT
 
             - name: Add Priority Field as High
               env:
@@ -74,8 +93,8 @@ jobs:
                       }",
                       "variables": {
                         "input": {
-                          "projectId": "'${{ steps.get_project_id.outputs.project_id }}'",
-                          "itemId": "'${{ github.event.pull_request.node_id}}'",
+                          "projectId": "\"${{ steps.get_project_id.outputs.project_id }}\"",
+                          "itemId": "\"${{ github.event.pull_request.node_id}}\"",
                           "fieldId": "Priority",
                           "body": "Priority: High"
                         }
