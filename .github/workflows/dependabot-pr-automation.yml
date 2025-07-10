@@ -58,8 +58,8 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/graphql \
             -d '{
-              "query": "query {
-                node(id: "${{ steps.get_project_id.outputs.project_id }}") {
+              "query": "query($projectId: ID!) {
+                node(id: $projectId) {
                   ... on ProjectV2 {
                     fields(first: 10) {
                       nodes {
@@ -69,7 +69,10 @@ jobs:
                     }
                   }
                 }
-              }"
+              }",
+              "variables": {
+                "projectId": "${{ steps.get_project_id.outputs.project_id }}"
+              }
             }' | jq -r '.data.node.fields.nodes[] | select(.name=="Priority") | .id')
           echo "Field ID: $FIELD_ID"
           echo "field_id=$FIELD_ID" >> $GITHUB_OUTPUT
@@ -96,7 +99,7 @@ jobs:
                   "projectId": "${{ steps.get_project_id.outputs.project_id }}",
                   "itemId": "${{ github.event.pull_request.node_id}}",
                   "fieldId": "${{ steps.get_field_id.outputs.field_id }}",
-                  "body": "Priority: High"
+                  "value": "High"
                 }
               }
             }'
