@@ -95,7 +95,7 @@ jobs:
                         "input": {
                           "projectId": "\"${{ steps.get_project_id.outputs.project_id }}\"",
                           "itemId": "\"${{ github.event.pull_request.node_id}}\"",
-                          "fieldId": "Priority",
+                          "fieldId": "\"${{ steps.get_field_id.outputs.field_id }}\"",
                           "body": "Priority: High"
                         }
                       }
