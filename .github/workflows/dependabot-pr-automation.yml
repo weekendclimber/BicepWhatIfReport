@@ -1,57 +1,83 @@
 name: Handle Dependabot PRs
 
 on:
-  pull_request:
-    types: 
-      - opened
-    branches:
-      - main  # Change if your default branch is different
+    pull_request:
+        types:
+            - opened
+        branches:
+            - main # Change if your default branch is different
 
 permissions:
-  contents: read
-  pull-requests: write
+    contents: read
+    pull-requests: write
 
 jobs:
-  handle_dependabot_pr:
-    if: github.actor == 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      #- name: Add PR to project and set priority
-      #  uses: actions/add-to-project@v0.5.0
-      #  with:
-      #    project-url: ${{ variables.PROJECT_URL }}
-      #    github-token: ${{ secrets.GITHUB_TOKEN }}
-      #    fields: |
-      #      Priority: High
+    handle_dependabot_pr:
+        if: github.actor == 'dependabot[bot]'
+        runs-on: ubuntu-latest
+        steps:
+            #- name: Add PR to project and set priority
+            #  uses: actions/add-to-project@v0.5.0
+            #  with:
+            #    project-url: ${{ variables.PROJECT_URL }}
+            #    github-token: ${{ secrets.GITHUB_TOKEN }}
+            #    fields: |
+            #      Priority: High
 
-      - name: Add Assignee to Dependabot PR
-        uses: actions-ecosystem/action-add-assignees@v1.0.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: ${{ vars.PR_ASSIGNEES }}
+            - name: Add Assignee to Dependabot PR
+              uses: actions-ecosystem/action-add-assignees@v1.0.0
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  assignees: ${{ vars.PR_ASSIGNEES }}
 
-      - name: Add Priority Field as High
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/graphql \
-            -d '{
-              "query": "mutation($input: UpdatePullRequest!) {
-                updatePullRequest(input: $input) {
-                  pullRequest {
-                    id
-                  }
-                }
-              }",
-              "variables": {
-                "input": {
-                  "pullRequestId": "'${{ github.event.pull_request.node_id}}'",
-                  "body": "Priority: High"
-                }
-              }
-            }'
+            - name: Get Project ID
+              id: get_project_id
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  PROJECT_ID=$(curl -X POST \
+                    -H "Authorization: Bearer $GITHUB_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -H "Accept: application/vnd.github.v3+json" \
+                    https://api.github.com/graphql \
+                    -d '{
+                      "query": "query {
+                        repository(owner: \"YOUR_ORG_OR_USER\", name: \"YOUR_REPO_NAME\") {
+                          projectsV2(first: 10) {
+                            nodes {
+                              id
+                              title
+                            }
+                          }
+                        }
+                      }"
+                    }' | jq -r '.data.repository.projectsV2.nodes[0].id')
+                  echo "Project ID: $PROJECT_ID"
+                  echo "::set-output name=project_id::$PROJECT_ID"
 
+            - name: Add Priority Field as High
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  curl -X POST \
+                    -H "Authorization: Bearer $GITHUB_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -H "Accept: application/vnd.github.v3+json" \
+                    https://api.github.com/graphql \
+                    -d '{
+                      "query": "mutation($input: UpdateProjectNextItemFieldValueInput!) {
+                        updateProjectNextItemFieldValue(input: $input) {
+                          projectNextItem {
+                            id
+                          }
+                        }
+                      }",
+                      "variables": {
+                        "input": {
+                          "projectId": "'${{ steps.get_project_id.outputs.project_id }}'",
+                          "itemId": "'${{ github.event.pull_request.node_id}}'",
+                          "fieldId": "Priority",
+                          "body": "Priority: High"
+                        }
+                      }
+                    }'
