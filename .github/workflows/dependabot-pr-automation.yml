@@ -194,6 +194,21 @@ jobs:
                   Write-Warning "Status field or Approved option not found. Skipping status setting."
               }
               
+              # Assign the repository owner to the PR for review notification
+              Write-Host "Assigning repository owner to PR for review notification..."
+              $AssignUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/issues/${{ github.event.pull_request.number }}/assignees"
+              $AssignBody = @{
+                  assignees = @($RepoOwner)
+              } | ConvertTo-Json
+              
+              try {
+                  $AssignResponse = Invoke-RestMethod -Uri $AssignUrl -Method POST -Headers $Headers -Body $AssignBody
+                  Write-Host "Successfully assigned $RepoOwner to the PR"
+              } catch {
+                  Write-Warning "Failed to assign user to PR: $($_.Exception.Message)"
+                  # This is not critical, so we continue without failing
+              }
+              
               Write-Host "Dependabot PR automation completed successfully"
               
           } catch {
