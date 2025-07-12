@@ -1,0 +1,98 @@
+{
+  "changes": [
+    {
+      "changeType": "Create",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/complexstorage",
+      "before": null,
+      "after": {
+        "apiVersion": "2023-01-01",
+        "type": "Microsoft.Storage/storageAccounts",
+        "name": "complexstorage",
+        "location": "eastus",
+        "properties": {
+          "accountType": "Standard_GRS",
+          "encryption": {
+            "services": {
+              "blob": {
+                "enabled": true,
+                "keyType": "Account"
+              },
+              "file": {
+                "enabled": true,
+                "keyType": "Account"
+              }
+            },
+            "keySource": "Microsoft.Storage"
+          },
+          "networkAcls": {
+            "bypass": "AzureServices",
+            "virtualNetworkRules": [
+              {
+                "id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet1",
+                "action": "Allow"
+              }
+            ],
+            "ipRules": [
+              {
+                "value": "192.168.1.0/24",
+                "action": "Allow"
+              }
+            ],
+            "defaultAction": "Deny"
+          },
+          "tags": {
+            "Environment": "Test",
+            "Project": "BicepWhatIf",
+            "Owner": "DevOps Team",
+            "CostCenter": "IT-001",
+            "Application": "Storage Service"
+          }
+        }
+      },
+      "delta": [
+        {
+          "path": "properties.accountType",
+          "propertyChangeType": "Create",
+          "after": "Standard_GRS"
+        },
+        {
+          "path": "properties.encryption",
+          "propertyChangeType": "Create",
+          "after": {
+            "services": {
+              "blob": {
+                "enabled": true,
+                "keyType": "Account"
+              },
+              "file": {
+                "enabled": true,
+                "keyType": "Account"
+              }
+            },
+            "keySource": "Microsoft.Storage"
+          }
+        },
+        {
+          "path": "properties.networkAcls",
+          "propertyChangeType": "Create",
+          "after": {
+            "bypass": "AzureServices",
+            "virtualNetworkRules": [
+              {
+                "id": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet1",
+                "action": "Allow"
+              }
+            ],
+            "ipRules": [
+              {
+                "value": "192.168.1.0/24",
+                "action": "Allow"
+              }
+            ],
+            "defaultAction": "Deny"
+          }
+        }
+      ]
+    }
+  ]
+}

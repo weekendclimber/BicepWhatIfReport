@@ -24,12 +24,17 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 - **BicepWhatIfReport/**
   - **src/**
     - **AzureDevOpsExtension/**
-      - models/
-      - services/
-      - utils/
-      - reports/
-      - index.ts
-      - README.md
+      - BicepWhatIfReport/
+        - services/
+          - parseWhatIfJson.ts
+        - tests/
+          - parseWhatIfJson.test.ts
+          - test-data/ (comprehensive JSON test files)
+          - _suite.ts
+        - reports/
+        - index.ts
+        - package.json
+        - README.md
     - **GitHubAction/**
       - models/
       - services/
@@ -60,6 +65,23 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 
 - **Language Options:** TypeScript/JavaScript (Node.js), PowerShell, or .NET (C#)
 - [Documentation and setup instructions](./AzureDevOpsExtension/README.md)
+
+#### Testing
+
+The Azure DevOps Extension includes comprehensive unit tests for the JSON parsing logic:
+
+```bash
+cd src/AzureDevOpsExtension/BicepWhatIfReport
+npm test
+```
+
+**Test Coverage:**
+- **16 comprehensive test cases** covering all JSON parsing scenarios
+- **Valid JSON parsing:** Multiple change types (Create, Modify, Delete, NoChange, Ignore, Unsupported)
+- **Error handling:** Non-existent files, empty files, malformed JSON, permission errors
+- **Edge cases:** Large files, deeply nested structures, Unicode content, null values
+- **Performance testing:** Time limits and concurrent file access
+- **Test data:** Realistic Bicep what-if JSON samples in `tests/test-data/`
 
 ### 2. GitHub Action
 
