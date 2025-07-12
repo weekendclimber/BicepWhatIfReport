@@ -16,90 +16,204 @@ jobs:
     if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Add Assignee to Dependabot PR
-        uses: actions-ecosystem/action-add-assignees@v1.0.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: ${{ vars.PR_ASSIGNEES }}
-
-      - name: Get Project ID
-        id: get_project_id
+      - name: Add PR to project and set fields
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROJECT_URL: ${{ variables.PROJECT_URL }}
+          PR_NODE_ID: ${{ github.event.pull_request.node_id }}
+        shell: pwsh
         run: |
-          PROJECT_ID=$(curl -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/graphql \
-            -d '{
-              "query": "query {
-                repository(owner: \"weekendclimber\", name: \"BicepWhatIfReport\") {
-                  projectsV2(first: 10) {
-                    nodes {
-                      id
-                      title
-                    }
+          # PowerShell error handling - stop on any error
+          $ErrorActionPreference = "Stop"
+          
+          # Extract project number from PROJECT_URL
+          if ($env:PROJECT_URL -match '/projects/(\d+)') {
+              $ProjectNumber = $Matches[1]
+              Write-Host "Extracted project number: $ProjectNumber"
+          } else {
+              Write-Error "Error: Could not extract project number from PROJECT_URL: $($env:PROJECT_URL)"
+              exit 1
+          }
+          
+          # Get repository owner and name
+          $RepoOwner = "${{ github.repository_owner }}"
+          $RepoName = "${{ github.event.repository.name }}"
+          
+          Write-Host "Setting up PR fields for project $ProjectNumber in $RepoOwner/$RepoName"
+          
+          # GraphQL query to get project information including fields
+          $ProjectQuery = @{
+              query = "query(`$owner: String!, `$repo: String!, `$number: Int!) { repository(owner: `$owner, name: `$repo) { projectV2(number: `$number) { id fields(first: 20) { nodes { ... on ProjectV2Field { id name } ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }"
+              variables = @{
+                  owner = $RepoOwner
+                  repo = $RepoName
+                  number = [int]$ProjectNumber
+              }
+          } | ConvertTo-Json -Depth 10
+          
+          # Headers for GitHub API
+          $Headers = @{
+              "Authorization" = "Bearer $($env:GITHUB_TOKEN)"
+              "Content-Type" = "application/json"
+          }
+          
+          try {
+              # Get project information
+              Write-Host "Fetching project information..."
+              $ProjectResponse = Invoke-RestMethod -Uri "https://api.github.com/graphql" -Method POST -Headers $Headers -Body $ProjectQuery
+              
+              if ($ProjectResponse.errors) {
+                  Write-Error "GraphQL errors: $($ProjectResponse.errors | ConvertTo-Json)"
+                  exit 1
+              }
+              
+              $ProjectId = $ProjectResponse.data.repository.projectV2.id
+              if (-not $ProjectId) {
+                  Write-Error "Error: Could not extract project ID from API response"
+                  Write-Host "Response: $($ProjectResponse | ConvertTo-Json -Depth 10)"
+                  exit 1
+              }
+              
+              Write-Host "Project ID: $ProjectId"
+              
+              # Find Priority and Status fields
+              $Fields = $ProjectResponse.data.repository.projectV2.fields.nodes
+              $PriorityField = $Fields | Where-Object { $_.name -eq "Priority" }
+              $StatusField = $Fields | Where-Object { $_.name -eq "Status" }
+              
+              $HighOptionId = $null
+              $ApprovedOptionId = $null
+              
+              if ($PriorityField) {
+                  $HighOption = $PriorityField.options | Where-Object { $_.name -eq "High" }
+                  $HighOptionId = $HighOption.id
+                  Write-Host "Priority field found. High option ID: $HighOptionId"
+              } else {
+                  Write-Warning "Priority field not found in project"
+              }
+              
+              if ($StatusField) {
+                  $ApprovedOption = $StatusField.options | Where-Object { $_.name -eq "Approved" }
+                  $ApprovedOptionId = $ApprovedOption.id
+                  Write-Host "Status field found. Approved option ID: $ApprovedOptionId"
+              } else {
+                  Write-Warning "Status field not found in project"
+              }
+              
+              # Add PR to project (fallback in case auto-add workflow didn't work)
+              $AddToProjectMutation = @{
+                  query = "mutation(`$projectId: ID!, `$contentId: ID!) { addProjectV2ItemByContentId(input: { projectId: `$projectId, contentId: `$contentId }) { item { id } } }"
+                  variables = @{
+                      projectId = $ProjectId
+                      contentId = $env:PR_NODE_ID
                   }
-                }
-              }"
-            }' | jq -r '.data.repository.projectsV2.nodes[0].id')
-          echo "Project ID: $PROJECT_ID"
-          echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
-
-      - name: Get Field ID for Priority
-        id: get_field_id
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          FIELD_ID=$(curl -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/graphql \
-            -d '{
-              "query": "query($projectId: ID!) {
-                node(id: $projectId) {
-                  ... on ProjectV2 {
-                    fields(first: 10) {
-                      nodes {
-                        id
-                        name
+              } | ConvertTo-Json -Depth 10
+              
+              Write-Host "Adding PR to project..."
+              $AddResponse = Invoke-RestMethod -Uri "https://api.github.com/graphql" -Method POST -Headers $Headers -Body $AddToProjectMutation
+              
+              if ($AddResponse.errors) {
+                  Write-Warning "Add to project failed (may already be added): $($AddResponse.errors | ConvertTo-Json)"
+                  # Try to find existing item in project instead of failing
+                  $ItemId = $null
+              } else {
+                  $ItemId = $AddResponse.data.addProjectV2ItemByContentId.item.id
+                  Write-Host "Successfully added PR to project. Item ID: $ItemId"
+              }
+              
+              # If we don't have an item ID, try to find the PR in the project
+              if (-not $ItemId) {
+                  Write-Host "Attempting to find existing PR in project..."
+                  $FindItemQuery = @{
+                      query = "query(`$projectId: ID!) { node(id: `$projectId) { ... on ProjectV2 { items(first: 100) { nodes { id content { ... on PullRequest { id } } } } } }"
+                      variables = @{
+                          projectId = $ProjectId
                       }
-                    }
+                  } | ConvertTo-Json -Depth 10
+                  
+                  $FindResponse = Invoke-RestMethod -Uri "https://api.github.com/graphql" -Method POST -Headers $Headers -Body $FindItemQuery
+                  
+                  if (-not $FindResponse.errors) {
+                      $ExistingItem = $FindResponse.data.node.items.nodes | Where-Object { $_.content.id -eq $env:PR_NODE_ID }
+                      if ($ExistingItem) {
+                          $ItemId = $ExistingItem.id
+                          Write-Host "Found existing PR in project. Item ID: $ItemId"
+                      }
                   }
-                }
-              }",
-              "variables": {
-                "projectId": "${{ steps.get_project_id.outputs.project_id }}"
               }
-            }' | jq -r '.data.node.fields.nodes[] | select(.name=="Priority") | .id')
-          echo "Field ID: $FIELD_ID"
-          echo "field_id=$FIELD_ID" >> $GITHUB_OUTPUT
-
-      - name: Add Priority Field as High
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/graphql \
-            -d '{
-              "query": "mutation($input: UpdateProjectNextItemFieldValueInput!) {
-                updateProjectNextItemFieldValue(input: $input) {
-                  projectNextItem {
-                    id
+              
+              if (-not $ItemId) {
+                  Write-Error "Could not get or find item ID for the PR in the project"
+                  exit 1
+              }
+              
+              # Set Priority to High if field exists
+              if ($PriorityField -and $HighOptionId) {
+                  Write-Host "Setting Priority to High..."
+                  $SetPriorityMutation = @{
+                      query = "mutation(`$projectId: ID!, `$itemId: ID!, `$fieldId: ID!, `$optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: `$projectId, itemId: `$itemId, fieldId: `$fieldId, value: { singleSelectOptionId: `$optionId } }) { projectV2Item { id } } }"
+                      variables = @{
+                          projectId = $ProjectId
+                          itemId = $ItemId
+                          fieldId = $PriorityField.id
+                          optionId = $HighOptionId
+                      }
+                  } | ConvertTo-Json -Depth 10
+                  
+                  $PriorityResponse = Invoke-RestMethod -Uri "https://api.github.com/graphql" -Method POST -Headers $Headers -Body $SetPriorityMutation
+                  
+                  if ($PriorityResponse.errors) {
+                      Write-Warning "Failed to set priority: $($PriorityResponse.errors | ConvertTo-Json)"
+                  } else {
+                      Write-Host "Successfully set priority to High"
                   }
-                }
-              }",
-              "variables": {
-                "input": {
-                  "projectId": "${{ steps.get_project_id.outputs.project_id }}",
-                  "itemId": "${{ github.event.pull_request.node_id}}",
-                  "fieldId": "${{ steps.get_field_id.outputs.field_id }}",
-                  "value": "High"
-                }
+              } else {
+                  Write-Warning "Priority field or High option not found. Skipping priority setting."
               }
-            }'
+              
+              # Set Status to Approved if field exists
+              if ($StatusField -and $ApprovedOptionId) {
+                  Write-Host "Setting Status to Approved..."
+                  $SetStatusMutation = @{
+                      query = "mutation(`$projectId: ID!, `$itemId: ID!, `$fieldId: ID!, `$optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: `$projectId, itemId: `$itemId, fieldId: `$fieldId, value: { singleSelectOptionId: `$optionId } }) { projectV2Item { id } } }"
+                      variables = @{
+                          projectId = $ProjectId
+                          itemId = $ItemId
+                          fieldId = $StatusField.id
+                          optionId = $ApprovedOptionId
+                      }
+                  } | ConvertTo-Json -Depth 10
+                  
+                  $StatusResponse = Invoke-RestMethod -Uri "https://api.github.com/graphql" -Method POST -Headers $Headers -Body $SetStatusMutation
+                  
+                  if ($StatusResponse.errors) {
+                      Write-Warning "Failed to set status: $($StatusResponse.errors | ConvertTo-Json)"
+                  } else {
+                      Write-Host "Successfully set status to Approved"
+                  }
+              } else {
+                  Write-Warning "Status field or Approved option not found. Skipping status setting."
+              }
+              
+              # Assign the repository owner to the PR for review notification
+              Write-Host "Assigning repository owner to PR for review notification..."
+              $AssignUrl = "https://api.github.com/repos/$RepoOwner/$RepoName/issues/${{ github.event.pull_request.number }}/assignees"
+              $AssignBody = @{
+                  assignees = @($RepoOwner)
+              } | ConvertTo-Json
+              
+              try {
+                  $AssignResponse = Invoke-RestMethod -Uri $AssignUrl -Method POST -Headers $Headers -Body $AssignBody
+                  Write-Host "Successfully assigned $RepoOwner to the PR"
+              } catch {
+                  Write-Warning "Failed to assign user to PR: $($_.Exception.Message)"
+                  # This is not critical, so we continue without failing
+              }
+              
+              Write-Host "Dependabot PR automation completed successfully"
+              
+          } catch {
+              Write-Error "An error occurred: $($_.Exception.Message)"
+              Write-Host "Full error details: $($_ | ConvertTo-Json -Depth 10)"
+              exit 1
+          }
