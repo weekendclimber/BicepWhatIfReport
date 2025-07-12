@@ -3,20 +3,23 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "cls && tsc && mocha .\\tests\\_suite.js",
-    "dev": "cls && tsc && node .\\index.js"
+    "test": "tsc && mocha ./tests/_suite.js",
+    "dev": "tsc && node ./index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@types/chai": "^5.2.2",
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.0.10",
     "@types/q": "^1.5.8",
     "azure-devops-extension-sdk": "^4.0.2",
     "azure-devops-ui": "^2.258.0",
     "azure-pipelines-task-lib": "^5.2.1",
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1",
     "sync-request": "^6.1.0",
     "typescript": "^5.8.3"
   },

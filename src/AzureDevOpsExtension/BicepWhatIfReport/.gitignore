@@ -2,3 +2,9 @@ node_modules/
 test/success.js.log
 test/failure.js.log
 #test/results.txt
+
+# Test artifacts
+tests/test-data/large-file.json
+tests/test-data/deep-nested.json
+tests/test-data/null-values.json
+tests/test-data/no-permission.json
