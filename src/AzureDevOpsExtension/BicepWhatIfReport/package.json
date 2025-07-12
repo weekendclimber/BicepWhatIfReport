@@ -1,29 +1,26 @@
 {
-	"name": "bicepwhatifreport",
-	"version": "1.0.0",
-	"main": "index.js",
-	"scripts": {
-		"test": "cls && tsc && mocha .\\tests\\_suite.js",
-		"dev": "cls && tsc && node .\\index.js"
-	},
-	"keywords": [],
-	"author": "WeekendClimber",
-	"license": "ISC",
-	"description": "Package for the Bicep What-If Report Azure DevOps extension",
-	"devDependencies": {
-		"@types/mocha": "^10.0.10",
-		"@types/node": "^24.0.10",
-		"@types/q": "^1.5.8",
-		"azure-devops-extension-sdk": "^4.0.2",
-		"azure-devops-ui": "^2.258.0",
-		"azure-pipelines-task-lib": "^5.2.1",
-		"sync-request": "^6.1.0",
-		"typescript": "^5.8.3"
-	},
-	"dependencies": {
-		"json2md": "^2.0.3"
-	},
-	"engines": {
-		"node": ">=20.0.0"
-	}
+  "name": "bicepwhatifreport",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "cls && tsc && mocha .\\tests\\_suite.js",
+    "dev": "cls && tsc && node .\\index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.0.10",
+    "@types/q": "^1.5.8",
+    "azure-devops-extension-sdk": "^4.0.2",
+    "azure-devops-ui": "^2.258.0",
+    "azure-pipelines-task-lib": "^5.2.1",
+    "sync-request": "^6.1.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "json2md": "^2.0.3"
+  }
 }
