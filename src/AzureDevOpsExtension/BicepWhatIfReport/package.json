@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "cls && tsc && mocha .\\tests\\_suite.js",
-    "dev": "cls && tsc && node .\\index.js"
+    "test": "tsc && mocha ./tests/*.test.js",
+    "test:json": "tsc && mocha ./tests/parseWhatIfJson.test.js",
+    "test:integration": "tsc && mocha ./tests/integration.test.js",
+    "dev": "tsc && node .\\index.js"
   },
   "keywords": [],
   "author": "",

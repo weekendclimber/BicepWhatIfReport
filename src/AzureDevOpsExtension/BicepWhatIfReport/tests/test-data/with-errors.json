@@ -1,0 +1,25 @@
+{
+  "changes": [],
+  "diagnostics": [
+    {
+      "additionalInfo": null,
+      "code": "DeploymentFailed",
+      "level": "Error",
+      "message": "The deployment template is not valid.",
+      "target": "/subscriptions/test-sub/resourceGroups/test-rg"
+    },
+    {
+      "additionalInfo": null,
+      "code": "InvalidTemplate",
+      "level": "Error",
+      "message": "Required parameter 'location' is missing.",
+      "target": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/test-vm"
+    }
+  ],
+  "error": {
+    "code": "InvalidTemplate",
+    "message": "Deployment template validation failed"
+  },
+  "potentialChanges": null,
+  "status": "Failed"
+}

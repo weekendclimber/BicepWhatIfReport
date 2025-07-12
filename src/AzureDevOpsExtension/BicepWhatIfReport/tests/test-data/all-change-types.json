@@ -1,0 +1,134 @@
+{
+  "changes": [
+    {
+      "after": {
+        "apiVersion": "2025-03-01",
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg",
+        "location": "eastus",
+        "name": "test-rg",
+        "type": "Microsoft.Resources/resourceGroups"
+      },
+      "before": null,
+      "changeType": "Create",
+      "delta": null,
+      "deploymentId": null,
+      "identifiers": null,
+      "resourceId": "/subscriptions/test-sub/resourceGroups/test-rg",
+      "symbolicName": null,
+      "unsupportedReason": null
+    },
+    {
+      "after": {
+        "apiVersion": "2024-07-01",
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/test-vm",
+        "location": "eastus",
+        "name": "test-vm",
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "Standard_B2s"
+          }
+        },
+        "type": "Microsoft.Compute/virtualMachines"
+      },
+      "before": {
+        "apiVersion": "2024-07-01",
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/test-vm",
+        "location": "eastus",
+        "name": "test-vm",
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "Standard_B1s"
+          }
+        },
+        "type": "Microsoft.Compute/virtualMachines"
+      },
+      "changeType": "Modify",
+      "delta": [
+        {
+          "after": "Standard_B2s",
+          "before": "Standard_B1s",
+          "children": null,
+          "path": "properties.hardwareProfile.vmSize",
+          "propertyChangeType": "Modify"
+        }
+      ],
+      "deploymentId": null,
+      "identifiers": null,
+      "resourceId": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/test-vm",
+      "symbolicName": null,
+      "unsupportedReason": null
+    },
+    {
+      "after": {
+        "apiVersion": "2024-05-01",
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet",
+        "location": "eastus",
+        "name": "test-vnet",
+        "type": "Microsoft.Network/virtualNetworks"
+      },
+      "before": {
+        "apiVersion": "2024-05-01",
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet",
+        "location": "eastus",
+        "name": "test-vnet",
+        "type": "Microsoft.Network/virtualNetworks"
+      },
+      "changeType": "NoChange",
+      "delta": [],
+      "deploymentId": null,
+      "identifiers": null,
+      "resourceId": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet",
+      "symbolicName": null,
+      "unsupportedReason": null
+    },
+    {
+      "after": {
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Compute/disks/test-disk",
+        "location": "eastus",
+        "name": "test-disk",
+        "type": "Microsoft.Compute/disks"
+      },
+      "before": {
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Compute/disks/test-disk",
+        "location": "eastus",
+        "name": "test-disk",
+        "type": "Microsoft.Compute/disks"
+      },
+      "changeType": "Ignore",
+      "delta": null,
+      "deploymentId": null,
+      "identifiers": null,
+      "resourceId": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Compute/disks/test-disk",
+      "symbolicName": null,
+      "unsupportedReason": null
+    },
+    {
+      "after": {
+        "apiVersion": "2024-01-01",
+        "id": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/virtualNetworkPeerings/test-peering",
+        "name": "test-peering",
+        "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings"
+      },
+      "before": null,
+      "changeType": "Unsupported",
+      "delta": null,
+      "deploymentId": null,
+      "identifiers": null,
+      "resourceId": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/test-vnet/virtualNetworkPeerings/test-peering",
+      "symbolicName": null,
+      "unsupportedReason": "Changes to the resource cannot be analyzed because its resource ID cannot be calculated until deployment is under way."
+    }
+  ],
+  "diagnostics": [
+    {
+      "additionalInfo": null,
+      "code": "NestedDeploymentShortCircuited",
+      "level": "Warning",
+      "message": "A nested deployment got short-circuited and all its resources got skipped from validation.",
+      "target": "/subscriptions/test-sub/resourceGroups/test-rg/providers/Microsoft.Resources/deployments/test-deployment"
+    }
+  ],
+  "error": null,
+  "potentialChanges": null,
+  "status": "Succeeded"
+}
