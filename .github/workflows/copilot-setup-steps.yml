@@ -31,8 +31,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version-file: "src/AzureDevOpsExtension/BicepWhatIfReport/package.json"
           cache: "npm"
+          cache-dependency-path: "src/AzureDevOpsExtension/BicepWhatIfReport/package-lock.json"
+          architecture: "x64"
 
       - name: Install TypeScript dependencies
         run: npm ci
