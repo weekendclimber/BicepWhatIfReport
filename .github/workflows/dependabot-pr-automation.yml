@@ -2,9 +2,10 @@ name: Handle Dependabot PRs
 
 on:
   pull_request:
-    types: [opened]
+    types:
+      - opened
     branches:
-      - main  # Change if your default branch is different
+      - main # Change if your default branch is different
 
 permissions:
   contents: read
