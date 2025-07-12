@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Add Assignee to Dependabot PR
-        uses: actions-ecosystem/action-add-assignees@v1.0.0
+        uses: actions-ecosystem/action-add-assignees@v1.0.1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           assignees: ${{ vars.PR_ASSIGNEES }}
