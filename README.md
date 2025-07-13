@@ -91,6 +91,17 @@ This repository has comprehensive security and quality measures in place:
 
 ---
 
+## Documentation
+
+### Azure DevOps Extension SDK v4 Reference
+- **[Complete SDK Reference Guide](docs/azure-devops-extension-sdk-v4-reference.md)** - Comprehensive documentation covering all SDK methods, properties, and usage patterns
+- **[Practical Examples](docs/sdk-examples/)** - Working TypeScript examples demonstrating real-world SDK usage:
+  - [Modern Web Extension](docs/sdk-examples/modern-web-extension.ts) - Complete extension implementation
+  - [Build Attachments](docs/sdk-examples/build-attachments-example.ts) - Working with build attachments
+  - [Extension Data Service](docs/sdk-examples/extension-data-service-example.ts) - Data persistence and user preferences
+  - [Theme & UI Integration](docs/sdk-examples/theme-and-ui-example.ts) - Theme management and responsive design
+  - [Error Handling Patterns](docs/sdk-examples/error-handling-patterns.ts) - Comprehensive error handling strategies
+
 ## Getting Started
 
 ### Prerequisites
