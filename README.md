@@ -66,6 +66,20 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 - **Language Options:** TypeScript/JavaScript (Node.js), PowerShell, or .NET (C#)
 - [Documentation and setup instructions](./AzureDevOpsExtension/README.md)
 
+#### Features
+
+- **Pipeline Task**: Generates markdown reports from Bicep what-if JSON output
+- **Web Extension**: Displays reports in Azure DevOps build summary tab
+- **Artifact Publishing**: Publishes markdown files as build artifacts for download
+- **Output Directory**: Reports are saved to `Build.ArtifactStagingDirectory` by default
+
+#### Usage
+
+1. Add the "Bicep What If Report Task" to your Azure DevOps pipeline
+2. Configure the task with the path to your Bicep what-if JSON files
+3. View the generated reports in the "Bicep What If Report" tab on the build summary page
+4. Download the raw markdown files from the build artifacts
+
 #### Testing
 
 The Azure DevOps Extension includes comprehensive unit tests for the JSON parsing logic:
@@ -94,13 +108,13 @@ npm test
 
 The project board and issues are organized around the following milestones:
 
-1. Parse Bicep What-If JSON Output
-2. Generate Human-Readable Report
-3. Create Azure DevOps Extension Skeleton
+1. ✅ Parse Bicep What-If JSON Output
+2. ✅ Generate Human-Readable Report
+3. ✅ Create Azure DevOps Extension Skeleton
 4. Implement GitHub Action Skeleton
-5. Integrate Report Generation in Azure DevOps Extension
+5. ✅ Integrate Report Generation in Azure DevOps Extension
 6. Integrate Report Generation in GitHub Action
-7. Add Unit Tests for JSON Parsing Logic
+7. ✅ Add Unit Tests for JSON Parsing Logic
 8. Add Unit Tests for Report Generation
 9. Documentation: Usage Instructions
 10. Continuous Integration Setup

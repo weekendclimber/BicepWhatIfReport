@@ -12,11 +12,9 @@ const ATTACHMENT_TYPE: string = 'bicepwhatifreport';
 
 async function run() {
   try {
-    //const inputFilePath = path.resolve(__dirname, '../../../tests/AzureDevOpsExtension/report.json');
-    //const outputFilePath = path.resolve(__dirname, 'test.md');
-    //const inputString = fs.readFileSync(inputFilePath, 'utf8');
     let reports: string[] = [];
-    let baseDirectory: string = '';
+    let inputDirectory: string = '';
+    let outputDirectory: string = '';
 
     // Get the base directory from the task input
     const whatIfJSONPath: string | undefined = tl.getInput('bicepWhatIfJSONPath', true);
@@ -25,32 +23,50 @@ async function run() {
       tl.setResult(tl.TaskResult.Failed, 'What-If JSON path is required.');
       return;
     } else {
-      tl.debug(`Markdown path input: ${whatIfJSONPath}`);
+      tl.debug(`What-If JSON path input: ${whatIfJSONPath}`);
     }
+
     // Check if the provided path is absolute
     if (!path.isAbsolute(whatIfJSONPath)) {
       // Convert relative path to absolute path
-      baseDirectory = path.join(tl.getVariable('System.DefaultWorkingDirectory') || '', whatIfJSONPath);
-      tl.debug(`Converted relative path to absolute path: ${baseDirectory}`);
+      inputDirectory = path.join(tl.getVariable('System.DefaultWorkingDirectory') || '', whatIfJSONPath);
+      tl.debug(`Converted relative path to absolute path: ${inputDirectory}`);
     } else {
       // Use the absolute path as is
-      baseDirectory = whatIfJSONPath;
-      tl.debug(`Base directory is already absolute: ${baseDirectory}`);
-    }
-    // Check if the base directory exists
-    if (!fs.statSync(baseDirectory).isDirectory()) {
-      tl.debug(`The provided path is not a directory: ${baseDirectory}`);
-      tl.setResult(tl.TaskResult.Failed, `The provided path is not a directory: ${baseDirectory}`);
-      return;
-    } else {
-      tl.debug(`Base directory exists: ${baseDirectory}`);
+      inputDirectory = whatIfJSONPath;
+      tl.debug(`Input directory is already absolute: ${inputDirectory}`);
     }
 
-    // Get all JSON files in the base directory, assuming that they are the bicep what-if reports
-    const jsonFiles: string[] = await getFiles(baseDirectory);
+    // Set output directory to Build.ArtifactStagingDirectory
+    const artifactStagingDirectory = tl.getVariable('Build.ArtifactStagingDirectory');
+    if (!artifactStagingDirectory) {
+      tl.debug('Build.ArtifactStagingDirectory is not set, falling back to input directory');
+      outputDirectory = inputDirectory;
+    } else {
+      outputDirectory = artifactStagingDirectory;
+      tl.debug(`Output directory set to Build.ArtifactStagingDirectory: ${outputDirectory}`);
+    }
+
+    // Check if the input directory exists
+    if (!fs.statSync(inputDirectory).isDirectory()) {
+      tl.debug(`The provided path is not a directory: ${inputDirectory}`);
+      tl.setResult(tl.TaskResult.Failed, `The provided path is not a directory: ${inputDirectory}`);
+      return;
+    } else {
+      tl.debug(`Input directory exists: ${inputDirectory}`);
+    }
+
+    // Ensure output directory exists
+    if (!fs.existsSync(outputDirectory)) {
+      await fs.promises.mkdir(outputDirectory, { recursive: true });
+      tl.debug(`Created output directory: ${outputDirectory}`);
+    }
+
+    // Get all JSON files in the input directory, assuming that they are the bicep what-if reports
+    const jsonFiles: string[] = await getFiles(inputDirectory);
     if (!jsonFiles || jsonFiles.length === 0) {
-      tl.debug(`No JSON files found in the directory: ${baseDirectory}`);
-      tl.setResult(tl.TaskResult.Succeeded, `No JSON files found in the directory: ${baseDirectory}`);
+      tl.debug(`No JSON files found in the directory: ${inputDirectory}`);
+      tl.setResult(tl.TaskResult.Succeeded, `No JSON files found in the directory: ${inputDirectory}`);
       return;
     } else {
       tl.debug(`Found JSON '${jsonFiles.length}' files:\n\t${jsonFiles.join(`\n\t`)}`);
@@ -58,7 +74,7 @@ async function run() {
 
     await Promise.all(jsonFiles.map(async file => {
       const filePath: string = file; // Use file directly since it is already an absolute path
-      const outputFilePath: string = path.join(baseDirectory, path.basename(file).replace('.json', '.md')); // Derive relative filename for output
+      const outputFilePath: string = path.join(outputDirectory, path.basename(file).replace('.json', '.md')); // Output to staging directory
       let report: string;
 
       // Check if the file exists
@@ -86,7 +102,11 @@ async function run() {
     // Add attachments for all generated reports
     if (reports.length > 0) {
       tl.debug(`Adding attachments for '${reports.length}' generated reports:\n\t${reports.join(`\n\t`)}`);
-      addAttachments(reports, baseDirectory);
+      addAttachments(reports, outputDirectory);
+      
+      // Publish markdown files as build artifacts
+      tl.debug(`Publishing '${reports.length}' markdown files as build artifacts`);
+      tl.uploadArtifact('BicepWhatIfReports', outputDirectory, 'BicepWhatIfReports');
     }
 
     // All reports have been parsed, generate, written, and attached.
@@ -101,7 +121,6 @@ async function run() {
       console.error(`Unknown Error: ${err}`);
       tl.setResult(tl.TaskResult.Failed, `err: ${err}`);
     }
-    //process.exit(1);
   }
 }
 
@@ -127,10 +146,8 @@ async function getFiles(dir: string): Promise<string[]> {
 }
 
 function addAttachments(files: string[], baseDir: string) {
-  const absoluteFiles = files.map(file => path.resolve(baseDir, file));
-  const relativeFiles = files.map(file => path.relative(baseDir, file));
-  absoluteFiles.forEach((absoluteFile, index) => {
-      const relativeFile = relativeFiles[index];
+  files.forEach((absoluteFile) => {
+      const relativeFile = path.relative(baseDir, absoluteFile);
       const name = escapeFilename(relativeFile);
       tl.addAttachment(ATTACHMENT_TYPE, name, absoluteFile);
   });

@@ -42,7 +42,7 @@
             ],
             "properties": {
                 "name": "Bicep What If Report",
-                "uri": "contents/bicep_what_if_report.md",
+                "uri": "contents/bicep-what-if-tab.html",
                 "supportsTasks": [
                     "61199cb9-caa3-49f9-a208-13346f428945"
                 ]
