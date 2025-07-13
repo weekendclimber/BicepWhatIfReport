@@ -187,7 +187,8 @@ function validateInputs(inputs: VariableTaskInputs): boolean {
     
     // Validate log level
     const validLogLevels = ['Trace', 'Debug', 'Information', 'Warning', 'Error', 'Critical'];
-    if (!validLogLevels.includes(inputs.logLevel)) {
+    const normalizedLogLevels = validLogLevels.map(level => level.toLowerCase());
+    if (!normalizedLogLevels.includes(inputs.logLevel.toLowerCase())) {
         tl.setResult(
             tl.TaskResult.Failed,
             `Invalid log level: ${inputs.logLevel}. Valid values: ${validLogLevels.join(', ')}`
