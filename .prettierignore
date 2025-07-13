@@ -1,5 +1,6 @@
 # Dependencies
 **/node_modules
+node_modules/
 
 # Build outputs
 *.js
@@ -21,6 +22,9 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Binary files
+*.wasm
 
 # But keep specific JS files that are not compiled
 !.github/workflows/scripts/**/*.js

@@ -1,0 +1,145 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  azure-devops-extension:
+    name: Azure DevOps Extension CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/AzureDevOpsExtension/BicepWhatIfReport
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ./src/AzureDevOpsExtension/BicepWhatIfReport/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linting
+      run: npm run lint
+
+    - name: Check code formatting
+      run: npm run format:check
+
+    - name: Build TypeScript
+      run: npm run build
+
+    - name: Run tests
+      run: npm test
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-node-${{ matrix.node-version }}
+        path: ./src/AzureDevOpsExtension/BicepWhatIfReport/tests/report.json
+
+  github-action:
+    name: GitHub Action CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/GitHubAction
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ./src/GitHubAction/package-lock.json
+
+    - name: Check if package.json exists
+      id: check-package
+      run: |
+        if [ -f "package.json" ]; then
+          echo "package-exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "package-exists=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Install dependencies
+      if: steps.check-package.outputs.package-exists == 'true'
+      run: npm ci
+
+    - name: Validate TypeScript compilation
+      run: |
+        if [ -f "package.json" ]; then
+          npx tsc --noEmit --project .
+        else
+          echo "No package.json found, checking TypeScript syntax only"
+          npx tsc --noEmit index.ts
+        fi
+
+  security-check:
+    name: Security and Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Run npm audit on Azure DevOps Extension
+      working-directory: ./src/AzureDevOpsExtension/BicepWhatIfReport
+      run: |
+        npm ci
+        npm audit --audit-level=moderate
+
+    - name: Check for sensitive information
+      run: |
+        echo "Checking for potential secrets or sensitive information..."
+        # Check for common patterns that might indicate secrets
+        if grep -r -i -E "(password|secret|token|key)" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.md" --exclude="*.yml" --exclude="*.yaml" .; then
+          echo "⚠️  Found potential sensitive information. Please review manually."
+        else
+          echo "✅ No obvious sensitive information detected."
+        fi
+
+  validate-workflows:
+    name: Validate GitHub Workflows
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Validate workflow syntax
+      run: |
+        echo "Validating GitHub workflow files..."
+        for workflow in .github/workflows/*.yml .github/workflows/*.yaml; do
+          if [ -f "$workflow" ]; then
+            echo "✅ Validating $workflow"
+            # Basic YAML syntax check
+            python3 -c "import yaml; yaml.safe_load(open('$workflow'))" || exit 1
+          fi
+        done
+        echo "✅ All workflow files have valid YAML syntax"

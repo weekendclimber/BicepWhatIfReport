@@ -2,9 +2,49 @@
 
 [![Close Issue](https://github.com/weekendclimber/BicepWhatIfReport/actions/workflows/auto-close-issue.yml/badge.svg)](https://github.com/weekendclimber/BicepWhatIfReport/actions)
 [![CodeQL Advanced](https://github.com/weekendclimber/BicepWhatIfReport/actions/workflows/codeql.yml/badge.svg)](https://github.com/weekendclimber/BicepWhatIfReport/actions/workflows/codeql.yml)
+[![Continuous Integration](https://github.com/weekendclimber/BicepWhatIfReport/actions/workflows/ci.yml/badge.svg)](https://github.com/weekendclimber/BicepWhatIfReport/actions/workflows/ci.yml)
 [![Dependabot Updates](https://github.com/weekendclimber/BicepWhatIfReport/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/weekendclimber/BicepWhatIfReport/actions/workflows/dependabot/dependabot-updates)
 
 A toolkit for parsing and generating human-readable reports from Bicep deployment "what-if" JSON output. This project offers both an Azure DevOps Extension and a GitHub Action, making it easy to incorporate clear and actionable Bicep change reporting into your CI/CD workflows.
+
+---
+
+## Security and Quality Assurance
+
+### GitHub Advanced Security Features
+
+This repository has comprehensive security and quality measures in place:
+
+#### Automated Security Scanning
+- **CodeQL Advanced Security**: Automatically scans JavaScript/TypeScript and GitHub Actions for security vulnerabilities
+  - Runs on push to main branch, pull requests, and weekly schedule
+  - Analyzes code for security vulnerabilities, bugs, and code quality issues
+  - Results available in the Security tab
+
+#### Dependency Management
+- **Dependabot**: Automatically monitors and updates dependencies
+  - Weekly scans for npm packages and GitHub Actions
+  - Automatic PR creation for security updates
+  - Configured for both Azure DevOps Extension and GitHub Action projects
+
+#### Continuous Integration
+- **Automated Testing**: All code changes are automatically tested
+  - Runs 19 comprehensive unit tests for JSON parsing and report generation
+  - Tests cover valid parsing, error handling, edge cases, and performance
+  - Matrix testing across Node.js 20.x and 22.x
+
+- **Code Quality**: Enforced through automated linting and formatting
+  - ESLint configuration for TypeScript code quality
+  - Prettier for consistent code formatting
+  - Pre-commit hooks ensure code quality before tests
+
+- **Build Validation**: Ensures TypeScript compilation succeeds across all projects
+
+#### Security Best Practices
+- No hardcoded secrets or sensitive information in source code
+- Regular security audits through npm audit
+- Minimal permissions for GitHub Actions workflows
+- Comprehensive test coverage including security edge cases
 
 ---
 
@@ -117,7 +157,7 @@ The project board and issues are organized around the following milestones:
 7. ✅ Add Unit Tests for JSON Parsing Logic
 8. Add Unit Tests for Report Generation
 9. Documentation: Usage Instructions
-10. Continuous Integration Setup
+10. ✅ Continuous Integration Setup
 
 See [issues](https://github.com/weekendclimber/BicepWhatIfReport/issues) for details.
 

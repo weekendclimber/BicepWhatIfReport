@@ -22,7 +22,7 @@ export async function parseWhatIfJson(file: string): Promise<object> {
     } else {
       tl.debug(`Reading what-if JSON file: ${file}`);
       let fileContent: string = await fs.promises.readFile(file, 'utf8');
-      parsed = JSON.parse( fileContent );
+      parsed = JSON.parse(fileContent);
       return parsed;
     }
   } catch (err: any) {
