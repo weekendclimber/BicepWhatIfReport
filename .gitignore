@@ -24,3 +24,5 @@ yarn-error.log*
 
 # But keep specific JS files that are not compiled
 !.github/workflows/scripts/**/*.js
+!**/.eslintrc.js
+!**/prettier.config.js
