@@ -1,17 +1,11 @@
 # Dependencies
-node_modules/
 **/node_modules
+node_modules/
 
 # Build outputs
 *.js
 *.js.map
 *.d.ts
-
-# Test reports
-reports/
-tests/test-data/malformed-syntax.json
-tests/test-data/no-permission.json
-tests/report.json
 
 # Temporary files
 .taskkey
@@ -29,5 +23,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Binary files
-*.wasm
+# But keep specific JS files that are not compiled
+!.github/workflows/scripts/**/*.js
+!**/.eslintrc.js
+!**/prettier.config.js
