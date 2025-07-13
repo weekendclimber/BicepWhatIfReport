@@ -2,6 +2,8 @@
 
 Complete documentation and examples for using the Azure DevOps Extension SDK version 4.0.2 in TypeScript and JavaScript applications.
 
+> **📖 For comprehensive documentation including pipeline tasks, see the main [Documentation README](README.md)**
+
 ## 📚 Documentation Files
 
 ### Core Reference
@@ -13,6 +15,13 @@ Complete documentation and examples for using the Azure DevOps Extension SDK ver
   - Context management
   - UI integration and theming
 
+- **[Azure Pipelines Task Library - Complete Reference Guide](azure-pipelines-task-lib-reference.md)**
+  - Comprehensive coverage of azure-pipelines-task-lib methods and properties
+  - Input/output management, variable handling, and file operations
+  - Artifact and attachment management
+  - Error handling and task result patterns
+  - Real-world pipeline task development examples
+
 ### Migration Guide
 - **[Migration Guide: Legacy VSS to Modern SDK v4](migration-guide.md)**
   - Step-by-step migration from legacy VSS approach
@@ -23,6 +32,8 @@ Complete documentation and examples for using the Azure DevOps Extension SDK ver
 ## 💻 Practical Examples
 
 All examples are located in the [`sdk-examples/`](sdk-examples/) directory:
+
+### Web Extension Examples (Azure DevOps Extension SDK v4)
 
 ### 1. [Modern Web Extension](sdk-examples/modern-web-extension.ts)
 Complete TypeScript implementation of a modern Azure DevOps web extension:
@@ -69,6 +80,48 @@ Comprehensive error handling strategies:
 - Graceful degradation strategies
 - User-friendly error reporting
 - Error logging and diagnostics
+
+### Pipeline Task Examples (Azure Pipelines Task Library)
+
+### 6. [Basic Pipeline Task](sdk-examples/pipeline-task-basic-example.ts)
+Fundamental pipeline task structure and patterns:
+- Input validation and retrieval
+- Environment setup and validation
+- Basic error handling and logging
+- Task result reporting and cleanup
+- Progress reporting and user feedback
+
+### 7. [File Operations](sdk-examples/pipeline-task-file-operations.ts)
+Comprehensive file operations and processing:
+- File discovery with pattern matching
+- File reading, writing, and manipulation
+- Directory operations and management
+- File validation and integrity checking
+- Progress reporting for long operations
+
+### 8. [Variables & Input Management](sdk-examples/pipeline-task-variables-example.ts)
+Complete variable and input management:
+- All input types (string, boolean, array, secret)
+- System and build variable access
+- Setting output variables for subsequent tasks
+- Variable validation and transformation
+- Configuration file processing
+
+### 9. [Artifacts & Attachments](sdk-examples/pipeline-task-artifacts-example.ts)
+Build artifact and attachment management:
+- Creating and uploading build artifacts
+- Managing build summary attachments
+- File compression and packaging
+- Metadata generation and reporting
+- Artifact organization and retention
+
+### 10. [Error Handling & Resilience](sdk-examples/pipeline-task-error-handling.ts)
+Advanced error handling and resilience patterns:
+- Custom error types and categorization
+- Retry mechanisms with exponential backoff
+- Circuit breaker pattern implementation
+- Graceful degradation strategies
+- Comprehensive error reporting
 
 ## 🚀 Quick Start
 
