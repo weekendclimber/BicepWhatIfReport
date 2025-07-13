@@ -9,8 +9,8 @@ const mockTl = {
   setResult: (result: any, message: string) => console.log(`RESULT: ${result} - ${message}`),
   TaskResult: {
     Failed: 'Failed',
-    Succeeded: 'Succeeded'
-  }
+    Succeeded: 'Succeeded',
+  },
 };
 
 // Replace the module require with our mock
@@ -19,12 +19,12 @@ Object.assign(tl, mockTl);
 
 describe('parseWhatIfJson', () => {
   const testDataDir = path.join(__dirname, 'test-data');
-  
+
   describe('Valid JSON parsing', () => {
     it('should parse minimal valid JSON successfully', async () => {
       const filePath = path.join(testDataDir, 'minimal-valid.json');
       const result = await parseWhatIfJson(filePath);
-      
+
       expect(result).to.be.an('object');
       expect(result).to.have.property('changes');
       expect((result as any).changes).to.be.an('array');
@@ -35,7 +35,7 @@ describe('parseWhatIfJson', () => {
     it('should parse all change types correctly', async () => {
       const filePath = path.join(testDataDir, 'all-change-types.json');
       const result = await parseWhatIfJson(filePath);
-      
+
       expect(result).to.be.an('object');
       expect(result).to.have.property('changes');
       const changes = (result as any).changes;
@@ -44,13 +44,20 @@ describe('parseWhatIfJson', () => {
 
       // Verify all change types are present
       const changeTypes = changes.map((change: any) => change.changeType);
-      expect(changeTypes).to.include.members(['Create', 'Modify', 'Delete', 'NoChange', 'Ignore', 'Unsupported']);
+      expect(changeTypes).to.include.members([
+        'Create',
+        'Modify',
+        'Delete',
+        'NoChange',
+        'Ignore',
+        'Unsupported',
+      ]);
     });
 
     it('should parse empty deployment JSON', async () => {
       const filePath = path.join(testDataDir, 'empty-deployment.json');
       const result = await parseWhatIfJson(filePath);
-      
+
       expect(result).to.be.an('object');
       expect(result).to.have.property('changes');
       expect((result as any).changes).to.be.an('array');
@@ -60,13 +67,13 @@ describe('parseWhatIfJson', () => {
     it('should parse complex nested JSON structures', async () => {
       const filePath = path.join(testDataDir, 'complex-nested.json');
       const result = await parseWhatIfJson(filePath);
-      
+
       expect(result).to.be.an('object');
       expect(result).to.have.property('changes');
       const changes = (result as any).changes;
       expect(changes).to.be.an('array');
       expect(changes).to.have.lengthOf(1);
-      
+
       const change = changes[0];
       expect(change).to.have.property('after');
       expect(change.after).to.have.property('properties');
@@ -78,13 +85,13 @@ describe('parseWhatIfJson', () => {
     it('should parse JSON with Unicode characters', async () => {
       const filePath = path.join(testDataDir, 'unicode-content.json');
       const result = await parseWhatIfJson(filePath);
-      
+
       expect(result).to.be.an('object');
       expect(result).to.have.property('changes');
       const changes = (result as any).changes;
       expect(changes).to.be.an('array');
       expect(changes).to.have.lengthOf(1);
-      
+
       const tags = changes[0].after.tags;
       expect(tags.Description).to.include('测试存储账户');
       expect(tags.Description).to.include('🚀');
@@ -95,7 +102,7 @@ describe('parseWhatIfJson', () => {
     it('should parse JSON with errors structure', async () => {
       const filePath = path.join(testDataDir, 'with-errors.json');
       const result = await parseWhatIfJson(filePath);
-      
+
       expect(result).to.be.an('object');
       expect(result).to.have.property('error');
       expect((result as any).error).to.have.property('code', 'DeploymentValidationFailed');
@@ -107,7 +114,7 @@ describe('parseWhatIfJson', () => {
   describe('Error handling', () => {
     it('should throw error for non-existent file', async () => {
       const filePath = path.join(testDataDir, 'non-existent-file.json');
-      
+
       try {
         await parseWhatIfJson(filePath);
         expect.fail('Should have thrown an error');
@@ -119,7 +126,7 @@ describe('parseWhatIfJson', () => {
 
     it('should throw error for empty file', async () => {
       const filePath = path.join(testDataDir, 'empty-file.json');
-      
+
       try {
         await parseWhatIfJson(filePath);
         expect.fail('Should have thrown an error');
@@ -131,7 +138,7 @@ describe('parseWhatIfJson', () => {
 
     it('should throw error for malformed JSON', async () => {
       const filePath = path.join(testDataDir, 'malformed-syntax.json');
-      
+
       try {
         await parseWhatIfJson(filePath);
         expect.fail('Should have thrown an error');
@@ -165,12 +172,7 @@ describe('parseWhatIfJson', () => {
     });
 
     it('should handle invalid file paths', async () => {
-      const invalidPaths = [
-        '',
-        '   ',
-        '/invalid/path/to/file.json',
-        'relative/path.json'
-      ];
+      const invalidPaths = ['', '   ', '/invalid/path/to/file.json', 'relative/path.json'];
 
       for (const invalidPath of invalidPaths) {
         try {
@@ -185,9 +187,9 @@ describe('parseWhatIfJson', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle very large JSON files', async function() {
+    it('should handle very large JSON files', async function () {
       this.timeout(10000); // Increase timeout for large file test
-      
+
       // Create a large JSON file with many changes
       const largeJsonPath = path.join(testDataDir, 'large-file.json');
       const largeData = {
@@ -201,10 +203,10 @@ describe('parseWhatIfJson', () => {
             name: `storage${i}`,
             location: 'eastus',
             properties: {
-              accountType: 'Standard_LRS'
-            }
-          }
-        }))
+              accountType: 'Standard_LRS',
+            },
+          },
+        })),
       };
 
       fs.writeFileSync(largeJsonPath, JSON.stringify(largeData));
@@ -227,7 +229,7 @@ describe('parseWhatIfJson', () => {
       const deepNestedPath = path.join(testDataDir, 'deep-nested.json');
       let deepObject: any = {};
       let current = deepObject;
-      
+
       // Create 50 levels of nesting
       for (let i = 0; i < 50; i++) {
         current.level = i;
@@ -237,14 +239,16 @@ describe('parseWhatIfJson', () => {
       current.final = 'value';
 
       const deepData = {
-        changes: [{
-          changeType: 'Create',
-          resourceId: '/test/resource',
-          before: null,
-          after: {
-            deepProperty: deepObject
-          }
-        }]
+        changes: [
+          {
+            changeType: 'Create',
+            resourceId: '/test/resource',
+            before: null,
+            after: {
+              deepProperty: deepObject,
+            },
+          },
+        ],
       };
 
       fs.writeFileSync(deepNestedPath, JSON.stringify(deepData));
@@ -265,16 +269,18 @@ describe('parseWhatIfJson', () => {
     it('should handle JSON with null and undefined values', async () => {
       const nullValuesPath = path.join(testDataDir, 'null-values.json');
       const nullData = {
-        changes: [{
-          changeType: 'Delete',
-          resourceId: '/test/resource',
-          before: {
-            name: 'test',
-            value: null,
-            empty: undefined
+        changes: [
+          {
+            changeType: 'Delete',
+            resourceId: '/test/resource',
+            before: {
+              name: 'test',
+              value: null,
+              empty: undefined,
+            },
+            after: null,
           },
-          after: null
-        }]
+        ],
       };
 
       fs.writeFileSync(nullValuesPath, JSON.stringify(nullData));
@@ -295,30 +301,30 @@ describe('parseWhatIfJson', () => {
   });
 
   describe('Performance tests', () => {
-    it('should parse JSON files within reasonable time limits', async function() {
+    it('should parse JSON files within reasonable time limits', async function () {
       this.timeout(5000); // 5 second timeout
-      
+
       const startTime = Date.now();
       const filePath = path.join(testDataDir, 'complex-nested.json');
-      
+
       await parseWhatIfJson(filePath);
-      
+
       const endTime = Date.now();
       const duration = endTime - startTime;
-      
+
       expect(duration).to.be.lessThan(1000); // Should complete within 1 second
     });
 
-    it('should handle multiple concurrent file reads', async function() {
+    it('should handle multiple concurrent file reads', async function () {
       this.timeout(10000);
-      
+
       const filePath = path.join(testDataDir, 'minimal-valid.json');
-      
+
       // Create 10 concurrent parse operations
       const promises = Array.from({ length: 10 }, () => parseWhatIfJson(filePath));
-      
+
       const results = await Promise.all(promises);
-      
+
       expect(results).to.have.lengthOf(10);
       results.forEach(result => {
         expect(result).to.be.an('object');

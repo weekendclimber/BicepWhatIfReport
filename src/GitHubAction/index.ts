@@ -1,22 +1,25 @@
 // Entry point for GitHub Action
+// TODO: This is a skeleton implementation that needs to be completed
 
 import * as core from '@actions/core';
-import { parseWhatIfJson } from './services/parseWhatIfJson';
-import { generateReport } from './reports/generateReport';
+// TODO: Implement these modules when they are created
+// import { parseWhatIfJson } from './services/parseWhatIfJson';
+// import { generateReport } from './reports/generateReport';
 
 async function run() {
   try {
     // Get input from GitHub Action workflow
     const whatIfJson = core.getInput('whatif-json', { required: true });
 
-    // Parse the what-if JSON
-    const parsed = parseWhatIfJson(whatIfJson);
+    // TODO: Parse the what-if JSON
+    // const parsed = parseWhatIfJson(whatIfJson);
 
-    // Generate a human-readable report
-    const report = generateReport(parsed);
+    // TODO: Generate a human-readable report
+    // const report = generateReport(parsed);
 
-    // Set the report as an output or write to a file
-    core.setOutput('report', report);
+    // TODO: Set the report as an output or write to a file
+    core.setOutput('report', 'GitHub Action implementation in progress');
+    core.info('GitHub Action skeleton - implementation in progress');
   } catch (error) {
     core.setFailed(`Action failed with error: ${error}`);
   }

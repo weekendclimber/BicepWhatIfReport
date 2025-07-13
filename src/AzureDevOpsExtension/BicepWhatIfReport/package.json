@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "tsc && mocha ./tests/_suite.js",
-    "dev": "tsc && node ./index.js"
+    "build": "tsc",
+    "test": "npm run build && mocha ./tests/_suite.js",
+    "dev": "npm run build && node ./index.js",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "pretest": "npm run lint && npm run format:check"
   },
   "keywords": [],
   "author": "",
@@ -15,11 +21,15 @@
     "@types/mocha": "^10.0.10",
     "@types/node": "^24.0.13",
     "@types/q": "^1.5.8",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
     "azure-devops-extension-sdk": "^4.0.2",
     "azure-devops-ui": "^2.258.0",
     "azure-pipelines-task-lib": "^5.2.1",
     "chai": "^5.2.1",
+    "eslint": "^8.57.1",
     "mocha": "^11.7.1",
+    "prettier": "^3.4.2",
     "sync-request": "^6.1.0",
     "typescript": "^5.8.3"
   },

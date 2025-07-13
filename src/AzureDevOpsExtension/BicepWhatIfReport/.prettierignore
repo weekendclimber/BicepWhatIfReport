@@ -1,0 +1,6 @@
+node_modules/
+*.js
+reports/
+tests/test-data/malformed-syntax.json
+tests/test-data/no-permission.json
+tests/report.json

@@ -1,0 +1,23 @@
+{
+  "name": "bicep-whatif-report-github-action",
+  "version": "1.0.0",
+  "description": "GitHub Action for generating Bicep What-If reports",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "echo 'Linting not configured yet for GitHub Action'",
+    "format:check": "echo 'Formatting not configured yet for GitHub Action'"
+  },
+  "keywords": ["github-action", "bicep", "azure", "infrastructure"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.11.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

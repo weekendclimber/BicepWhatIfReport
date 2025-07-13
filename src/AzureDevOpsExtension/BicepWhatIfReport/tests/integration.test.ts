@@ -51,11 +51,7 @@ describe('Integration Tests', () => {
     });
 
     it('should handle multiple JSON files and generate corresponding markdown files', async () => {
-      const inputFiles = [
-        'minimal-valid.json',
-        'all-change-types.json',
-        'empty-deployment.json'
-      ];
+      const inputFiles = ['minimal-valid.json', 'all-change-types.json', 'empty-deployment.json'];
 
       const reports = [];
 
@@ -66,7 +62,7 @@ describe('Integration Tests', () => {
         // Parse and generate report
         const parsed = await parseWhatIfJson(inputFile);
         const report = await generateReport(parsed);
-        
+
         // Write to output directory
         await fs.promises.writeFile(outputFile, report, 'utf-8');
         reports.push(outputFile);
@@ -83,7 +79,7 @@ describe('Integration Tests', () => {
 
     it('should generate valid markdown content that can be rendered', async () => {
       const inputFile = path.join(testDataDir, 'all-change-types.json');
-      
+
       // Parse and generate report
       const parsed = await parseWhatIfJson(inputFile);
       const report = await generateReport(parsed);
@@ -92,11 +88,11 @@ describe('Integration Tests', () => {
       expect(report).to.include('# Bicep What-If Report');
       expect(report).to.include('## Resource Name:');
       expect(report).to.include('### Change Type:');
-      
+
       // Should contain proper markdown lists
       expect(report).to.match(/^ - \*\*Name\*\*:/m);
       expect(report).to.match(/^ - Type:/m);
-      
+
       // Should contain blockquotes for resource IDs
       expect(report).to.include('> **Resource ID**:');
     });
