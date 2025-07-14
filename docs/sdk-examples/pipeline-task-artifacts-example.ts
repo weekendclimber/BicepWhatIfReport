@@ -329,6 +329,7 @@ function matchesPattern(text: string, pattern: string): boolean {
     
     // Convert glob-like patterns to regex
     const regexPattern = pattern
+        .replace(/\\/g, '\\\\') // Escape backslashes
         .replace(/\./g, '\\.')
         .replace(/\*\*/g, '.*')
         .replace(/\*/g, '[^/]*');
