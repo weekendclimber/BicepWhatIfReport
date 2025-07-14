@@ -133,17 +133,23 @@ class BicepReportExtension {
             'table': ['align']
         };
 
+        // Dangerous URL protocols to block
+        const dangerousProtocols = [
+            'javascript:', 'data:', 'vbscript:', 'file:', 'about:', 
+            'chrome:', 'chrome-extension:', 'shell:', 'ftp:', 'jar:'
+        ];
+
         // Create a temporary div to parse the HTML
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
 
         // Recursively clean the elements
-        this.cleanElement(tempDiv, allowedTags, allowedAttributes);
+        this.cleanElement(tempDiv, allowedTags, allowedAttributes, dangerousProtocols);
 
         return tempDiv.innerHTML;
     }
 
-    private cleanElement(element: Element, allowedTags: string[], allowedAttributes: Record<string, string[]>): void {
+    private cleanElement(element: Element, allowedTags: string[], allowedAttributes: Record<string, string[]>, dangerousProtocols: string[]): void {
         const children = Array.from(element.children);
         
         for (const child of children) {
@@ -161,19 +167,41 @@ class BicepReportExtension {
             const allowedAttrs = allowedAttributes[tagName] || [];
             
             for (const attr of attributes) {
-                if (!allowedAttrs.includes(attr.name)) {
+                const attrName = attr.name.toLowerCase();
+                
+                // Remove any event handler attributes (onclick, onload, onerror, etc.)
+                if (attrName.startsWith('on')) {
                     child.removeAttribute(attr.name);
-                } else if (attr.name === 'href' || attr.name === 'src') {
-                    // Additional security check for URLs
-                    const value = attr.value.toLowerCase();
-                    if (value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
+                    continue;
+                }
+                
+                // Remove any style attributes that could contain expressions
+                if (attrName === 'style') {
+                    child.removeAttribute(attr.name);
+                    continue;
+                }
+                
+                if (!allowedAttrs.includes(attrName)) {
+                    child.removeAttribute(attr.name);
+                } else if (attrName === 'href' || attrName === 'src') {
+                    // Enhanced security check for URLs
+                    const value = attr.value.toLowerCase().trim();
+                    const isDangerous = dangerousProtocols.some(protocol => 
+                        value.startsWith(protocol) || 
+                        value.includes('\t' + protocol) || 
+                        value.includes('\n' + protocol) || 
+                        value.includes('\r' + protocol) ||
+                        value.includes(' ' + protocol)
+                    );
+                    
+                    if (isDangerous) {
                         child.removeAttribute(attr.name);
                     }
                 }
             }
 
             // Recursively clean child elements
-            this.cleanElement(child, allowedTags, allowedAttributes);
+            this.cleanElement(child, allowedTags, allowedAttributes, dangerousProtocols);
         }
     }
 
