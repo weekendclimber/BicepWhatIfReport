@@ -2,248 +2,318 @@
 declare const SDK: any;
 
 interface IBuildService {
-    getBuildAttachments(projectId: string, buildId: number, type: string): Promise<any[]>;
-    getAttachment(projectId: string, buildId: number, type: string, name: string): Promise<string>;
+	getBuildAttachments(
+		projectId: string,
+		buildId: number,
+		type: string
+	): Promise<any[]>;
+	getAttachment(
+		projectId: string,
+		buildId: number,
+		type: string,
+		name: string
+	): Promise<string>;
 }
 
 class BicepReportExtension {
-    private buildService?: IBuildService;
+	private buildService?: IBuildService;
 
-    async initialize(): Promise<void> {
-        try {
-            // Modern SDK initialization
-            await SDK.init({ loaded: false, applyTheme: true });
-            
-            // Get services
-            this.buildService = await SDK.getService('ms.vss-build-web.build-service');
-            
-            // Load and display reports
-            await this.loadReports();
-            
-            // Notify successful load
-            await SDK.notifyLoadSucceeded();
-            
-        } catch (error) {
-            console.error('Extension initialization failed:', error);
-            this.showError('Failed to initialize the extension. Please try again later.');
-            await SDK.notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
-        }
-    }
+	async initialize(): Promise<void> {
+		try {
+			// Modern SDK initialization
+			await SDK.init({ loaded: false, applyTheme: true });
 
-    private async loadReports(): Promise<void> {
-        const webContext = SDK.getWebContext();
-        const config = SDK.getConfiguration();
-        
-        if (!webContext.project || !config.buildId) {
-            throw new Error('Required context not available');
-        }
+			// Get services
+			this.buildService = await SDK.getService(
+				"ms.vss-build-web.build-service"
+			);
 
-        const buildId = parseInt(config.buildId);
-        const attachments = await this.buildService!.getBuildAttachments(
-            webContext.project.id,
-            buildId,
-            'bicepwhatifreport'
-        );
+			// Load and display reports
+			await this.loadReports();
 
-        const reports = attachments.filter(att => att.name.startsWith('md/'));
-        
-        if (reports.length === 0) {
-            this.showNoReports();
-            return;
-        }
+			// Notify successful load
+			await SDK.notifyLoadSucceeded();
+		} catch (error) {
+			console.error("Extension initialization failed:", error);
+			this.showError(
+				"Failed to initialize the extension. Please try again later."
+			);
+			await SDK.notifyLoadFailed(
+				error instanceof Error ? error : new Error(String(error))
+			);
+		}
+	}
 
-        await this.displayReports(reports, webContext.project.id, buildId);
-    }
+	private async loadReports(): Promise<void> {
+		const webContext = SDK.getWebContext();
+		const config = SDK.getConfiguration();
 
-    private async displayReports(attachments: any[], projectId: string, buildId: number): Promise<void> {
-        const reportList = document.getElementById('report-list')!;
-        
-        const fetchPromises = attachments.map(async (attachment) => {
-            try {
-                const content = await this.buildService!.getAttachment(
-                    projectId,
-                    buildId,
-                    'bicepwhatifreport',
-                    attachment.name
-                );
-                
-                const reportElement = this.createReportElement(attachment.name, content);
-                reportList.appendChild(reportElement);
-            } catch (error) {
-                console.error('Error loading report:', attachment.name, error);
-                const errorElement = this.createErrorElement(attachment.name, error);
-                reportList.appendChild(errorElement);
-            }
-        }
+		if (!webContext.project || !config.buildId) {
+			throw new Error("Required context not available");
+		}
 
-        document.getElementById('loading')!.style.display = 'none';
-        document.getElementById('content')!.style.display = 'block';
-        
-        // Auto-resize to fit content
-        SDK.resize();
-    }
+		const buildId = parseInt(config.buildId);
+		const attachments = await this.buildService!.getBuildAttachments(
+			webContext.project.id,
+			buildId,
+			"bicepwhatifreport"
+		);
 
-    private createReportElement(name: string, content: string): HTMLElement {
-        const li = document.createElement('li');
-        li.className = 'report-item';
+		const reports = attachments.filter((att) => att.name.startsWith("md/"));
 
-        const details = document.createElement('details');
-        const summary = document.createElement('summary');
-        
-        const displayName = name.replace('md/', '').replace(/\^[0-9]+/g, '');
-        summary.textContent = displayName;
+		if (reports.length === 0) {
+			this.showNoReports();
+			return;
+		}
 
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'markdown-content';
-        
-        // Use marked library if available
-        if (typeof (window as any).marked !== 'undefined') {
-            const parsedHtml = (window as any).marked.parse(content);
-            contentDiv.innerHTML = this.sanitizeHtml(parsedHtml);
-        } else {
-            const pre = document.createElement('pre');
-            pre.textContent = content;
-            contentDiv.appendChild(pre);
-        }
+		await this.displayReports(reports, webContext.project.id, buildId);
+	}
 
-        details.appendChild(summary);
-        details.appendChild(contentDiv);
-        li.appendChild(details);
+	private async displayReports(
+		attachments: any[],
+		projectId: string,
+		buildId: number
+	): Promise<void> {
+		const reportList = document.getElementById("report-list")!;
 
-        return li;
-    }
+		const fetchPromises = attachments.map(async (attachment) => {
+			try {
+				const content = await this.buildService!.getAttachment(
+					projectId,
+					buildId,
+					"bicepwhatifreport",
+					attachment.name
+				);
 
-    private sanitizeHtml(html: string): string {
-        // List of allowed HTML tags and attributes for markdown content
-        const allowedTags = [
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'p', 'br', 'hr',
-            'strong', 'b', 'em', 'i', 'u', 's', 'del', 'ins',
-            'ul', 'ol', 'li',
-            'blockquote', 'pre', 'code',
-            'table', 'thead', 'tbody', 'tr', 'th', 'td',
-            'a', 'img'
-        ];
-        
-        const allowedAttributes: Record<string, string[]> = {
-            'a': ['href', 'title'],
-            'img': ['src', 'alt', 'title', 'width', 'height'],
-            'th': ['align'],
-            'td': ['align'],
-            'table': ['align']
-        };
+				const reportElement = this.createReportElement(
+					attachment.name,
+					content
+				);
+				reportList.appendChild(reportElement);
+			} catch (error) {
+				console.error("Error loading report:", attachment.name, error);
+				const errorElement = this.createErrorElement(attachment.name, error);
+				reportList.appendChild(errorElement);
+			}
+		});
 
-        // Dangerous URL protocols to block
-        const dangerousProtocols = [
-            'javascript:', 'data:', 'vbscript:', 'file:', 'about:', 
-            'chrome:', 'chrome-extension:', 'shell:', 'ftp:', 'jar:'
-        ];
+		document.getElementById("loading")!.style.display = "none";
+		document.getElementById("content")!.style.display = "block";
 
-        // Create a temporary div to parse the HTML
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
+		// Auto-resize to fit content
+		SDK.resize();
+	}
 
-        // Recursively clean the elements
-        this.cleanElement(tempDiv, allowedTags, allowedAttributes, dangerousProtocols);
+	private createReportElement(name: string, content: string): HTMLElement {
+		const li = document.createElement("li");
+		li.className = "report-item";
 
-        return tempDiv.innerHTML;
-    }
+		const details = document.createElement("details");
+		const summary = document.createElement("summary");
 
-    private cleanElement(element: Element, allowedTags: string[], allowedAttributes: Record<string, string[]>, dangerousProtocols: string[]): void {
-        const children = Array.from(element.children);
-        
-        for (const child of children) {
-            const tagName = child.tagName.toLowerCase();
-            
-            if (!allowedTags.includes(tagName)) {
-                // Remove disallowed tags but keep their text content
-                const textNode = document.createTextNode(child.textContent || '');
-                child.parentNode?.replaceChild(textNode, child);
-                continue;
-            }
+		const displayName = name.replace("md/", "").replace(/\^[0-9]+/g, "");
+		summary.textContent = displayName;
 
-            // Clean attributes
-            const attributes = Array.from(child.attributes);
-            const allowedAttrs = allowedAttributes[tagName] || [];
-            
-            for (const attr of attributes) {
-                const attrName = attr.name.toLowerCase();
-                
-                // Remove any event handler attributes (onclick, onload, onerror, etc.)
-                if (attrName.startsWith('on')) {
-                    child.removeAttribute(attr.name);
-                    continue;
-                }
-                
-                // Remove any style attributes that could contain expressions
-                if (attrName === 'style') {
-                    child.removeAttribute(attr.name);
-                    continue;
-                }
-                
-                if (!allowedAttrs.includes(attrName)) {
-                    child.removeAttribute(attr.name);
-                } else if (attrName === 'href' || attrName === 'src') {
-                    // Enhanced security check for URLs
-                    const value = attr.value.toLowerCase().trim();
-                    const isDangerous = dangerousProtocols.some(protocol => 
-                        value.startsWith(protocol) || 
-                        value.includes('\t' + protocol) || 
-                        value.includes('\n' + protocol) || 
-                        value.includes('\r' + protocol) ||
-                        value.includes(' ' + protocol)
-                    );
-                    
-                    if (isDangerous) {
-                        child.removeAttribute(attr.name);
-                    }
-                }
-            }
+		const contentDiv = document.createElement("div");
+		contentDiv.className = "markdown-content";
 
-            // Recursively clean child elements
-            this.cleanElement(child, allowedTags, allowedAttributes, dangerousProtocols);
-        }
-    }
+		// Use marked library if available
+		if (typeof (window as any).marked !== "undefined") {
+			const parsedHtml = (window as any).marked.parse(content);
+			contentDiv.innerHTML = this.sanitizeHtml(parsedHtml);
+		} else {
+			const pre = document.createElement("pre");
+			pre.textContent = content;
+			contentDiv.appendChild(pre);
+		}
 
-    private createErrorElement(name: string, error: any): HTMLElement {
-        const li = document.createElement('li');
-        li.className = 'report-item';
-        
-        const details = document.createElement('details');
-        const summary = document.createElement('summary');
-        summary.textContent = name + ' (Error)';
-        summary.style.color = '#d13438';
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'error';
-        contentDiv.textContent = 'Error loading report: ' + (error?.message || error);
-        
-        details.appendChild(summary);
-        details.appendChild(contentDiv);
-        li.appendChild(details);
-        
-        return li;
-    }
+		details.appendChild(summary);
+		details.appendChild(contentDiv);
+		li.appendChild(details);
 
-    private showNoReports(): void {
-        document.getElementById('loading')!.style.display = 'none';
-        document.getElementById('content')!.style.display = 'block';
-        document.getElementById('no-reports')!.style.display = 'block';
-        SDK.resize();
-    }
+		return li;
+	}
 
-    private showError(message: string): void {
-        const errorDiv = document.getElementById('error')!;
-        const loadingDiv = document.getElementById('loading')!;
-        
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-        loadingDiv.style.display = 'none';
-    }
+	private sanitizeHtml(html: string): string {
+		// List of allowed HTML tags and attributes for markdown content
+		const allowedTags = [
+			"h1",
+			"h2",
+			"h3",
+			"h4",
+			"h5",
+			"h6",
+			"p",
+			"br",
+			"hr",
+			"strong",
+			"b",
+			"em",
+			"i",
+			"u",
+			"s",
+			"del",
+			"ins",
+			"ul",
+			"ol",
+			"li",
+			"blockquote",
+			"pre",
+			"code",
+			"table",
+			"thead",
+			"tbody",
+			"tr",
+			"th",
+			"td",
+			"a",
+			"img",
+		];
+
+		const allowedAttributes: Record<string, string[]> = {
+			a: ["href", "title"],
+			img: ["src", "alt", "title", "width", "height"],
+			th: ["align"],
+			td: ["align"],
+			table: ["align"],
+		};
+
+		// Dangerous URL protocols to block
+		const dangerousProtocols = [
+			"javascript:",
+			"data:",
+			"vbscript:",
+			"file:",
+			"about:",
+			"chrome:",
+			"chrome-extension:",
+			"shell:",
+			"ftp:",
+			"jar:",
+		];
+
+		// Create a temporary div to parse the HTML
+		const tempDiv = document.createElement("div");
+		tempDiv.innerHTML = html;
+
+		// Recursively clean the elements
+		this.cleanElement(
+			tempDiv,
+			allowedTags,
+			allowedAttributes,
+			dangerousProtocols
+		);
+
+		return tempDiv.innerHTML;
+	}
+
+	private cleanElement(
+		element: Element,
+		allowedTags: string[],
+		allowedAttributes: Record<string, string[]>,
+		dangerousProtocols: string[]
+	): void {
+		const children = Array.from(element.children);
+
+		for (const child of children) {
+			const tagName = child.tagName.toLowerCase();
+
+			if (!allowedTags.includes(tagName)) {
+				// Remove disallowed tags but keep their text content
+				const textNode = document.createTextNode(child.textContent || "");
+				child.parentNode?.replaceChild(textNode, child);
+				continue;
+			}
+
+			// Clean attributes
+			const attributes = Array.from(child.attributes);
+			const allowedAttrs = allowedAttributes[tagName] || [];
+
+			for (const attr of attributes) {
+				const attrName = attr.name.toLowerCase();
+
+				// Remove any event handler attributes (onclick, onload, onerror, etc.)
+				if (attrName.startsWith("on")) {
+					child.removeAttribute(attr.name);
+					continue;
+				}
+
+				// Remove any style attributes that could contain expressions
+				if (attrName === "style") {
+					child.removeAttribute(attr.name);
+					continue;
+				}
+
+				if (!allowedAttrs.includes(attrName)) {
+					child.removeAttribute(attr.name);
+				} else if (attrName === "href" || attrName === "src") {
+					// Enhanced security check for URLs
+					const value = attr.value.toLowerCase().trim();
+					const isDangerous = dangerousProtocols.some(
+						(protocol) =>
+							value.startsWith(protocol) ||
+							value.includes("\t" + protocol) ||
+							value.includes("\n" + protocol) ||
+							value.includes("\r" + protocol) ||
+							value.includes(" " + protocol)
+					);
+
+					if (isDangerous) {
+						child.removeAttribute(attr.name);
+					}
+				}
+			}
+
+			// Recursively clean child elements
+			this.cleanElement(
+				child,
+				allowedTags,
+				allowedAttributes,
+				dangerousProtocols
+			);
+		}
+	}
+
+	private createErrorElement(name: string, error: any): HTMLElement {
+		const li = document.createElement("li");
+		li.className = "report-item";
+
+		const details = document.createElement("details");
+		const summary = document.createElement("summary");
+		summary.textContent = name + " (Error)";
+		summary.style.color = "#d13438";
+
+		const contentDiv = document.createElement("div");
+		contentDiv.className = "error";
+		contentDiv.textContent =
+			"Error loading report: " + (error?.message || error);
+
+		details.appendChild(summary);
+		details.appendChild(contentDiv);
+		li.appendChild(details);
+
+		return li;
+	}
+
+	private showNoReports(): void {
+		document.getElementById("loading")!.style.display = "none";
+		document.getElementById("content")!.style.display = "block";
+		document.getElementById("no-reports")!.style.display = "block";
+		SDK.resize();
+	}
+
+	private showError(message: string): void {
+		const errorDiv = document.getElementById("error")!;
+		const loadingDiv = document.getElementById("loading")!;
+
+		errorDiv.textContent = message;
+		errorDiv.style.display = "block";
+		loadingDiv.style.display = "none";
+	}
 }
 
 // Initialize extension
-document.addEventListener('DOMContentLoaded', () => {
-    const extension = new BicepReportExtension();
-    extension.initialize();
+document.addEventListener("DOMContentLoaded", () => {
+	const extension = new BicepReportExtension();
+	extension.initialize();
 });
