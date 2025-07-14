@@ -58,7 +58,7 @@ class BicepReportExtension {
     private async displayReports(attachments: any[], projectId: string, buildId: number): Promise<void> {
         const reportList = document.getElementById('report-list')!;
         
-        for (const attachment of attachments) {
+        const fetchPromises = attachments.map(async (attachment) => {
             try {
                 const content = await this.buildService!.getAttachment(
                     projectId,
