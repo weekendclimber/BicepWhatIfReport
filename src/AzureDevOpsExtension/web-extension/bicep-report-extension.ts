@@ -26,6 +26,7 @@ class BicepReportExtension {
             
         } catch (error) {
             console.error('Extension initialization failed:', error);
+            this.showError('Failed to initialize the extension. Please try again later.');
             await SDK.notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
         }
     }
