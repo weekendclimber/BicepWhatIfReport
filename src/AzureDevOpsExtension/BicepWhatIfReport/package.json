@@ -27,7 +27,7 @@
     "azure-devops-ui": "^2.258.0",
     "azure-pipelines-task-lib": "^5.2.1",
     "chai": "^5.2.1",
-    "eslint": "^8.57.1",
+    "eslint": "^9.31.0",
     "mocha": "^11.7.1",
     "prettier": "^3.4.2",
     "sync-request": "^6.1.0",
