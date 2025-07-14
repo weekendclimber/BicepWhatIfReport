@@ -2,7 +2,6 @@
 declare const SDK: any;
 
 interface IBuildService {
-    getBuild(projectId: string, buildId: number): Promise<any>;
     getBuildAttachments(projectId: string, buildId: number, type: string): Promise<any[]>;
     getAttachment(projectId: string, buildId: number, type: string, name: string): Promise<string>;
 }
