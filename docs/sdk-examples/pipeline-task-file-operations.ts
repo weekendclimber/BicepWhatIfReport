@@ -253,6 +253,7 @@ function matchesPattern(fileName: string, pattern: string): boolean {
     
     // Convert simple wildcards to regex
     const regexPattern = pattern
+        .replace(/\\/g, '\\\\') // Escape backslashes
         .replace(/\./g, '\\.')
         .replace(/\*/g, '.*');
     
