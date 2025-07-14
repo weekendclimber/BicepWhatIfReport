@@ -96,10 +96,11 @@ describe('Web Extension Tests', () => {
       if (typeof (global as any).marked !== 'undefined') {
         const parsedHtml = (global as any).marked.parse(reportContent);
         // Simulate basic sanitization - remove any script tags and dangerous attributes
-        const sanitizedHtml = parsedHtml.replace(
-          /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-          ''
-        );
+        const sanitizeHtml = require("sanitize-html");
+        const sanitizedHtml = sanitizeHtml(parsedHtml, {
+          allowedTags: sanitizeHtml.defaults.allowedTags.filter(tag => tag !== 'script'),
+          allowedAttributes: false, // Allow no attributes for maximum safety
+        });
         contentDiv.innerHTML = sanitizedHtml;
       } else {
         const pre = document.createElement('pre');
