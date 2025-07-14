@@ -19,7 +19,7 @@ jobs:
       - name: Add PR to project and set fields
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PROJECT_URL: ${{ variables.PROJECT_URL }}
+          PROJECT_URL: ${{ vars.PROJECT_URL }}
           PR_NODE_ID: ${{ github.event.pull_request.node_id }}
         shell: pwsh
         run: |
