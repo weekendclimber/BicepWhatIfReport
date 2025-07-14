@@ -181,7 +181,7 @@ class BicepReportExtension {
 		// Dangerous URL protocols to block
 		const dangerousProtocols = [
 			"javascript:",
-			"data:",
+			//"data:",
 			"vbscript:",
 			"file:",
 			"about:",
