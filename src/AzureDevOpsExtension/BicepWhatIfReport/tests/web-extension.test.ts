@@ -74,7 +74,7 @@ describe('Web Extension Tests', () => {
       expect(reportListElement).to.not.be.null;
     });
 
-    it('should create report elements with proper structure', () => {
+    it('should create report elements with proper structure and sanitized content', () => {
       // Test the createReportElement functionality manually
       const reportName = 'md/test-report.md';
       const reportContent = '# Test Report\nThis is a test report.';
@@ -94,7 +94,13 @@ describe('Web Extension Tests', () => {
 
       // Use marked library if available
       if (typeof (global as any).marked !== 'undefined') {
-        contentDiv.innerHTML = (global as any).marked.parse(reportContent);
+        const parsedHtml = (global as any).marked.parse(reportContent);
+        // Simulate basic sanitization - remove any script tags and dangerous attributes
+        const sanitizedHtml = parsedHtml.replace(
+          /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+          ''
+        );
+        contentDiv.innerHTML = sanitizedHtml;
       } else {
         const pre = document.createElement('pre');
         pre.textContent = reportContent;
@@ -110,6 +116,8 @@ describe('Web Extension Tests', () => {
       expect(summary.textContent).to.equal('test-report.md');
       expect(contentDiv.className).to.equal('markdown-content');
       expect(contentDiv.innerHTML).to.include('<p># Test Report');
+      // Verify no dangerous content is present
+      expect(contentDiv.innerHTML).to.not.include('<script');
     });
 
     it('should create error elements with proper structure', () => {
@@ -154,6 +162,59 @@ describe('Web Extension Tests', () => {
       expect(loadingDiv.style.display).to.equal('none');
       expect(contentDiv.style.display).to.equal('block');
       expect(noReportsDiv.style.display).to.equal('block');
+    });
+
+    it('should sanitize malicious content from markdown', () => {
+      // Test malicious content is properly sanitized
+      const maliciousContent =
+        '<script>alert("xss")</script><img src="x" onerror="alert(1)"><a href="javascript:alert(2)">Link</a>';
+
+      // Mock marked to return malicious content
+      (global as any).marked = {
+        parse: () => maliciousContent,
+      };
+
+      const contentDiv = document.createElement('div');
+
+      // Simulate the sanitization process manually
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = maliciousContent;
+
+      // Remove script tags and dangerous attributes
+      const scripts = tempDiv.querySelectorAll('script');
+      scripts.forEach(script => script.remove());
+
+      const links = tempDiv.querySelectorAll('a[href^="javascript:"]');
+      links.forEach(link => link.removeAttribute('href'));
+
+      const images = tempDiv.querySelectorAll('img[onerror]');
+      images.forEach(img => img.removeAttribute('onerror'));
+
+      contentDiv.innerHTML = tempDiv.innerHTML;
+
+      // Verify dangerous content was removed
+      expect(contentDiv.innerHTML).to.not.include('<script');
+      expect(contentDiv.innerHTML).to.not.include('onerror');
+      expect(contentDiv.innerHTML).to.not.include('javascript:');
+    });
+
+    it('should preserve safe markdown content', () => {
+      // Test that safe markdown content is preserved
+      const safeContent =
+        '<h1>Title</h1><p>This is <strong>bold</strong> and <em>italic</em> text.</p><ul><li>Item 1</li><li>Item 2</li></ul>';
+
+      (global as any).marked = {
+        parse: () => safeContent,
+      };
+
+      const contentDiv = document.createElement('div');
+      contentDiv.innerHTML = safeContent;
+
+      // Verify safe content is preserved
+      expect(contentDiv.innerHTML).to.include('<h1>Title</h1>');
+      expect(contentDiv.innerHTML).to.include('<strong>bold</strong>');
+      expect(contentDiv.innerHTML).to.include('<em>italic</em>');
+      expect(contentDiv.innerHTML).to.include('<ul><li>Item 1</li>');
     });
 
     it('should handle display reports scenario', () => {

@@ -98,7 +98,8 @@ class BicepReportExtension {
         
         // Use marked library if available
         if (typeof (window as any).marked !== 'undefined') {
-            contentDiv.innerHTML = (window as any).marked.parse(content);
+            const parsedHtml = (window as any).marked.parse(content);
+            contentDiv.innerHTML = this.sanitizeHtml(parsedHtml);
         } else {
             const pre = document.createElement('pre');
             pre.textContent = content;
@@ -110,6 +111,70 @@ class BicepReportExtension {
         li.appendChild(details);
 
         return li;
+    }
+
+    private sanitizeHtml(html: string): string {
+        // List of allowed HTML tags and attributes for markdown content
+        const allowedTags = [
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'p', 'br', 'hr',
+            'strong', 'b', 'em', 'i', 'u', 's', 'del', 'ins',
+            'ul', 'ol', 'li',
+            'blockquote', 'pre', 'code',
+            'table', 'thead', 'tbody', 'tr', 'th', 'td',
+            'a', 'img'
+        ];
+        
+        const allowedAttributes: Record<string, string[]> = {
+            'a': ['href', 'title'],
+            'img': ['src', 'alt', 'title', 'width', 'height'],
+            'th': ['align'],
+            'td': ['align'],
+            'table': ['align']
+        };
+
+        // Create a temporary div to parse the HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        // Recursively clean the elements
+        this.cleanElement(tempDiv, allowedTags, allowedAttributes);
+
+        return tempDiv.innerHTML;
+    }
+
+    private cleanElement(element: Element, allowedTags: string[], allowedAttributes: Record<string, string[]>): void {
+        const children = Array.from(element.children);
+        
+        for (const child of children) {
+            const tagName = child.tagName.toLowerCase();
+            
+            if (!allowedTags.includes(tagName)) {
+                // Remove disallowed tags but keep their text content
+                const textNode = document.createTextNode(child.textContent || '');
+                child.parentNode?.replaceChild(textNode, child);
+                continue;
+            }
+
+            // Clean attributes
+            const attributes = Array.from(child.attributes);
+            const allowedAttrs = allowedAttributes[tagName] || [];
+            
+            for (const attr of attributes) {
+                if (!allowedAttrs.includes(attr.name)) {
+                    child.removeAttribute(attr.name);
+                } else if (attr.name === 'href' || attr.name === 'src') {
+                    // Additional security check for URLs
+                    const value = attr.value.toLowerCase();
+                    if (value.startsWith('javascript:') || value.startsWith('data:') || value.startsWith('vbscript:')) {
+                        child.removeAttribute(attr.name);
+                    }
+                }
+            }
+
+            // Recursively clean child elements
+            this.cleanElement(child, allowedTags, allowedAttributes);
+        }
     }
 
     private createErrorElement(name: string, error: any): HTMLElement {
