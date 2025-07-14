@@ -96,7 +96,7 @@ describe('Web Extension Tests', () => {
       if (typeof (global as any).marked !== 'undefined') {
         const parsedHtml = (global as any).marked.parse(reportContent);
         // Simulate basic sanitization - remove any script tags and dangerous attributes
-        const sanitizeHtml = require("sanitize-html");
+        const sanitizeHtml = require('sanitize-html');
         const sanitizedHtml = sanitizeHtml(parsedHtml, {
           allowedTags: sanitizeHtml.defaults.allowedTags.filter(tag => tag !== 'script'),
           allowedAttributes: false, // Allow no attributes for maximum safety
