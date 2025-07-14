@@ -1,355 +1,38 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>Bicep What-If Report</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-            overflow: hidden;
-        }
-        
-        .header {
-            background-color: #106ebe;
-            color: white;
-            padding: 16px 20px;
-            border-bottom: 1px solid #e1e8ed;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        .error {
-            color: #d13438;
-            background-color: #fff4ce;
-            border: 1px solid #d13438;
-            border-radius: 3px;
-            padding: 12px 16px;
-            margin: 20px;
-        }
-        
-        .report-content {
-            padding: 20px;
-        }
-        
-        .report-section {
-            margin-bottom: 20px;
-            border: 1px solid #e1e8ed;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .report-section h2 {
-            background-color: #f6f8fa;
-            margin: 0;
-            padding: 12px 16px;
-            border-bottom: 1px solid #e1e8ed;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .report-section .content {
-            padding: 16px;
-        }
-        
-        .no-reports {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        .report-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .report-item {
-            border-bottom: 1px solid #e1e8ed;
-        }
-        
-        .report-item:last-child {
-            border-bottom: none;
-        }
-        
-        .report-item summary {
-            padding: 12px 16px;
-            cursor: pointer;
-            font-weight: 600;
-            background-color: #f6f8fa;
-            border: none;
-            outline: none;
-        }
-        
-        .report-item summary:hover {
-            background-color: #f0f3f6;
-        }
-        
-        .report-item .markdown-content {
-            padding: 16px;
-            border-top: 1px solid #e1e8ed;
-        }
-        
-        /* Markdown styling */
-        .markdown-content h1,
-        .markdown-content h2,
-        .markdown-content h3 {
-            margin-top: 0;
-            margin-bottom: 16px;
-        }
-        
-        .markdown-content h1 {
-            font-size: 24px;
-            border-bottom: 1px solid #e1e8ed;
-            padding-bottom: 8px;
-        }
-        
-        .markdown-content h2 {
-            font-size: 20px;
-        }
-        
-        .markdown-content h3 {
-            font-size: 16px;
-        }
-        
-        .markdown-content ul,
-        .markdown-content ol {
-            padding-left: 20px;
-        }
-        
-        .markdown-content blockquote {
-            border-left: 4px solid #dfe2e5;
-            padding: 0 16px;
-            margin: 0;
-            color: #6a737d;
-        }
-        
-        .markdown-content code {
-            background-color: rgba(27,31,35,0.05);
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-            font-size: 85%;
-        }
-        
-        .markdown-content pre {
-            background-color: #f6f8fa;
-            border-radius: 6px;
-            font-size: 85%;
-            line-height: 1.45;
-            overflow: auto;
-            padding: 16px;
-        }
-    </style>
-    <script src="../node_modules/azure-devops-extension-sdk/SDK.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Bicep What-If Report</h1>
-        </div>
-        
-        <div id="loading" class="loading">
-            Loading Bicep What-If reports...
-        </div>
-        
-        <div id="error" class="error" style="display: none;">
-        </div>
-        
-        <div id="content" class="report-content" style="display: none;">
-            <div id="no-reports" class="no-reports" style="display: none;">
-                No Bicep What-If reports found for this build.
-            </div>
-            
-            <ul id="report-list" class="report-list">
-            </ul>
-        </div>
-    </div>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self'; object-src 'none'; media-src 'none'; frame-src 'none';"
+		/>
+		<title>Bicep What-If Report</title>
+		<link rel="stylesheet" href="bicep-what-if-tab.css" />
+	</head>
+	<body>
+		<div class="container">
+			<div class="header">
+				<h1>Bicep What-If Report</h1>
+			</div>
 
-    <script type="text/javascript">
-        // Initialize the Azure DevOps extension SDK
-        VSS.init({
-            explicitNotifyLoaded: true,
-            usePlatformStyles: true
-        });
+			<div id="loading" class="loading">Loading Bicep What-If reports...</div>
 
-        // Load the extension when ready
-        VSS.ready(() => {
-            // Get the web context
-            const webContext = VSS.getWebContext();
-            console.log('Web context:', webContext);
-            
-            loadBicepReports();
-        });
+			<div id="error" class="error" style="display: none"></div>
 
-        async function loadBicepReports() {
-            try {
-                const buildClient = VSS.getService(VSS.ServiceIds.ExtensionData);
-                const attachments = await getBuildAttachments();
-                
-                const bicepReports = attachments.filter(attachment => 
-                    attachment.type === 'bicepwhatifreport' && 
-                    attachment.name.startsWith('md/')
-                );
+			<div id="content" class="report-content" style="display: none">
+				<div id="no-reports" class="no-reports" style="display: none">
+					No Bicep What-If reports found for this build.
+				</div>
 
-                if (bicepReports.length === 0) {
-                    showNoReports();
-                    return;
-                }
+				<ul id="report-list" class="report-list"></ul>
+			</div>
+		</div>
 
-                await displayReports(bicepReports);
-                
-            } catch (error) {
-                console.error('Error loading Bicep reports:', error);
-                showError('Failed to load Bicep What-If reports: ' + error.message);
-            }
-        }
+		<!-- Load SDK v4 instead of legacy VSS -->
+		<script src="scripts/SDK.min.js"></script>
+		<script src="scripts/marked.min.js"></script>
 
-        async function getBuildAttachments() {
-            // Get build service and current build
-            const buildService = await VSS.getService(VSS.ServiceIds.Build);
-            const webContext = VSS.getWebContext();
-            const buildId = parseInt(VSS.getConfiguration().buildId || webContext.build?.id);
-            
-            if (!buildId) {
-                throw new Error('Build ID not available');
-            }
-
-            const attachments = await buildService.getBuildAttachments(webContext.project.id, buildId, 'bicepwhatifreport');
-            return attachments || [];
-        }
-
-        async function displayReports(reports) {
-            const reportList = document.getElementById('report-list');
-            const loadingDiv = document.getElementById('loading');
-            const contentDiv = document.getElementById('content');
-
-            // Load and display each report
-            for (const report of reports) {
-                try {
-                    const content = await getAttachmentContent(report);
-                    const reportItem = createReportItem(report.name, content);
-                    reportList.appendChild(reportItem);
-                } catch (error) {
-                    console.error('Error loading report:', report.name, error);
-                    const errorItem = createErrorItem(report.name, error.message);
-                    reportList.appendChild(errorItem);
-                }
-            }
-
-            // Hide loading and show content
-            loadingDiv.style.display = 'none';
-            contentDiv.style.display = 'block';
-        }
-
-        async function getAttachmentContent(attachment) {
-            const buildService = await VSS.getService(VSS.ServiceIds.Build);
-            const webContext = VSS.getWebContext();
-            const buildId = parseInt(VSS.getConfiguration().buildId || webContext.build?.id);
-            
-            const content = await buildService.getAttachment(
-                webContext.project.id, 
-                buildId, 
-                'bicepwhatifreport', 
-                attachment.name
-            );
-            
-            return content;
-        }
-
-        function createReportItem(name, content) {
-            const li = document.createElement('li');
-            li.className = 'report-item';
-            
-            const details = document.createElement('details');
-            const summary = document.createElement('summary');
-            
-            // Clean up the display name
-            const displayName = name.replace('md/', '').replace(/\^[0-9]+/g, '');
-            summary.textContent = displayName;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'markdown-content';
-            
-            // Convert markdown to HTML if marked is available
-            if (typeof marked !== 'undefined') {
-                contentDiv.innerHTML = marked.parse(content);
-            } else {
-                // Fallback to plain text in a pre element
-                const pre = document.createElement('pre');
-                pre.textContent = content;
-                contentDiv.appendChild(pre);
-            }
-            
-            details.appendChild(summary);
-            details.appendChild(contentDiv);
-            li.appendChild(details);
-            
-            return li;
-        }
-
-        function createErrorItem(name, error) {
-            const li = document.createElement('li');
-            li.className = 'report-item';
-            
-            const details = document.createElement('details');
-            const summary = document.createElement('summary');
-            summary.textContent = name + ' (Error)';
-            summary.style.color = '#d13438';
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'error';
-            contentDiv.textContent = 'Error loading report: ' + error;
-            
-            details.appendChild(summary);
-            details.appendChild(contentDiv);
-            li.appendChild(details);
-            
-            return li;
-        }
-
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            const loadingDiv = document.getElementById('loading');
-            
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            loadingDiv.style.display = 'none';
-        }
-
-        function showNoReports() {
-            const noReportsDiv = document.getElementById('no-reports');
-            const loadingDiv = document.getElementById('loading');
-            const contentDiv = document.getElementById('content');
-            
-            loadingDiv.style.display = 'none';
-            contentDiv.style.display = 'block';
-            noReportsDiv.style.display = 'block';
-        }
-
-        // Notify that the extension is loaded
-        VSS.notifyLoadSucceeded();
-    </script>
-</body>
+		<!-- Load compiled TypeScript extension -->
+		<script src="bicep-report-extension.js"></script>
+	</body>
 </html>

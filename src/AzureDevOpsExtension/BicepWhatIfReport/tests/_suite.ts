@@ -4,3 +4,4 @@
 // Import the test files
 import './parseWhatIfJson.test';
 import './integration.test';
+import './web-extension.test';
