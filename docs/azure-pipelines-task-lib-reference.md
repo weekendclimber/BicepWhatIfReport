@@ -410,20 +410,46 @@ tl.mkdirP(outputDir);
 tl.debug(`Created directory: ${outputDir}`);
 ```
 
-#### `tl.ls(options: string, paths: string[]): string`
-Lists directory contents.
+#### `tl.find(findPath: string, options?: FindOptions): string[]`
+Recursively finds all paths in a given directory (cross-platform).
 
 ```typescript
 const sourceDir = tl.getInput('sourceDirectory', true);
 
-// List all files
-const allFiles = tl.ls('-A', [sourceDir]);
-tl.debug(`Files found: ${allFiles}`);
+// Find all files and directories recursively
+const allPaths = tl.find(sourceDir);
+tl.debug(`All paths found: ${allPaths.length}`);
 
-// List with details (if supported)
-const detailedListing = tl.ls('-la', [sourceDir]);
-tl.debug(`Detailed listing:\n${detailedListing}`);
+// Filter to get only files
+const files = allPaths.filter(p => tl.exist(p) && tl.stats(p).isFile());
+tl.debug(`Files found: ${files.join('\n')}`);
+
+// Find with custom options
+const paths = tl.find(sourceDir, { followSymbolicLinks: false });
 ```
+
+#### Directory Listing Alternatives
+
+For directory listing, prefer the above `tl.find()` method or Node.js built-ins:
+
+```typescript
+import * as fs from 'fs';
+import * as path from 'path';
+
+const sourceDir = tl.getInput('sourceDirectory', true);
+
+// Use Node.js for simple directory listing
+const entries = fs.readdirSync(sourceDir);
+const files = entries.filter(entry => {
+    const fullPath = path.join(sourceDir, entry);
+    return fs.statSync(fullPath).isFile();
+});
+
+// Or use async version
+const entriesAsync = await fs.promises.readdir(sourceDir);
+```
+
+> **Note**: `tl.ls()` is available but may not work consistently across all platforms (Windows/Linux/macOS). Use `tl.find()` or Node.js built-ins for reliable cross-platform behavior.
 
 ## Artifact & Attachment Management
 

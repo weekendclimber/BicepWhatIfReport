@@ -257,19 +257,16 @@ async function processSourceFiles(inputs: TaskInputs): Promise<string[]> {
  * Gets all files in a directory (non-recursive for simplicity)
  */
 function getFilesInDirectory(directory: string): string[] {
-    const files: string[] = [];
-    
     try {
-        // Use ls command to get directory contents
-        const lsOutput = tl.ls('-A', [directory]);
-        const entries = lsOutput.split('\n').filter(entry => entry.trim() !== '');
+        // Use tl.find for cross-platform file discovery
+        const allPaths = tl.find(directory);
         
-        for (const entry of entries) {
-            const fullPath = path.join(directory, entry);
-            if (tl.exist(fullPath) && tl.stats(fullPath).isFile()) {
-                files.push(fullPath);
-            }
-        }
+        // Filter to only include files (not directories) and exclude subdirectories
+        const files = allPaths.filter(filePath => {
+            return tl.exist(filePath) && 
+                   tl.stats(filePath).isFile() && 
+                   path.dirname(filePath) === directory; // Only direct children, not recursive
+        });
         
         return files;
     } catch (error) {
