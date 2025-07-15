@@ -29,12 +29,14 @@ This repository has comprehensive security and quality measures in place:
 
 #### Continuous Integration
 - **Automated Testing**: All code changes are automatically tested
-  - Runs 19 comprehensive unit tests for JSON parsing and report generation
-  - Tests cover valid parsing, error handling, edge cases, and performance
+  - Runs **48 comprehensive unit tests** across both projects
+  - **Azure DevOps Extension**: 40 tests covering JSON parsing, report generation, and web extension
+  - **GitHub Action**: 8 tests covering input validation, output generation, and error handling
+  - Tests cover valid parsing, error handling, edge cases, and performance scenarios
   - Matrix testing across Node.js 20.x and 22.x
 
 - **Code Quality**: Enforced through automated linting and formatting
-  - ESLint configuration for TypeScript code quality
+  - ESLint configuration for TypeScript code quality in both projects
   - Prettier for consistent code formatting
   - Pre-commit hooks ensure code quality before tests
 
@@ -133,7 +135,7 @@ This repository has comprehensive security and quality measures in place:
 
 #### Testing
 
-The Azure DevOps Extension includes comprehensive unit tests for the JSON parsing logic:
+The Azure DevOps Extension includes comprehensive unit tests for all functionality:
 
 ```bash
 cd src/AzureDevOpsExtension/BicepWhatIfReport
@@ -141,8 +143,11 @@ npm test
 ```
 
 **Test Coverage:**
-- **16 comprehensive test cases** covering all JSON parsing scenarios
-- **Valid JSON parsing:** Multiple change types (Create, Modify, Delete, NoChange, Ignore, Unsupported)
+- **40 comprehensive test cases** covering all functionality
+- **JSON parsing:** Multiple change types (Create, Modify, Delete, NoChange, Ignore, Unsupported)
+- **Report generation:** Unit tests for all helper functions (processChange, processDelta, processValue, processProperties)
+- **Web extension:** DOM manipulation, content sanitization, error handling
+- **Integration tests:** End-to-end testing of JSON parsing and report generation
 - **Error handling:** Non-existent files, empty files, malformed JSON, permission errors
 - **Edge cases:** Large files, deeply nested structures, Unicode content, null values
 - **Performance testing:** Time limits and concurrent file access
@@ -152,6 +157,23 @@ npm test
 
 - **Language Options:** JavaScript/TypeScript (Node.js), or any language via Docker container
 - [Documentation and setup instructions](./GitHubAction/README.md)
+
+#### Testing
+
+The GitHub Action includes comprehensive unit tests:
+
+```bash
+cd src/GitHubAction
+npm test
+```
+
+**Test Coverage:**
+- **8 comprehensive test cases** covering the skeleton implementation
+- **Input validation:** Required parameters, error handling for missing inputs
+- **Output generation:** Consistent output format and user messaging
+- **Error handling:** Unexpected errors, graceful failure modes
+- **Mocking:** Proper mocking of @actions/core dependencies
+- **Function exports:** Verification of testable function exports
 
 ---
 
