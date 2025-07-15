@@ -6,7 +6,7 @@ import * as core from '@actions/core';
 // import { parseWhatIfJson } from './services/parseWhatIfJson';
 // import { generateReport } from './reports/generateReport';
 
-async function run() {
+export async function run() {
   try {
     // Get input from GitHub Action workflow
     const whatIfJson = core.getInput('whatif-json', { required: true });

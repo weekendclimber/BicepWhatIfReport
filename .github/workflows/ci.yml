@@ -86,14 +86,27 @@ jobs:
       if: steps.check-package.outputs.package-exists == 'true'
       run: npm ci
 
+    - name: Run linting
+      if: steps.check-package.outputs.package-exists == 'true'
+      run: npm run lint
+
+    - name: Check code formatting
+      if: steps.check-package.outputs.package-exists == 'true'
+      run: npm run format:check
+
+    - name: Build TypeScript
+      if: steps.check-package.outputs.package-exists == 'true'
+      run: npm run build
+
+    - name: Run tests
+      if: steps.check-package.outputs.package-exists == 'true'
+      run: npm test
+
     - name: Validate TypeScript compilation
+      if: steps.check-package.outputs.package-exists == 'false'
       run: |
-        if [ -f "package.json" ]; then
-          npx tsc --noEmit --project .
-        else
-          echo "No package.json found, checking TypeScript syntax only"
-          npx tsc --noEmit index.ts
-        fi
+        echo "No package.json found, checking TypeScript syntax only"
+        npx tsc --noEmit index.ts
 
   security-check:
     name: Security and Quality Check
