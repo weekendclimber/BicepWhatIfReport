@@ -1,12 +1,8 @@
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: [
-    '@typescript-eslint',
-  ],
-  extends: [
-    'eslint:recommended',
-  ],
+  plugins: ['@typescript-eslint'],
+  extends: ['eslint:recommended'],
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
@@ -31,7 +27,19 @@ module.exports = {
   },
   ignorePatterns: [
     'node_modules/',
+    '**/node_modules/',
     '*.js',
+    '*.js.map',
+    '*.d.ts',
+    '.taskkey',
     'reports/',
+    '.vscode/',
+    '.idea/',
+    '.DS_Store',
+    'Thumbs.db',
+    'npm-debug.log*',
+    'yarn-debug.log*',
+    'yarn-error.log*',
+    'tests/test-data/',
   ],
 };

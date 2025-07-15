@@ -12,3 +12,6 @@ tests/test-data/large-file.json
 tests/test-data/deep-nested.json
 tests/test-data/null-values.json
 tests/test-data/no-permission.json
+
+# Exclude eslint config
+!eslint.config.js
