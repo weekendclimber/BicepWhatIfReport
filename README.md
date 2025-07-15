@@ -29,9 +29,8 @@ This repository has comprehensive security and quality measures in place:
 
 #### Continuous Integration
 - **Automated Testing**: All code changes are automatically tested
-  - Runs **48 comprehensive unit tests** across both projects
-  - **Azure DevOps Extension**: 40 tests covering JSON parsing, report generation, and web extension
-  - **GitHub Action**: 8 tests covering input validation, output generation, and error handling
+  - Runs **50 comprehensive unit tests** for the Azure DevOps Extension
+  - **Azure DevOps Extension**: 50 tests covering JSON parsing, report generation, file enumeration, and web extension
   - Tests cover valid parsing, error handling, edge cases, and performance scenarios
   - Matrix testing across Node.js 20.x and 22.x
 
@@ -143,9 +142,10 @@ npm test
 ```
 
 **Test Coverage:**
-- **40 comprehensive test cases** covering all functionality
+- **50 comprehensive test cases** covering all functionality
 - **JSON parsing:** Multiple change types (Create, Modify, Delete, NoChange, Ignore, Unsupported)
 - **Report generation:** Unit tests for all helper functions (processChange, processDelta, processValue, processProperties)
+- **File enumeration:** Unit tests for getFiles() function (successful enumeration, empty directories, error handling)
 - **Web extension:** DOM manipulation, content sanitization, error handling
 - **Integration tests:** End-to-end testing of JSON parsing and report generation
 - **Error handling:** Non-existent files, empty files, malformed JSON, permission errors
