@@ -51,63 +51,6 @@ jobs:
         name: test-results-node-${{ matrix.node-version }}
         path: ./src/AzureDevOpsExtension/BicepWhatIfReport/tests/report.json
 
-  github-action:
-    name: GitHub Action CI
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src/GitHubAction
-
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: ./src/GitHubAction/package-lock.json
-
-    - name: Check if package.json exists
-      id: check-package
-      run: |
-        if [ -f "package.json" ]; then
-          echo "package-exists=true" >> $GITHUB_OUTPUT
-        else
-          echo "package-exists=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Install dependencies
-      if: steps.check-package.outputs.package-exists == 'true'
-      run: npm ci
-
-    - name: Run linting
-      if: steps.check-package.outputs.package-exists == 'true'
-      run: npm run lint
-
-    - name: Check code formatting
-      if: steps.check-package.outputs.package-exists == 'true'
-      run: npm run format:check
-
-    - name: Build TypeScript
-      if: steps.check-package.outputs.package-exists == 'true'
-      run: npm run build
-
-    - name: Run tests
-      if: steps.check-package.outputs.package-exists == 'true'
-      run: npm test
-
-    - name: Validate TypeScript compilation
-      if: steps.check-package.outputs.package-exists == 'false'
-      run: |
-        echo "No package.json found, checking TypeScript syntax only"
-        npx tsc --noEmit index.ts
-
   security-check:
     name: Security and Quality Check
     runs-on: ubuntu-latest

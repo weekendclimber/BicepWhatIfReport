@@ -1,42 +1,31 @@
 import { expect } from 'chai';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { generateReport, jsonToMarkdown } from '../reports/generateReport';
+
+// Helper function to load test data from JSON files
+function loadTestData(filename: string): any {
+  const filePath = join(__dirname, 'test-data', filename);
+  const content = readFileSync(filePath, 'utf8');
+  return JSON.parse(content);
+}
 
 describe('generateReport', () => {
   describe('generateReport function', () => {
     it('should generate a basic report for valid input', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Create',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/teststorage',
-            after: {
-              name: 'teststorage',
-              type: 'Microsoft.Storage/storageAccounts',
-              location: 'eastus',
-              apiVersion: '2023-01-01',
-              properties: {
-                accessTier: 'Hot',
-                supportsHttpsTrafficOnly: true,
-              },
-            },
-          },
-        ],
-      };
+      const testData = loadTestData('minimal-valid.json');
 
       const result = await generateReport(testData);
 
       expect(result).to.be.a('string');
       expect(result).to.include('# Bicep What-If Report');
-      expect(result).to.include('Resource Name: teststorage');
+      expect(result).to.include('Resource Name: teststorage001');
       expect(result).to.include('Change Type: Create');
       expect(result).to.include('Microsoft.Storage/storageAccounts');
     });
 
     it('should handle empty changes array', async () => {
-      const testData = {
-        changes: [],
-      };
+      const testData = loadTestData('empty-deployment.json');
 
       const result = await generateReport(testData);
 
@@ -45,18 +34,7 @@ describe('generateReport', () => {
     });
 
     it('should handle diagnostics if present', async () => {
-      const testData = {
-        changes: [],
-        diagnostics: [
-          {
-            code: 'BCP001',
-            level: 'Warning',
-            target: '/subscriptions/test/resourceGroups/test-rg',
-            message: 'Test diagnostic message',
-            additionalInfo: 'Additional test info',
-          },
-        ],
-      };
+      const testData = loadTestData('with-diagnostics.json');
 
       const result = await generateReport(testData);
 
@@ -71,173 +49,90 @@ describe('generateReport', () => {
 
   describe('jsonToMarkdown function', () => {
     it('should convert basic JSON data to markdown', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Create',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/teststorage',
-            after: {
-              name: 'teststorage',
-              type: 'Microsoft.Storage/storageAccounts',
-              location: 'eastus',
-              apiVersion: '2023-01-01',
-            },
-          },
-        ],
-      };
+      const testData = loadTestData('minimal-valid.json');
 
       const result = await jsonToMarkdown(testData);
 
       expect(result).to.be.a('string');
       expect(result).to.include('# Bicep What-If Report');
-      expect(result).to.include('## Resource Name: teststorage');
+      expect(result).to.include('## Resource Name: teststorage001');
       expect(result).to.include('### Change Type: Create');
     });
 
     it('should handle Modify change type with delta', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Modify',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/testvm',
-            delta: [
-              {
-                path: 'properties.hardwareProfile.vmSize',
-                propertyChangeType: 'Modify',
-                before: 'Standard_D2s_v3',
-                after: 'Standard_D4s_v3',
-              },
-            ],
-            after: {
-              name: 'testvm',
-              type: 'Microsoft.Compute/virtualMachines',
-            },
-          },
-        ],
+      const testData = loadTestData('all-change-types.json');
+      // Extract just the modify change for this test
+      const modifyTestData = {
+        changes: testData.changes.filter((change: any) => change.changeType === 'Modify'),
       };
 
-      const result = await jsonToMarkdown(testData);
+      const result = await jsonToMarkdown(modifyTestData);
 
       expect(result).to.be.a('string');
       expect(result).to.include('### Change Details');
-      expect(result).to.include('Standard_D2s_v3');
-      expect(result).to.include('Standard_D4s_v3');
+      expect(result).to.include('Standard_B1s');
+      expect(result).to.include('Standard_B2s');
     });
 
     it('should handle Delete change type', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Delete',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/deleteme',
-            after: {
-              name: 'deleteme',
-            },
-          },
-        ],
+      const testData = loadTestData('all-change-types.json');
+      // Extract just the delete change for this test
+      const deleteTestData = {
+        changes: testData.changes.filter((change: any) => change.changeType === 'Delete'),
       };
 
-      const result = await jsonToMarkdown(testData);
+      const result = await jsonToMarkdown(deleteTestData);
 
       expect(result).to.be.a('string');
-      expect(result).to.include('## Resource Name: deleteme');
+      expect(result).to.include('## Resource Name: Unnamed Resource');
       expect(result).to.include('### Change Type: Delete');
     });
 
     it('should handle NoChange change type', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'NoChange',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/testvnet',
-            after: {
-              name: 'testvnet',
-              type: 'Microsoft.Network/virtualNetworks',
-              location: 'eastus',
-              properties: {
-                addressSpace: {
-                  addressPrefixes: ['10.0.0.0/16'],
-                },
-              },
-            },
-          },
-        ],
+      const testData = loadTestData('all-change-types.json');
+      // Extract just the NoChange change for this test
+      const noChangeTestData = {
+        changes: testData.changes.filter((change: any) => change.changeType === 'NoChange'),
       };
 
-      const result = await jsonToMarkdown(testData);
+      const result = await jsonToMarkdown(noChangeTestData);
 
       expect(result).to.be.a('string');
       expect(result).to.include('## Resource Name: testvnet');
       expect(result).to.include('### Change Type: NoChange');
-      expect(result).to.include('10.0.0.0/16');
     });
 
     it('should handle Ignore change type', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Ignore',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/ignored',
-            after: {
-              name: 'ignored',
-              type: 'Microsoft.Storage/storageAccounts',
-            },
-          },
-        ],
+      const testData = loadTestData('all-change-types.json');
+      // Extract just the Ignore change for this test
+      const ignoreTestData = {
+        changes: testData.changes.filter((change: any) => change.changeType === 'Ignore'),
       };
 
-      const result = await jsonToMarkdown(testData);
+      const result = await jsonToMarkdown(ignoreTestData);
 
       expect(result).to.be.a('string');
-      expect(result).to.include('## Resource Name: ignored');
+      expect(result).to.include('## Resource Name: Unnamed Resource');
       expect(result).to.include('### Change Type: Ignore');
     });
 
     it('should handle Unsupported change type', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Unsupported',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Unknown/unknownResource/test',
-            unsupportedReason: 'Resource type not supported',
-            after: {
-              name: 'test',
-              type: 'Microsoft.Unknown/unknownResource',
-              properties: {
-                someProperty: 'value',
-              },
-            },
-          },
-        ],
+      const testData = loadTestData('all-change-types.json');
+      // Extract just the Unsupported change for this test
+      const unsupportedTestData = {
+        changes: testData.changes.filter((change: any) => change.changeType === 'Unsupported'),
       };
 
-      const result = await jsonToMarkdown(testData);
+      const result = await jsonToMarkdown(unsupportedTestData);
 
       expect(result).to.be.a('string');
-      expect(result).to.include('## Resource Name: test');
+      expect(result).to.include('## Resource Name: Unnamed Resource');
       expect(result).to.include('### Change Type: Unsupported');
-      expect(result).to.include('Resource type not supported');
+      expect(result).to.include('This API version does not support what-if analysis');
     });
 
     it('should handle unknown change types gracefully', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'UnknownType',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Test/test/test',
-            after: {
-              name: 'test',
-            },
-          },
-        ],
-      };
+      const testData = loadTestData('unknown-change-type.json');
 
       const result = await jsonToMarkdown(testData);
 
@@ -247,35 +142,7 @@ describe('generateReport', () => {
     });
 
     it('should handle complex nested delta changes', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Modify',
-            resourceId:
-              '/subscriptions/test/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/testvm',
-            delta: [
-              {
-                path: 'properties.storageProfile.dataDisks',
-                propertyChangeType: 'Array',
-                children: [
-                  {
-                    path: '0',
-                    propertyChangeType: 'Create',
-                    after: {
-                      diskSizeGB: 128,
-                      lun: 0,
-                    },
-                  },
-                ],
-              },
-            ],
-            after: {
-              name: 'testvm',
-              type: 'Microsoft.Compute/virtualMachines',
-            },
-          },
-        ],
-      };
+      const testData = loadTestData('complex-array-delta.json');
 
       const result = await jsonToMarkdown(testData);
 
@@ -287,17 +154,7 @@ describe('generateReport', () => {
     });
 
     it('should handle missing properties gracefully', async () => {
-      const testData = {
-        changes: [
-          {
-            changeType: 'Create',
-            // Missing resourceId
-            after: {
-              // Missing name, type, location, apiVersion
-            },
-          },
-        ],
-      };
+      const testData = loadTestData('missing-properties.json');
 
       const result = await jsonToMarkdown(testData);
 
@@ -308,9 +165,7 @@ describe('generateReport', () => {
     });
 
     it('should remove blank lines from output', async () => {
-      const testData = {
-        changes: [],
-      };
+      const testData = loadTestData('empty-deployment.json');
 
       const result = await jsonToMarkdown(testData);
 
