@@ -1,0 +1,28 @@
+{
+  "changes": [
+    {
+      "changeType": "Modify",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/testvm",
+      "delta": [
+        {
+          "path": "properties.storageProfile.dataDisks",
+          "propertyChangeType": "Array",
+          "children": [
+            {
+              "path": "0",
+              "propertyChangeType": "Create",
+              "after": {
+                "diskSizeGB": 128,
+                "lun": 0
+              }
+            }
+          ]
+        }
+      ],
+      "after": {
+        "name": "testvm",
+        "type": "Microsoft.Compute/virtualMachines"
+      }
+    }
+  ]
+}

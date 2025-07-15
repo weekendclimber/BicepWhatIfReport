@@ -3,5 +3,7 @@
 
 // Import the test files
 import './parseWhatIfJson.test';
+import './generateReport.test';
 import './integration.test';
 import './web-extension.test';
+import './getFiles.test';

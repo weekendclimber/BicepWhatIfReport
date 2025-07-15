@@ -157,7 +157,7 @@ run();
 //});
 
 // Function to get all JSON files in a directory
-async function getFiles(dir: string): Promise<string[]> {
+export async function getFiles(dir: string): Promise<string[]> {
   const dirents = (await fs.promises.readdir(dir, { withFileTypes: true })).filter(file =>
     file.name.endsWith('.json')
   );
