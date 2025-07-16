@@ -27,3 +27,6 @@ yarn-error.log*
 !**/.eslintrc.js
 !**/prettier.config.js
 !**/contents/scripts/**/*.js
+
+# Ignore all VSIX files everywhere
+*.vsix
