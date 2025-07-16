@@ -1,0 +1,8 @@
+{
+  "name": "web-extension",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "NODE_PATH=../task/node_modules sh -c 'tsc --project tsconfig.test.json && mocha contents/tests/_suite.js'"
+  }
+}
