@@ -65,7 +65,7 @@ This repository has comprehensive security and quality measures in place:
 - **BicepWhatIfReport/**
   - **src/**
     - **AzureDevOpsExtension/**
-      - BicepWhatIfReport/
+      - **BicepWhatIfReport/** (Pipeline Task)
         - services/
           - parseWhatIfJson.ts
         - tests/
@@ -76,6 +76,17 @@ This repository has comprehensive security and quality measures in place:
         - index.ts
         - package.json
         - README.md
+      - **web-extension/** (Web Extension)
+        - bicep-report-extension.ts
+        - tsconfig.json
+        - package.json
+        - .gitignore
+      - **contents/** (Build Output)
+        - bicep-report-extension.js (compiled web extension)
+        - bicep-what-if-tab.html
+        - bicep-what-if-tab.css
+        - scripts/
+      - vss-extension.json
     - **GitHubAction/**
       - models/
       - services/
@@ -124,6 +135,27 @@ This repository has comprehensive security and quality measures in place:
 - **Web Extension**: Displays reports in Azure DevOps build summary tab
 - **Artifact Publishing**: Publishes markdown files as build artifacts for download
 - **Output Directory**: Reports are saved to `Build.ArtifactStagingDirectory` by default
+
+#### Architecture
+
+The Azure DevOps Extension consists of two independent components:
+
+- **Pipeline Task** (`BicepWhatIfReport/`): Node.js-based task for generating reports
+- **Web Extension** (`web-extension/`): TypeScript-based web component for displaying reports
+
+Each component has its own `package.json` and can be built independently:
+
+```bash
+# Build the pipeline task
+cd src/AzureDevOpsExtension/BicepWhatIfReport
+npm install && npm run build
+
+# Build the web extension
+cd src/AzureDevOpsExtension/web-extension
+npm install && npm run build
+```
+
+This separation ensures loose coupling and allows each component to manage its own dependencies.
 
 #### Usage
 
