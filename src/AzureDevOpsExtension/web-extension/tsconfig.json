@@ -7,10 +7,10 @@
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"strict": true,
-		"outDir": "../contents",
+		"outDir": "./contents",
 		"rootDir": ".",
 		"forceConsistentCasingInFileNames": true
 	},
 	"include": ["*.ts"],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "tests"]
 }

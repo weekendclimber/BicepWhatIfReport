@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			http-equiv="Content-Security-Policy"
+			content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self'; object-src 'none'; media-src 'none'; frame-src 'none';"
+		/>
+		<title>Bicep What-If Report</title>
+		<link rel="stylesheet" href="bicep-what-if-tab.css" />
+	</head>
+	<body>
+		<div class="container">
+			<div class="header">
+				<h1>Bicep What-If Report</h1>
+			</div>
+
+			<div id="loading" class="loading">Loading Bicep What-If reports...</div>
+
+			<div id="error" class="error" style="display: none"></div>
+
+			<div id="content" class="report-content" style="display: none">
+				<div id="no-reports" class="no-reports" style="display: none">
+					No Bicep What-If reports found for this build.
+				</div>
+
+				<ul id="report-list" class="report-list"></ul>
+			</div>
+		</div>
+
+		<!-- Load SDK v4 instead of legacy VSS -->
+		<script src="scripts/SDK.min.js"></script>
+		<script src="scripts/marked.min.js"></script>
+
+		<!-- Load compiled TypeScript extension -->
+		<script src="bicep-report-extension.js"></script>
+	</body>
+</html>

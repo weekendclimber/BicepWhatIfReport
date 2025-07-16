@@ -1,6 +1,0 @@
-{
-  "changes": [
-    {
-      "changeType": "Create",
-      "resourceId": "/invalid/json"
-      // Missing comma and closing braces

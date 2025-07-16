@@ -16,25 +16,30 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 This repository has comprehensive security and quality measures in place:
 
 #### Automated Security Scanning
+
 - **CodeQL Advanced Security**: Automatically scans JavaScript/TypeScript and GitHub Actions for security vulnerabilities
   - Runs on push to main branch, pull requests, and weekly schedule
   - Analyzes code for security vulnerabilities, bugs, and code quality issues
   - Results available in the Security tab
 
 #### Dependency Management
+
 - **Dependabot**: Automatically monitors and updates dependencies
   - Weekly scans for npm packages and GitHub Actions
   - Automatic PR creation for security updates
   - Configured for both Azure DevOps Extension and GitHub Action projects
 
 #### Continuous Integration
+
 - **Automated Testing**: All code changes are automatically tested
+
   - Runs **50 comprehensive unit tests** for the Azure DevOps Extension
   - **Azure DevOps Extension**: 50 tests covering JSON parsing, report generation, file enumeration, and web extension
   - Tests cover valid parsing, error handling, edge cases, and performance scenarios
   - Matrix testing across Node.js 20.x and 22.x
 
 - **Code Quality**: Enforced through automated linting and formatting
+
   - ESLint configuration for TypeScript code quality in both projects
   - Prettier for consistent code formatting
   - Pre-commit hooks ensure code quality before tests
@@ -42,6 +47,7 @@ This repository has comprehensive security and quality measures in place:
 - **Build Validation**: Ensures TypeScript compilation succeeds across all projects
 
 #### Security Best Practices
+
 - No hardcoded secrets or sensitive information in source code
 - Regular security audits through npm audit
 - Minimal permissions for GitHub Actions workflows
@@ -65,28 +71,28 @@ This repository has comprehensive security and quality measures in place:
 - **BicepWhatIfReport/**
   - **src/**
     - **AzureDevOpsExtension/**
-      - **BicepWhatIfReport/** (Pipeline Task)
-        - services/
+      - **task/** (renamed from BicepWhatIfReport)
+        - **services/**
           - parseWhatIfJson.ts
-        - tests/
+        - **tests/**
           - parseWhatIfJson.test.ts
           - test-data/ (comprehensive JSON test files)
-          - _suite.ts
-        - reports/
+          - \_suite.ts
+        - **reports/**
         - index.ts
         - package.json
         - README.md
-      - **web-extension/** (Web Extension)
+      - **web-extension/**
         - bicep-report-extension.ts
+        - **contents/**
+          - bicep-what-if-tab.html
+          - bicep-what-if-tab.css
+          - **scripts/**
+        - **tests/**
+          - web-extension.test.ts
         - tsconfig.json
-        - package.json
-        - .gitignore
-      - **contents/** (Build Output)
-        - bicep-report-extension.js (compiled web extension)
-        - bicep-what-if-tab.html
-        - bicep-what-if-tab.css
-        - scripts/
       - vss-extension.json
+      - README.md
     - **GitHubAction/**
       - models/
       - services/
@@ -106,6 +112,7 @@ This repository has comprehensive security and quality measures in place:
 ## Documentation
 
 ### Azure DevOps Extension SDK v4 Reference
+
 - **[Complete SDK Reference Guide](docs/azure-devops-extension-sdk-v4-reference.md)** - Comprehensive documentation covering all SDK methods, properties, and usage patterns
 - **[Practical Examples](docs/sdk-examples/)** - Working TypeScript examples demonstrating real-world SDK usage:
   - [Modern Web Extension](docs/sdk-examples/modern-web-extension.ts) - Complete extension implementation
@@ -169,11 +176,12 @@ This separation ensures loose coupling and allows each component to manage its o
 The Azure DevOps Extension includes comprehensive unit tests for all functionality:
 
 ```bash
-cd src/AzureDevOpsExtension/BicepWhatIfReport
+cd src/AzureDevOpsExtension/task
 npm test
 ```
 
 **Test Coverage:**
+
 - **50 comprehensive test cases** covering all functionality
 - **JSON parsing:** Multiple change types (Create, Modify, Delete, NoChange, Ignore, Unsupported)
 - **Report generation:** Unit tests for all helper functions (processChange, processDelta, processValue, processProperties)
@@ -200,6 +208,7 @@ npm test
 ```
 
 **Test Coverage:**
+
 - **8 comprehensive test cases** covering the skeleton implementation
 - **Input validation:** Required parameters, error handling for missing inputs
 - **Output generation:** Consistent output format and user messaging

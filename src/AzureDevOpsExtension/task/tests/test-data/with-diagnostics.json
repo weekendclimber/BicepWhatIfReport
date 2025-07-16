@@ -1,0 +1,12 @@
+{
+  "changes": [],
+  "diagnostics": [
+    {
+      "code": "BCP001",
+      "level": "Warning",
+      "target": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg",
+      "message": "Test diagnostic message",
+      "additionalInfo": "Additional test info"
+    }
+  ]
+}
