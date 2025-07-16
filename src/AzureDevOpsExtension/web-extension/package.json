@@ -1,10 +1,19 @@
 {
-	"name": "web-extension",
-	"version": "1.0.0",
-	"private": true,
-	"scripts": {
-		"build:test": "NODE_PATH=../task/node_modules tsc --project tsconfig.test.json",
-		"test:run": "NODE_PATH=../task/node_modules mocha contents/tests/_suite.js",
-		"test": "npm run build:test && npm run test:run"
-	}
+  "name": "bicep-what-if-web-extension",
+  "version": "1.0.0",
+  "description": "Azure DevOps web extension for Bicep What-If Reports",
+  "main": "bicep-report-extension.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": ["azure-devops", "bicep", "what-if"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }
