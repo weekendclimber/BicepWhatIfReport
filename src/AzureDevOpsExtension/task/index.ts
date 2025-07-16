@@ -50,7 +50,7 @@ async function run() {
     }
 
     // Check if the input directory exists and exit gracefully if it does not
-    if (!fs.existsSync(inputDirectory) && !fs.statSync(inputDirectory).isDirectory()) {
+    if (!fs.existsSync(inputDirectory) || !fs.statSync(inputDirectory).isDirectory()) {
       tl.warning(`The provided path does not exist or is not a directory: ${inputDirectory}`);
       tl.setResult(
         tl.TaskResult.SucceededWithIssues,
