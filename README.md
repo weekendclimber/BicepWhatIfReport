@@ -113,6 +113,7 @@ This repository has comprehensive security and quality measures in place:
 
 ### Azure DevOps Extension SDK v4 Reference
 
+- **[Complete Development Documentation](docs/README.md)** - Comprehensive guide covering Azure DevOps extension and pipeline task development
 - **[Complete SDK Reference Guide](docs/azure-devops-extension-sdk-v4-reference.md)** - Comprehensive documentation covering all SDK methods, properties, and usage patterns
 - **[Practical Examples](docs/sdk-examples/)** - Working TypeScript examples demonstrating real-world SDK usage:
   - [Modern Web Extension](docs/sdk-examples/modern-web-extension.ts) - Complete extension implementation
@@ -134,7 +135,7 @@ This repository has comprehensive security and quality measures in place:
 ### 1. Azure DevOps Extension
 
 - **Language Options:** TypeScript/JavaScript (Node.js), PowerShell, or .NET (C#)
-- [Documentation and setup instructions](./AzureDevOpsExtension/README.md)
+- [Documentation and setup instructions](./src/AzureDevOpsExtension/README.md)
 
 #### Features
 
@@ -154,7 +155,7 @@ Each component has its own `package.json` and can be built independently:
 
 ```bash
 # Build the pipeline task
-cd src/AzureDevOpsExtension/BicepWhatIfReport
+cd src/AzureDevOpsExtension/task
 npm install && npm run build
 
 # Build the web extension
@@ -196,7 +197,7 @@ npm test
 ### 2. GitHub Action
 
 - **Language Options:** JavaScript/TypeScript (Node.js), or any language via Docker container
-- [Documentation and setup instructions](./GitHubAction/README.md)
+- [Documentation and setup instructions](./src/GitHubAction/README.md)
 
 #### Testing
 
