@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "NODE_PATH=../task/node_modules sh -c 'tsc --project tsconfig.test.json && mocha contents/tests/_suite.js'"
+    "build:test": "NODE_PATH=../task/node_modules tsc --project tsconfig.test.json",
+    "test:run": "NODE_PATH=../task/node_modules mocha contents/tests/_suite.js",
+    "test": "npm run build:test && npm run test:run"
   }
 }
