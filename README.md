@@ -16,25 +16,30 @@ A toolkit for parsing and generating human-readable reports from Bicep deploymen
 This repository has comprehensive security and quality measures in place:
 
 #### Automated Security Scanning
+
 - **CodeQL Advanced Security**: Automatically scans JavaScript/TypeScript and GitHub Actions for security vulnerabilities
   - Runs on push to main branch, pull requests, and weekly schedule
   - Analyzes code for security vulnerabilities, bugs, and code quality issues
   - Results available in the Security tab
 
 #### Dependency Management
+
 - **Dependabot**: Automatically monitors and updates dependencies
   - Weekly scans for npm packages and GitHub Actions
   - Automatic PR creation for security updates
   - Configured for both Azure DevOps Extension and GitHub Action projects
 
 #### Continuous Integration
+
 - **Automated Testing**: All code changes are automatically tested
+
   - Runs **50 comprehensive unit tests** for the Azure DevOps Extension
   - **Azure DevOps Extension**: 50 tests covering JSON parsing, report generation, file enumeration, and web extension
   - Tests cover valid parsing, error handling, edge cases, and performance scenarios
   - Matrix testing across Node.js 20.x and 22.x
 
 - **Code Quality**: Enforced through automated linting and formatting
+
   - ESLint configuration for TypeScript code quality in both projects
   - Prettier for consistent code formatting
   - Pre-commit hooks ensure code quality before tests
@@ -42,6 +47,7 @@ This repository has comprehensive security and quality measures in place:
 - **Build Validation**: Ensures TypeScript compilation succeeds across all projects
 
 #### Security Best Practices
+
 - No hardcoded secrets or sensitive information in source code
 - Regular security audits through npm audit
 - Minimal permissions for GitHub Actions workflows
@@ -71,7 +77,7 @@ This repository has comprehensive security and quality measures in place:
         - **tests/**
           - parseWhatIfJson.test.ts
           - test-data/ (comprehensive JSON test files)
-          - _suite.ts
+          - \_suite.ts
         - **reports/**
         - index.ts
         - package.json
@@ -106,6 +112,8 @@ This repository has comprehensive security and quality measures in place:
 ## Documentation
 
 ### Azure DevOps Extension SDK v4 Reference
+
+- **[Complete Development Documentation](docs/README.md)** - Comprehensive guide covering Azure DevOps extension and pipeline task development
 - **[Complete SDK Reference Guide](docs/azure-devops-extension-sdk-v4-reference.md)** - Comprehensive documentation covering all SDK methods, properties, and usage patterns
 - **[Practical Examples](docs/sdk-examples/)** - Working TypeScript examples demonstrating real-world SDK usage:
   - [Modern Web Extension](docs/sdk-examples/modern-web-extension.ts) - Complete extension implementation
@@ -127,7 +135,7 @@ This repository has comprehensive security and quality measures in place:
 ### 1. Azure DevOps Extension
 
 - **Language Options:** TypeScript/JavaScript (Node.js), PowerShell, or .NET (C#)
-- [Documentation and setup instructions](./AzureDevOpsExtension/README.md)
+- [Documentation and setup instructions](./src/AzureDevOpsExtension/README.md)
 
 #### Features
 
@@ -135,6 +143,27 @@ This repository has comprehensive security and quality measures in place:
 - **Web Extension**: Displays reports in Azure DevOps build summary tab
 - **Artifact Publishing**: Publishes markdown files as build artifacts for download
 - **Output Directory**: Reports are saved to `Build.ArtifactStagingDirectory` by default
+
+#### Architecture
+
+The Azure DevOps Extension consists of two independent components:
+
+- **Pipeline Task** (`BicepWhatIfReport/`): Node.js-based task for generating reports
+- **Web Extension** (`web-extension/`): TypeScript-based web component for displaying reports
+
+Each component has its own `package.json` and can be built independently:
+
+```bash
+# Build the pipeline task
+cd src/AzureDevOpsExtension/task
+npm install && npm run build
+
+# Build the web extension
+cd src/AzureDevOpsExtension/web-extension
+npm install && npm run build
+```
+
+This separation ensures loose coupling and allows each component to manage its own dependencies.
 
 #### Usage
 
@@ -153,6 +182,7 @@ npm test
 ```
 
 **Test Coverage:**
+
 - **50 comprehensive test cases** covering all functionality
 - **JSON parsing:** Multiple change types (Create, Modify, Delete, NoChange, Ignore, Unsupported)
 - **Report generation:** Unit tests for all helper functions (processChange, processDelta, processValue, processProperties)
@@ -167,7 +197,7 @@ npm test
 ### 2. GitHub Action
 
 - **Language Options:** JavaScript/TypeScript (Node.js), or any language via Docker container
-- [Documentation and setup instructions](./GitHubAction/README.md)
+- [Documentation and setup instructions](./src/GitHubAction/README.md)
 
 #### Testing
 
@@ -179,6 +209,7 @@ npm test
 ```
 
 **Test Coverage:**
+
 - **8 comprehensive test cases** covering the skeleton implementation
 - **Input validation:** Required parameters, error handling for missing inputs
 - **Output generation:** Consistent output format and user messaging
