@@ -20,9 +20,11 @@ export async function parseWhatIfJson(file: string): Promise<object> {
       tl.setResult(tl.TaskResult.Failed, `The file does not exist: ${file}`);
       throw new Error(`The file does not exist: ${file}`);
     } else {
-      tl.debug(`Reading what-if JSON file: ${file}`);
+      tl.debug(`Reading what-if JSON file: ${file}\n\n`);
       let fileContent: string = await fs.promises.readFile(file, 'utf8');
+      tl.debug(`File content read successfully: ${fileContent}\n\n`);
       parsed = JSON.parse(fileContent);
+      tl.debug(`Parsed what-if JSON successfully: ${JSON.stringify(parsed)}\n\n`);
       return parsed;
     }
   } catch (err: any) {
