@@ -5,7 +5,9 @@
   "scripts": {
     "build": "tsc && npm run build:web",
     "build:web": "tsc --project ../web-extension/tsconfig.json",
-    "test": "npm run build && mocha ./tests/_suite.js",
+    "test": "npm run build && npm run test:task && npm run test:web",
+    "test:task": "mocha ./tests/_suite.js",
+    "test:web": "cd ../web-extension && NODE_PATH=../task/node_modules tsc --project tsconfig.test.json && NODE_PATH=../task/node_modules mocha contents/tests/_suite.js",
     "dev": "npm run build && node ./index.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",

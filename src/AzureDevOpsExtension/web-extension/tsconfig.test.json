@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "ES2020",
-		"module": "none",
+		"module": "commonjs",
 		"lib": ["ES2020", "DOM"],
 		"moduleResolution": "node",
 		"esModuleInterop": true,
@@ -9,8 +9,10 @@
 		"strict": true,
 		"outDir": "./contents",
 		"rootDir": ".",
-		"forceConsistentCasingInFileNames": true
+		"forceConsistentCasingInFileNames": true,
+		"typeRoots": ["../task/node_modules/@types"],
+		"types": ["node", "mocha", "chai"]
 	},
-	"include": ["*.ts"],
-	"exclude": ["node_modules", "tests"]
+	"include": ["tests/*.ts"],
+	"exclude": ["node_modules"]
 }
