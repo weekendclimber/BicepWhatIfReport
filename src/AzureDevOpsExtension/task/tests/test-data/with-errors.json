@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": "DeploymentValidationFailed",
+    "message": "Deployment validation failed",
+    "details": [
+      {
+        "code": "InvalidTemplateFormat",
+        "message": "The template format is invalid"
+      }
+    ]
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "changes": [
+    {
+      "changeType": "Create",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Storage/storageAccounts/teststorage001",
+      "before": null,
+      "after": {
+        "apiVersion": "2023-01-01",
+        "type": "Microsoft.Storage/storageAccounts",
+        "name": "teststorage001",
+        "location": "eastus",
+        "properties": {
+          "accountType": "Standard_LRS"
+        }
+      }
+    },
+    {
+      "changeType": "Modify",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Compute/virtualMachines/testvm",
+      "before": {
+        "apiVersion": "2023-03-01",
+        "type": "Microsoft.Compute/virtualMachines",
+        "name": "testvm",
+        "properties": {
+          "vmSize": "Standard_B1s"
+        }
+      },
+      "after": {
+        "apiVersion": "2023-03-01",
+        "type": "Microsoft.Compute/virtualMachines",
+        "name": "testvm",
+        "properties": {
+          "vmSize": "Standard_B2s"
+        }
+      },
+      "delta": [
+        {
+          "path": "properties.vmSize",
+          "propertyChangeType": "Modify",
+          "before": "Standard_B1s",
+          "after": "Standard_B2s"
+        }
+      ]
+    },
+    {
+      "changeType": "Delete",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Network/publicIPAddresses/oldpublicip",
+      "before": {
+        "apiVersion": "2023-02-01",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "oldpublicip",
+        "location": "eastus"
+      },
+      "after": null
+    },
+    {
+      "changeType": "NoChange",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.Network/virtualNetworks/testvnet",
+      "before": {
+        "apiVersion": "2023-02-01",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "testvnet",
+        "location": "eastus"
+      },
+      "after": {
+        "apiVersion": "2023-02-01",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "testvnet",
+        "location": "eastus"
+      }
+    },
+    {
+      "changeType": "Ignore",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.KeyVault/vaults/testkv",
+      "unsupportedReason": "The resource type is not supported by Bicep what-if analysis"
+    },
+    {
+      "changeType": "Unsupported",
+      "resourceId": "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/test-rg/providers/Microsoft.ContainerRegistry/registries/testacr",
+      "unsupportedReason": "This API version does not support what-if analysis"
+    }
+  ]
+}

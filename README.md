@@ -65,17 +65,28 @@ This repository has comprehensive security and quality measures in place:
 - **BicepWhatIfReport/**
   - **src/**
     - **AzureDevOpsExtension/**
-      - BicepWhatIfReport/
-        - services/
+      - **task/** (renamed from BicepWhatIfReport)
+        - **services/**
           - parseWhatIfJson.ts
-        - tests/
+        - **tests/**
           - parseWhatIfJson.test.ts
           - test-data/ (comprehensive JSON test files)
           - _suite.ts
-        - reports/
+        - **reports/**
         - index.ts
         - package.json
         - README.md
+      - **web-extension/**
+        - bicep-report-extension.ts
+        - **contents/**
+          - bicep-what-if-tab.html
+          - bicep-what-if-tab.css
+          - **scripts/**
+        - **tests/**
+          - web-extension.test.ts
+        - tsconfig.json
+      - vss-extension.json
+      - README.md
     - **GitHubAction/**
       - models/
       - services/
@@ -137,7 +148,7 @@ This repository has comprehensive security and quality measures in place:
 The Azure DevOps Extension includes comprehensive unit tests for all functionality:
 
 ```bash
-cd src/AzureDevOpsExtension/BicepWhatIfReport
+cd src/AzureDevOpsExtension/task
 npm test
 ```
 

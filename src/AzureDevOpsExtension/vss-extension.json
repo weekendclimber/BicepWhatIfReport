@@ -29,7 +29,7 @@
                 "ms.vss-distributed-task.tasks"
             ],
             "properties": {
-                "name": "BicepWhatIfReport",
+                "name": "task",
                 "friendlyName": "Bicep What-If Markdown Report"
             }
         },
@@ -42,7 +42,7 @@
             ],
             "properties": {
                 "name": "Bicep What If Report",
-                "uri": "contents/bicep-what-if-tab.html",
+                "uri": "web-extension/contents/bicep-what-if-tab.html",
                 "supportsTasks": [
                     "61199cb9-caa3-49f9-a208-13346f428945"
                 ]
@@ -51,7 +51,11 @@
     ],
     "files": [
         {
-            "path": "BicepWhatIfReport"
+            "path": "task"
+        },
+        {
+            "path": "web-extension/contents",
+            "addressable": true
         },
         {
             "path": "images",
