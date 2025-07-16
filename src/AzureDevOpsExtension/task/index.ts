@@ -11,7 +11,7 @@ const ATTACHMENT_TYPE: string = 'bicepwhatifreport';
 
 async function run() {
   try {
-    let reports: string[] = [];
+    const reports: string[] = [];
     let inputDirectory: string = '';
     let outputDirectory: string = '';
 
@@ -49,10 +49,13 @@ async function run() {
       tl.debug(`Output directory set to Build.ArtifactStagingDirectory: ${outputDirectory}`);
     }
 
-    // Check if the input directory exists
-    if (!fs.statSync(inputDirectory).isDirectory()) {
-      tl.debug(`The provided path is not a directory: ${inputDirectory}`);
-      tl.setResult(tl.TaskResult.Failed, `The provided path is not a directory: ${inputDirectory}`);
+    // Check if the input directory exists and exit gracefully if it does not
+    if (!fs.existsSync(inputDirectory) && !fs.statSync(inputDirectory).isDirectory()) {
+      tl.warning(`The provided path does not exist or is not a directory: ${inputDirectory}`);
+      tl.setResult(
+        tl.TaskResult.SucceededWithIssues,
+        `The provided path does not exist or is not a directory: ${inputDirectory}`
+      );
       return;
     } else {
       tl.debug(`Input directory exists: ${inputDirectory}`);
@@ -95,7 +98,7 @@ async function run() {
           return;
         } else {
           tl.debug(`Parsing file '${file}' at path: ${filePath}`);
-          let parsed: object = await parseWhatIfJson(filePath as string);
+          const parsed: object = await parseWhatIfJson(filePath as string);
           tl.debug(`Generating report for file: ${file}`);
           report = await generateReport(parsed);
         }
@@ -134,7 +137,7 @@ async function run() {
       `Generated reports for '${reports.length}' files:\n\t${reports.join(`\n\t`)}`
     );
     return;
-  } catch (err: any) {
+  } catch (err) {
     if (err instanceof Error) {
       console.error(`Error: ${err.message}`);
       tl.setResult(tl.TaskResult.Failed, err.message);

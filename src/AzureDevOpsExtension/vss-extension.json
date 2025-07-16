@@ -1,65 +1,55 @@
 {
-    "manifestVersion": 1,
-    "id": "bicep-what-if-markdown-report",
-    "name": "Bicep What-If Markdown Report",
-    "version": "0.0.1",
-    "publisher": "weekendclimber",
-    "public": false,
-    "targets": [
-        {
-            "id": "Microsoft.VisualStudio.Services.Cloud",
-            "version": "[18.0,)"
-        }
-    ],
-    "scopes": [
-        "vso.build"
-    ],
-    "description": "An Azure DevOps task that generates a Markdown report from a Bicep What-If JSON output.",
-    "categories": [
-        "Azure Pipelines"
-    ],
-    "icons": {
-        "default": "images/extension-icon.png"        
-    },
-    "contributions": [
-        {
-            "id": "custom-build-release-task",
-            "type": "ms.vss-distributed-task.task",
-            "targets": [
-                "ms.vss-distributed-task.tasks"
-            ],
-            "properties": {
-                "name": "task",
-                "friendlyName": "Bicep What-If Markdown Report"
-            }
-        },
-        {
-            "id": "bicep-what-if-build-results-tab",
-            "type": "ms.vss-build-web.build-results-tab",
-            "description": "Bicep What-If Markdown Report Tab in Build Results",
-            "targets": [
-                "ms.vss-build-web.build-results-view"
-            ],
-            "properties": {
-                "name": "Bicep What If Report",
-                "uri": "web-extension/contents/bicep-what-if-tab.html",
-                "supportsTasks": [
-                    "61199cb9-caa3-49f9-a208-13346f428945"
-                ]
-            }
-        }
-    ],
-    "files": [
-        {
-            "path": "task"
-        },
-        {
-            "path": "web-extension/contents",
-            "addressable": true
-        },
-        {
-            "path": "images",
-            "addressable": true
-        }
-    ]
+	"manifestVersion": 1,
+	"id": "bicep-what-if-markdown-report",
+	"name": "Bicep What-If Markdown Report",
+	"version": "0.0.4",
+	"publisher": "weekendclimber",
+	"public": false,
+	"targets": [
+		{
+			"id": "Microsoft.VisualStudio.Services.Cloud",
+			"version": "[18.0,)"
+		}
+	],
+	"scopes": ["vso.build"],
+	"description": "An Azure DevOps task that generates a Markdown report from a Bicep What-If JSON output.",
+	"categories": ["Azure Pipelines"],
+	"icons": {
+		"default": "images/extension-icon.png"
+	},
+	"contributions": [
+		{
+			"id": "custom-build-release-task",
+			"type": "ms.vss-distributed-task.task",
+			"targets": ["ms.vss-distributed-task.tasks"],
+			"properties": {
+				"name": "task",
+				"friendlyName": "Bicep What-If Markdown Report"
+			}
+		},
+		{
+			"id": "bicep-what-if-build-results-tab",
+			"type": "ms.vss-build-web.build-results-tab",
+			"description": "Bicep What-If Markdown Report Tab in Build Results",
+			"targets": ["ms.vss-build-web.build-results-view"],
+			"properties": {
+				"name": "Bicep What If Report",
+				"uri": "web-extension/contents/bicep-what-if-tab.html",
+				"supportsTasks": ["61199cb9-caa3-49f9-a208-13346f428945"]
+			}
+		}
+	],
+	"files": [
+		{
+			"path": "task"
+		},
+		{
+			"path": "web-extension/contents",
+			"addressable": true
+		},
+		{
+			"path": "images",
+			"addressable": true
+		}
+	]
 }

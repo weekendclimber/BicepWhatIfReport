@@ -23,11 +23,19 @@ export async function parseWhatIfJson(file: string): Promise<object> {
       tl.debug(`Reading what-if JSON file: ${file}\n\n`);
       let fileContent: string = await fs.promises.readFile(file, 'utf8');
       tl.debug(`File content read successfully: ${fileContent}\n\n`);
+
+      tl.debug(`Removing BOM if present in the file content...`);
+      if (fileContent.charCodeAt(0) === 0xfeff) {
+        fileContent = fileContent.replace(/^\uFEFF/, '');
+        tl.debug(`BOM detected and removed.`);
+      }
+
+      tl.debug(`Parsing what-if JSON content...\n\n`);
       parsed = JSON.parse(fileContent);
-      tl.debug(`Parsed what-if JSON successfully: ${JSON.stringify(parsed)}\n\n`);
+      tl.debug(`Parsed what-if JSON successfully.\n\n`);
       return parsed;
     }
-  } catch (err: any) {
+  } catch (err) {
     if (err instanceof Error) {
       throw new Error(`Failed to parse what-if JSON: ${err.message}`);
     } else {
