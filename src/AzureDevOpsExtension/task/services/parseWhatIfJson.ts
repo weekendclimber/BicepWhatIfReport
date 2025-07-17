@@ -20,7 +20,7 @@ export async function parseWhatIfJson(file: string): Promise<object> {
     // Check if the file exists before attempting to read it
     if (!fs.existsSync(file)) {
       tl.debug(`The file does not exist: ${file}`);
-      tl.setResult(tl.TaskResult.Failed, `The file does not exist: ${file}`);
+      //tl.setResult(tl.TaskResult.Failed, `The file does not exist: ${file}`);
       throw new Error(`The file does not exist: ${file}`);
     }
 
@@ -31,7 +31,7 @@ export async function parseWhatIfJson(file: string): Promise<object> {
       fileContent = await fs.promises.readFile(file, 'utf8');
     } catch (readError) {
       tl.debug(`Failed to read the file: ${file}`);
-      tl.setResult(tl.TaskResult.Failed, `Failed to read the file: ${file}`);
+      //tl.setResult(tl.TaskResult.Failed, `Failed to read the file: ${file}`);
       throw new Error(`Failed to read the file: ${file}`);
     }
 
@@ -56,7 +56,7 @@ export async function parseWhatIfJson(file: string): Promise<object> {
       tl.debug(`Parsed what-if JSON successfully.`);
     } catch (parseError: any) {
       tl.debug(`Failed to parse the JSON content: ${parseError.message}`);
-      tl.setResult(tl.TaskResult.Failed, `Failed to parse the JSON content: ${parseError.message}`);
+      //tl.setResult(tl.TaskResult.Failed, `Failed to parse the JSON content: ${parseError.message}`);
       throw new Error(`Failed to parse the JSON content: ${parseError.message}`);
     }
 
