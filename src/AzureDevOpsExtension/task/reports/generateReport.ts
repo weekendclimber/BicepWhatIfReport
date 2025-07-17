@@ -3,7 +3,7 @@
  * @param parsedData - The structured object from parseWhatIfJson.
  * @returns A Markdown or text summary of planned infrastructure changes.
  */
-
+import tl = require('azure-pipelines-task-lib/task');
 const json2md = require('json2md');
 //import * as fs from 'fs';
 //import * as path from 'path';
@@ -18,7 +18,7 @@ export async function generateReport(parsedData: any): Promise<string> {
 
 export async function jsonToMarkdown(jsonData: any): Promise<string> {
   const markdownData: any = [{ h1: 'Bicep What-If Report' }];
-  console.debug(`Generating Markdown report for ${jsonData.changes.length} changes.`);
+  tl.debug(`Generating Markdown report for ${jsonData.changes.length} changes.`);
 
   jsonData.changes.forEach((change: any) => {
     markdownData.push(...processChange(change));
@@ -71,7 +71,7 @@ function processChange(change: any): any[] {
   const apiVersion: string = after?.apiVersion?.toString() || 'Unknown API Version';
   const resGroup: string = after?.resourceGroup?.toString();
 
-  console.debug(
+  tl.debug(
     `Processing change for resource: ${resName}, Type: ${changeType}, Location: ${location}, API Version: ${apiVersion}`
   );
 
@@ -92,10 +92,10 @@ function processChange(change: any): any[] {
   markdownData.push({ ul: mainItems });
 
   if (changeType === 'Modify' && delta && Array.isArray(delta)) {
-    console.debug('Processing a Modify change with delta.');
+    tl.debug('Processing a Modify change with delta.');
     markdownData.push({ h3: 'Change Details' }, { ul: [...processDelta(delta)] });
   } else if (changeType === 'Create') {
-    console.debug('Processing a Create change.');
+    tl.debug('Processing a Create change.');
     if (after && after.properties) {
       markdownData.push(
         { h3: 'New Resource Details' },
@@ -103,7 +103,7 @@ function processChange(change: any): any[] {
       );
     }
   } else if (changeType === 'Unsupported') {
-    console.debug('Processing an Unsupported change.');
+    tl.debug('Processing an Unsupported change.');
     markdownData.push(
       { h3: 'Unsupported Change' },
       { p: `**Reason**: ${change.unsupportedReason}` }
@@ -116,15 +116,15 @@ function processChange(change: any): any[] {
     }
   } else if (changeType === 'Ignore' || changeType === 'NoChange') {
     //TODO: No Changes so just show the details of the resource
-    console.debug('No changes detected or change ignored.');
+    tl.debug('No changes detected or change ignored.');
     markdownData.push({ h3: 'Details' });
     if (changeType === 'Ignore') {
-      console.debug('Processing an Ignored change.');
+      tl.debug('Processing an Ignored change.');
       markdownData.push({ ul: [...processBeforeAfter(after, 'After')] });
       //markdownData.pop(); // Remove the Details header
       //markdownData.push({ p: `**Ignored Change**`});
     } else {
-      console.debug('Processing a NoChange change.');
+      tl.debug('Processing a NoChange change.');
       if (after && after.properties) {
         markdownData.push({ ul: [...processProperties(after.properties)] });
       } else {
@@ -133,14 +133,14 @@ function processChange(change: any): any[] {
       }
     }
   } else {
-    console.debug(`Processing an unknown or unimplemented change type: ${changeType}`);
+    tl.debug(`Processing an unknown or unimplemented change type: ${changeType}`);
     markdownData.push(
       { h3: 'Unknown Change Type' },
       { p: `Change type "${changeType}" is not recognized or not implemented.` }
     );
   }
 
-  console.debug(`Finished processing change for resource: ${resName}`);
+  tl.debug(`Finished processing change for resource: ${resName}`);
   return markdownData;
 }
 

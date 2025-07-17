@@ -139,25 +139,24 @@ async function run() {
     return;
   } catch (err) {
     if (err instanceof Error) {
-      console.error(`Error: ${err.message}`);
+      tl.error(`Error: ${err.message}`);
       tl.setResult(tl.TaskResult.Failed, err.message);
     } else {
-      console.error(`Unknown Error: ${err}`);
+      tl.error(`Unknown Error: ${err}`);
       tl.setResult(tl.TaskResult.Failed, `err: ${err}`);
     }
   }
 }
 
-run();
-//.catch((err: any) => {
-//  if (err instanceof Error) {
-//    console.error(`Runtime Error: ${err.message}`);
-//    tl.setResult(tl.TaskResult.Failed, err.message);
-//  } else {
-//    console.error(`Unknown Error: ${err}`);
-//    tl.setResult(tl.TaskResult.Failed, `err: ${err}`);
-//  }
-//});
+run().catch(err => {
+  if (err instanceof Error) {
+    tl.error(`Runtime Error: ${err.message}`);
+    tl.setResult(tl.TaskResult.Failed, err.message);
+  } else {
+    tl.error(`Unknown Error: ${err}`);
+    tl.setResult(tl.TaskResult.Failed, `err: ${err}`);
+  }
+});
 
 // Function to get all JSON files in a directory
 export async function getFiles(dir: string): Promise<string[]> {

@@ -9,7 +9,6 @@ node_modules/
 
 # Test reports
 tests/test-data/*
-tests/test-data/*
 tests/report.json
 
 # Temporary files
