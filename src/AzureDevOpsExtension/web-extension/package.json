@@ -21,6 +21,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "azure-devops-extension-sdk": "^4.0.2"
+    "azure-devops-extension-sdk": "^4.0.2",
+    "define": "^1.0.1"
   }
 }
