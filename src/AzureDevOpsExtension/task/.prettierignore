@@ -8,9 +8,7 @@ node_modules/
 *.d.ts
 
 # Test reports
-reports/
-tests/test-data/malformed-syntax.json
-tests/test-data/no-permission.json
+tests/test-data/*
 tests/report.json
 
 # Temporary files
