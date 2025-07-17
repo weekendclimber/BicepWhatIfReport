@@ -163,6 +163,7 @@ export async function getFiles(dir: string): Promise<string[]> {
   const dirents = (await fs.promises.readdir(dir, { withFileTypes: true })).filter(file =>
     file.name.endsWith('.json')
   );
+  tl.debug(`Found ${dirents.length} JSON files in directory: ${dir}`);
   const files: string[] = await Promise.all(
     dirents.map(dirent => {
       const res: string = path.resolve(dir, dirent.name);
@@ -176,6 +177,7 @@ function addAttachments(files: string[], baseDir: string) {
   files.forEach(absoluteFile => {
     const relativeFile = path.relative(baseDir, absoluteFile);
     const name = escapeFilename(relativeFile);
+    tl.debug(`Adding attachment: ${name} from file: ${absoluteFile}`);
     tl.addAttachment(ATTACHMENT_TYPE, name, absoluteFile);
   });
 }
