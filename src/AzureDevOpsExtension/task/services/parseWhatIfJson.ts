@@ -22,7 +22,8 @@ export async function parseWhatIfJson(file: string): Promise<object> {
     } else {
       tl.debug(`Reading what-if JSON file: ${file}\n\n`);
       let fileContent: string = await fs.promises.readFile(file, 'utf8');
-      const truncatedContent = fileContent.length > 100 ? fileContent.substring(0, 100) + '...' : fileContent;
+      const truncatedContent =
+        fileContent.length > 100 ? fileContent.substring(0, 100) + '...' : fileContent;
       tl.debug(`File content read successfully (truncated): ${truncatedContent}\n\n`);
 
       tl.debug(`Removing BOM if present in the file content...`);
