@@ -7,8 +7,8 @@
 import * as fs from 'fs'; // File and path imports
 import tl = require('azure-pipelines-task-lib/task'); // Entry point for Azure DevOps Extension
 
-const TRUNCATION_LENGTH: number = 100; // Length to truncate file content for debugging
-const UNICODE_BOM: number = 0xfeff; // Unicode Byte Order Mark
+const TRUNCATION_LENGTH: number = 100;
+const UNICODE_BOM: string = '\uFEFF';
 
 export async function parseWhatIfJson(file: string): Promise<object> {
   // TODO: Implement robust parsing logic for Bicep what-if output
@@ -27,12 +27,13 @@ export async function parseWhatIfJson(file: string): Promise<object> {
     // Attempt to read the file content
     let fileContent: string;
     try {
-      tl.debug(`Reading what-if JSON file: ${file}`);
+      tl.debug(`Attempting to read what-if JSON file: ${file}`);
       fileContent = await fs.promises.readFile(file, 'utf8');
-    } catch (readError) {
-      tl.debug(`Failed to read the file: ${file}`);
+      tl.debug(`File content read successfully.`);
+    } catch (readError: any) {
+      tl.debug(`Failed to read the file: ${file}\nError: ${readError.message}`);
       //tl.setResult(tl.TaskResult.Failed, `Failed to read the file: ${file}`);
-      throw new Error(`Failed to read the file: ${file}`);
+      throw new Error(`Failed to read the file: ${file}\nError: ${readError.message}`);
     }
 
     // Debug truncated content for logging
@@ -44,8 +45,8 @@ export async function parseWhatIfJson(file: string): Promise<object> {
 
     // Remove BOM if present
     tl.debug(`Removing BOM if present in the file content...`);
-    if (fileContent.charCodeAt(0) === UNICODE_BOM) {
-      fileContent = fileContent.replace(/^\uFEFF/, '');
+    if (fileContent.startsWith(UNICODE_BOM)) {
+      fileContent = fileContent.slice(1); // Remove the BOM character
       tl.debug(`BOM detected and removed.`);
     }
 
