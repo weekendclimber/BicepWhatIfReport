@@ -111,7 +111,7 @@ class BicepReportExtension {
 		const details = document.createElement("details");
 		const summary = document.createElement("summary");
 
-		const displayName = name.replace("md/", "").replace(/\^[0-9]+/g, "");
+		const displayName = name.replace("md/", "").replace(/^[0-9]+/g, "");
 		summary.textContent = displayName;
 
 		const contentDiv = document.createElement("div");
@@ -181,7 +181,7 @@ class BicepReportExtension {
 		// Dangerous URL protocols to block
 		const dangerousProtocols = [
 			"javascript:",
-			//"data:",
+			"data:",
 			"vbscript:",
 			"file:",
 			"about:",
