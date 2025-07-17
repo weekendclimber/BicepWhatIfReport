@@ -3,7 +3,7 @@
  * @param parsedData - The structured object from parseWhatIfJson.
  * @returns A Markdown or text summary of planned infrastructure changes.
  */
-import tl = require('azure-pipelines-task-lib/task');
+import * as tl from 'azure-pipelines-task-lib/task';
 const json2md = require('json2md');
 //import * as fs from 'fs';
 //import * as path from 'path';
