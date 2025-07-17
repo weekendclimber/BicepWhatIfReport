@@ -1,3 +1,7 @@
 node_modules/
-*.js
+# Allow compiled output and required dependency files
+!contents/scripts/SDK.min.js
+!contents/scripts/marked.min.js
+!contents/bicep-report-extension.js
+# Ignore source maps
 *.js.map
