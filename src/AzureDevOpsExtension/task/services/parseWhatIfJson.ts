@@ -27,7 +27,7 @@ export async function parseWhatIfJson(file: string): Promise<object> {
       tl.debug(`File content read successfully (truncated): ${truncatedContent}\n\n`);
 
       tl.debug(`Removing BOM if present in the file content...`);
-      if (fileContent.charCodeAt(0) === 0xfeff) {
+      if (fileContent.charCodeAt(0) === UNICODE_BOM) {
         fileContent = fileContent.replace(/^\uFEFF/, '');
         tl.debug(`BOM detected and removed.`);
       }
