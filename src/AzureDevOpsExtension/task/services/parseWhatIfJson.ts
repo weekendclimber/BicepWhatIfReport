@@ -8,7 +8,56 @@ import * as fs from 'fs'; // File and path imports
 import tl = require('azure-pipelines-task-lib/task'); // Entry point for Azure DevOps Extension
 
 const TRUNCATION_LENGTH: number = 100;
-const UNICODE_BOM: string = '\uFEFF';
+const UTF8_BOM: string = '\uFEFF'; // UTF-8 BOM
+const UTF16_BE_BOM: string = '\uFFFE'; // UTF-16 BE BOM
+const UTF16_LE_BOM: string = '\uFEFF'; // UTF-16 LE BOM (same as Unicode BOM)
+const UTF32_BE_BOM: string = '\u0000\uFEFF'; // UTF-32 BE BOM
+const UTF32_LE_BOM: string = '\uFFFE\u0000'; // UTF-32 LE BOM
+
+/**
+ * Cleans file content by removing various types of BOMs, control characters, and leading/trailing whitespace
+ * @param content - The raw file content to clean
+ * @returns Cleaned content ready for JSON parsing
+ */
+function cleanFileContent(content: string): string {
+  let cleanedContent = content;
+
+  // Remove various types of BOMs
+  const bomMap = new Map<string, string>([
+    [UTF8_BOM, 'UTF-8 BOM'],
+    [UTF16_BE_BOM, 'UTF-16 BE BOM'],
+    [UTF16_LE_BOM, 'UTF-16 LE BOM'],
+    [UTF32_BE_BOM, 'UTF-32 BE BOM'],
+    [UTF32_LE_BOM, 'UTF-32 LE BOM'],
+  ]);
+  for (const [bom, description] of bomMap.entries()) {
+    if (cleanedContent.startsWith(bom)) {
+      cleanedContent = cleanedContent.slice(bom.length);
+      tl.debug(`BOM detected and removed: ${description}`);
+      break;
+    }
+  }
+
+  // Remove null bytes and other control characters that might interfere with JSON parsing
+  // eslint-disable-next-line no-control-regex
+  cleanedContent = cleanedContent.replace(/\u0000/g, ''); // Remove null bytes
+  // eslint-disable-next-line no-control-regex
+  cleanedContent = cleanedContent.replace(/[\u0001-\u0008\u000B-\u000C\u000E-\u001F]/g, ''); // Remove other control chars, keep \n, \r, \t
+
+  // Remove zero-width characters that might interfere with JSON parsing
+  cleanedContent = cleanedContent.replace(/[\u200B-\u200D\u2060\uFEFF]/g, ''); // Remove zero-width chars and additional BOM variants
+
+  // Remove other invisible Unicode characters that might cause parsing issues
+  cleanedContent = cleanedContent.replace(
+    /[\u00A0\u1680\u180E\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g,
+    ' '
+  ); // Replace non-breaking spaces with regular spaces
+
+  // Trim leading and trailing whitespace
+  cleanedContent = cleanedContent.trim();
+
+  return cleanedContent;
+}
 
 export async function parseWhatIfJson(file: string): Promise<object> {
   // TODO: Implement robust parsing logic for Bicep what-if output
@@ -24,12 +73,33 @@ export async function parseWhatIfJson(file: string): Promise<object> {
       throw new Error(`The file does not exist: ${file}`);
     }
 
-    // Attempt to read the file content
+    // Attempt to read the file content with robust encoding handling
     let fileContent: string;
     try {
       tl.debug(`Attempting to read what-if JSON file: ${file}`);
-      fileContent = await fs.promises.readFile(file, 'utf8');
-      tl.debug(`File content read successfully.`);
+
+      // First try reading as UTF-8
+      try {
+        fileContent = await fs.promises.readFile(file, 'utf8');
+        tl.debug(`File content read successfully with utf8 encoding.`);
+      } catch (utf8Error: any) {
+        tl.debug(`Failed to read file with utf8 encoding: ${utf8Error.message}`);
+
+        // If UTF-8 fails, try reading as binary and then convert
+        try {
+          tl.debug(`Attempting to read file as binary buffer...`);
+          const buffer = await fs.promises.readFile(file);
+
+          // Convert buffer to string, handling potential encoding issues
+          fileContent = buffer.toString('utf8');
+          tl.debug(`File content read successfully as binary buffer and converted to utf8.`);
+        } catch (bufferError: any) {
+          tl.debug(`Failed to read file as binary buffer: ${bufferError.message}`);
+          throw new Error(
+            `Failed to read file with both utf8 and binary methods: ${bufferError.message}`
+          );
+        }
+      }
     } catch (readError: any) {
       tl.debug(`Failed to read the file: ${file}\nError: ${readError.message}`);
       //tl.setResult(tl.TaskResult.Failed, `Failed to read the file: ${file}`);
@@ -43,12 +113,20 @@ export async function parseWhatIfJson(file: string): Promise<object> {
         : fileContent;
     tl.debug(`File content read successfully (truncated): ${truncatedContent}`);
 
-    // Remove BOM if present
-    tl.debug(`Removing BOM if present in the file content...`);
-    if (fileContent.startsWith(UNICODE_BOM)) {
-      fileContent = fileContent.slice(1); // Remove the BOM character
-      tl.debug(`BOM detected and removed.`);
+    // Clean file content (remove BOMs, control characters, and whitespace)
+    tl.debug(`Cleaning file content (removing BOMs, control characters, and whitespace)...`);
+    const originalLength = fileContent.length;
+    fileContent = cleanFileContent(fileContent);
+    if (fileContent.length !== originalLength) {
+      tl.debug(`File content cleaned: ${originalLength} -> ${fileContent.length} characters`);
     }
+
+    // Debug cleaned content for logging
+    const cleanedTruncatedContent =
+      fileContent.length > TRUNCATION_LENGTH
+        ? fileContent.substring(0, TRUNCATION_LENGTH) + '...'
+        : fileContent;
+    tl.debug(`Cleaned file content (truncated): ${cleanedTruncatedContent}`);
 
     // Parse the JSON content
     try {
