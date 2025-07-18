@@ -29,6 +29,48 @@
 			</div>
 		</div>
 
+		<!-- Simple AMD loader to support SDK.min.js -->
+		<script>
+			// Simple define function to support AMD modules without RequireJS
+			window.define = function(deps, factory) {
+				if (typeof deps === 'function') {
+					factory = deps;
+					deps = [];
+				}
+				
+				// Ensure deps is an array
+				if (!Array.isArray(deps)) {
+					deps = [];
+				}
+				
+				var module = { exports: {} };
+				var exports = module.exports;
+				
+				// Call factory with resolved dependencies
+				if (deps && deps.length > 0) {
+					var resolvedDeps = deps.map(function(dep) {
+						if (dep === 'exports') return exports;
+						// Add other dependency resolution as needed
+						return {};
+					});
+					factory.apply(null, resolvedDeps);
+				} else {
+					factory(exports);
+				}
+				
+				// Expose the SDK functions globally for backward compatibility
+				if (exports.init) {
+					window.SDK = exports;
+				}
+				// Expose marked globally if it's the marked library
+				if (exports && exports.marked) {
+					window.marked = exports.marked;
+				} else if (typeof exports === 'function' && exports.name === 'marked') {
+					window.marked = exports;
+				}
+			};
+			window.define.amd = true;
+		</script>
 		<!-- Load SDK v4 instead of legacy VSS -->
 		<script src="scripts/SDK.min.js"></script>
 		<script src="scripts/marked.min.js"></script>
