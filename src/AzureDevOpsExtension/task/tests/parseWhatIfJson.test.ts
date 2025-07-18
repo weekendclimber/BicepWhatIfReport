@@ -201,7 +201,7 @@ describe('parseWhatIfJson', () => {
       const utf16BomFilePath = path.join(testDataDir, 'utf16-bom-test.json');
       const jsonContent =
         '{\n  "changes": [\n    {\n      "changeType": "Create",\n      "resourceId": "/test/resource"\n    }\n  ]\n}';
-      const utf16BomContent = '\uFFFE' + jsonContent; // UTF-16 BE BOM
+      const utf16BomContent = '\uFEFF' + jsonContent; // UTF-16 BE BOM
 
       fs.writeFileSync(utf16BomFilePath, utf16BomContent, 'utf8');
 
