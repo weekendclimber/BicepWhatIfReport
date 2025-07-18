@@ -23,11 +23,17 @@ function cleanFileContent(content: string): string {
   let cleanedContent = content;
 
   // Remove various types of BOMs
-  const boms = [UTF8_BOM, UTF16_BE_BOM, UTF16_LE_BOM, UTF32_BE_BOM, UTF32_LE_BOM];
-  for (const bom of boms) {
+  const bomMap = new Map<string, string>([
+    [UTF8_BOM, "UTF-8 BOM"],
+    [UTF16_BE_BOM, "UTF-16 BE BOM"],
+    [UTF16_LE_BOM, "UTF-16 LE BOM"],
+    [UTF32_BE_BOM, "UTF-32 BE BOM"],
+    [UTF32_LE_BOM, "UTF-32 LE BOM"],
+  ]);
+  for (const [bom, description] of bomMap.entries()) {
     if (cleanedContent.startsWith(bom)) {
       cleanedContent = cleanedContent.slice(bom.length);
-      tl.debug(`BOM detected and removed: ${bom.charCodeAt(0).toString(16)}`);
+      tl.debug(`BOM detected and removed: ${description}`);
       break;
     }
   }
