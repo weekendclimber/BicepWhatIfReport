@@ -244,6 +244,31 @@ describe('parseWhatIfJson', () => {
       }
     });
 
+    it('should handle files that fail UTF-8 reading but succeed with binary reading', async () => {
+      // Create test file with JSON content
+      const robustReadingFilePath = path.join(testDataDir, 'robust-reading-test.json');
+      const jsonContent =
+        '{\n  "changes": [\n    {\n      "changeType": "Create",\n      "resourceId": "/test/resource"\n    }\n  ]\n}';
+
+      // Write as binary buffer to simulate potential encoding issues
+      const buffer = Buffer.from(jsonContent, 'utf8');
+      fs.writeFileSync(robustReadingFilePath, buffer);
+
+      try {
+        const result = await parseWhatIfJson(robustReadingFilePath);
+        expect(result).to.be.an('object');
+        expect(result).to.have.property('changes');
+        expect((result as any).changes).to.be.an('array');
+        expect((result as any).changes).to.have.lengthOf(1);
+        expect((result as any).changes[0]).to.have.property('changeType', 'Create');
+      } finally {
+        // Clean up
+        if (fs.existsSync(robustReadingFilePath)) {
+          fs.unlinkSync(robustReadingFilePath);
+        }
+      }
+    });
+
     it('should handle PowerShell Set-Content -Encoding utf8 output scenarios', async () => {
       const testCases = [
         {

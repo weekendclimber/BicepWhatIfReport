@@ -67,12 +67,33 @@ export async function parseWhatIfJson(file: string): Promise<object> {
       throw new Error(`The file does not exist: ${file}`);
     }
 
-    // Attempt to read the file content
+    // Attempt to read the file content with robust encoding handling
     let fileContent: string;
     try {
       tl.debug(`Attempting to read what-if JSON file: ${file}`);
-      fileContent = await fs.promises.readFile(file, 'utf8');
-      tl.debug(`File content read successfully.`);
+
+      // First try reading as UTF-8
+      try {
+        fileContent = await fs.promises.readFile(file, 'utf8');
+        tl.debug(`File content read successfully with utf8 encoding.`);
+      } catch (utf8Error: any) {
+        tl.debug(`Failed to read file with utf8 encoding: ${utf8Error.message}`);
+
+        // If UTF-8 fails, try reading as binary and then convert
+        try {
+          tl.debug(`Attempting to read file as binary buffer...`);
+          const buffer = await fs.promises.readFile(file);
+
+          // Convert buffer to string, handling potential encoding issues
+          fileContent = buffer.toString('utf8');
+          tl.debug(`File content read successfully as binary buffer and converted to utf8.`);
+        } catch (bufferError: any) {
+          tl.debug(`Failed to read file as binary buffer: ${bufferError.message}`);
+          throw new Error(
+            `Failed to read file with both utf8 and binary methods: ${bufferError.message}`
+          );
+        }
+      }
     } catch (readError: any) {
       tl.debug(`Failed to read the file: ${file}\nError: ${readError.message}`);
       //tl.setResult(tl.TaskResult.Failed, `Failed to read the file: ${file}`);
