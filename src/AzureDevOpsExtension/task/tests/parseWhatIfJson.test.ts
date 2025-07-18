@@ -124,6 +124,54 @@ describe('parseWhatIfJson', () => {
       }
     });
 
+    it('should handle files with BOM correctly', async () => {
+      // Create test file with BOM
+      const bomFilePath = path.join(testDataDir, 'bom-test.json');
+      const jsonContent =
+        '{\n  "changes": [\n    {\n      "changeType": "Create",\n      "resourceId": "/test/resource"\n    }\n  ]\n}';
+      const bomContent = '\uFEFF' + jsonContent;
+
+      fs.writeFileSync(bomFilePath, bomContent, 'utf8');
+
+      try {
+        const result = await parseWhatIfJson(bomFilePath);
+        expect(result).to.be.an('object');
+        expect(result).to.have.property('changes');
+        expect((result as any).changes).to.be.an('array');
+        expect((result as any).changes).to.have.lengthOf(1);
+        expect((result as any).changes[0]).to.have.property('changeType', 'Create');
+      } finally {
+        // Clean up
+        if (fs.existsSync(bomFilePath)) {
+          fs.unlinkSync(bomFilePath);
+        }
+      }
+    });
+
+    it('should handle files with leading whitespace correctly', async () => {
+      // Create test file with leading whitespace
+      const whitespaceFilePath = path.join(testDataDir, 'whitespace-test.json');
+      const jsonContent =
+        '{\n  "changes": [\n    {\n      "changeType": "Create",\n      "resourceId": "/test/resource"\n    }\n  ]\n}';
+      const whitespaceContent = '   \n\t' + jsonContent;
+
+      fs.writeFileSync(whitespaceFilePath, whitespaceContent, 'utf8');
+
+      try {
+        const result = await parseWhatIfJson(whitespaceFilePath);
+        expect(result).to.be.an('object');
+        expect(result).to.have.property('changes');
+        expect((result as any).changes).to.be.an('array');
+        expect((result as any).changes).to.have.lengthOf(1);
+        expect((result as any).changes[0]).to.have.property('changeType', 'Create');
+      } finally {
+        // Clean up
+        if (fs.existsSync(whitespaceFilePath)) {
+          fs.unlinkSync(whitespaceFilePath);
+        }
+      }
+    });
+
     it('should throw error for empty file', async () => {
       const filePath = path.join(testDataDir, 'empty-file.json');
 
