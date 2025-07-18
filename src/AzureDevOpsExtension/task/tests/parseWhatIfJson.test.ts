@@ -172,6 +172,139 @@ describe('parseWhatIfJson', () => {
       }
     });
 
+    it('should handle files with null bytes and control characters', async () => {
+      // Create test file with null bytes and control characters
+      const controlCharsFilePath = path.join(testDataDir, 'control-chars-test.json');
+      const jsonContent =
+        '{\n  "changes": [\n    {\n      "changeType": "Create",\n      "resourceId": "/test/resource"\n    }\n  ]\n}';
+      const controlCharsContent = '\u0000\u0001\u0002' + jsonContent + '\u0000';
+
+      fs.writeFileSync(controlCharsFilePath, controlCharsContent, 'utf8');
+
+      try {
+        const result = await parseWhatIfJson(controlCharsFilePath);
+        expect(result).to.be.an('object');
+        expect(result).to.have.property('changes');
+        expect((result as any).changes).to.be.an('array');
+        expect((result as any).changes).to.have.lengthOf(1);
+        expect((result as any).changes[0]).to.have.property('changeType', 'Create');
+      } finally {
+        // Clean up
+        if (fs.existsSync(controlCharsFilePath)) {
+          fs.unlinkSync(controlCharsFilePath);
+        }
+      }
+    });
+
+    it('should handle files with different types of BOMs', async () => {
+      // Create test file with UTF-16 BE BOM
+      const utf16BomFilePath = path.join(testDataDir, 'utf16-bom-test.json');
+      const jsonContent =
+        '{\n  "changes": [\n    {\n      "changeType": "Create",\n      "resourceId": "/test/resource"\n    }\n  ]\n}';
+      const utf16BomContent = '\uFFFE' + jsonContent; // UTF-16 BE BOM
+
+      fs.writeFileSync(utf16BomFilePath, utf16BomContent, 'utf8');
+
+      try {
+        const result = await parseWhatIfJson(utf16BomFilePath);
+        expect(result).to.be.an('object');
+        expect(result).to.have.property('changes');
+        expect((result as any).changes).to.be.an('array');
+        expect((result as any).changes).to.have.lengthOf(1);
+        expect((result as any).changes[0]).to.have.property('changeType', 'Create');
+      } finally {
+        // Clean up
+        if (fs.existsSync(utf16BomFilePath)) {
+          fs.unlinkSync(utf16BomFilePath);
+        }
+      }
+    });
+
+    it('should handle files with combined encoding issues', async () => {
+      // Create test file with BOM + whitespace + control chars
+      const combinedIssuesFilePath = path.join(testDataDir, 'combined-issues-test.json');
+      const jsonContent =
+        '{\n  "changes": [\n    {\n      "changeType": "Create",\n      "resourceId": "/test/resource"\n    }\n  ]\n}';
+      const combinedIssuesContent = '\uFEFF\u0000  \n\t' + jsonContent + '\u0000   \n';
+
+      fs.writeFileSync(combinedIssuesFilePath, combinedIssuesContent, 'utf8');
+
+      try {
+        const result = await parseWhatIfJson(combinedIssuesFilePath);
+        expect(result).to.be.an('object');
+        expect(result).to.have.property('changes');
+        expect((result as any).changes).to.be.an('array');
+        expect((result as any).changes).to.have.lengthOf(1);
+        expect((result as any).changes[0]).to.have.property('changeType', 'Create');
+      } finally {
+        // Clean up
+        if (fs.existsSync(combinedIssuesFilePath)) {
+          fs.unlinkSync(combinedIssuesFilePath);
+        }
+      }
+    });
+
+    it('should handle PowerShell Set-Content -Encoding utf8 output scenarios', async () => {
+      const testCases = [
+        {
+          name: 'PowerShell UTF-8 BOM',
+          content: '\uFEFF{"changes": [{"changeType": "Create", "resourceId": "/test/resource"}]}',
+        },
+        {
+          name: 'PowerShell UTF-8 BOM with whitespace',
+          content:
+            '\uFEFF   \n\t{"changes": [{"changeType": "Create", "resourceId": "/test/resource"}]}\n  ',
+        },
+        {
+          name: 'PowerShell with zero-width characters',
+          content:
+            '\u200B\u200C\u200D{"changes": [{"changeType": "Create", "resourceId": "/test/resource"}]}',
+        },
+        {
+          name: 'PowerShell with null bytes (reported issue)',
+          content:
+            '\u0000\u0001{"changes": [{"changeType": "Create", "resourceId": "/test/resource"}]}',
+        },
+        {
+          name: 'PowerShell mixed encoding issues',
+          content:
+            '\uFEFF\u0000\u0001\u0002   \n\t{"changes": [{"changeType": "Create", "resourceId": "/test/resource"}]}\u0000\n   ',
+        },
+      ];
+
+      for (const testCase of testCases) {
+        const testFilePath = path.join(
+          testDataDir,
+          `${testCase.name.replace(/\s+/g, '-').toLowerCase()}-test.json`
+        );
+        fs.writeFileSync(testFilePath, testCase.content, 'utf8');
+
+        try {
+          const result = await parseWhatIfJson(testFilePath);
+          expect(result, `${testCase.name} should parse successfully`).to.be.an('object');
+          expect(result, `${testCase.name} should have changes property`).to.have.property(
+            'changes'
+          );
+          expect((result as any).changes, `${testCase.name} should have changes array`).to.be.an(
+            'array'
+          );
+          expect(
+            (result as any).changes,
+            `${testCase.name} should have one change`
+          ).to.have.lengthOf(1);
+          expect(
+            (result as any).changes[0],
+            `${testCase.name} should have Create change type`
+          ).to.have.property('changeType', 'Create');
+        } finally {
+          // Clean up
+          if (fs.existsSync(testFilePath)) {
+            fs.unlinkSync(testFilePath);
+          }
+        }
+      }
+    });
+
     it('should throw error for empty file', async () => {
       const filePath = path.join(testDataDir, 'empty-file.json');
 
