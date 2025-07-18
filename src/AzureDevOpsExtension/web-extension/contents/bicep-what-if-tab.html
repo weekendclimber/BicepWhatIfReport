@@ -2,6 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta
 			http-equiv="Content-Security-Policy"
 			content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self'; object-src 'none'; media-src 'none'; frame-src 'none';"
@@ -27,6 +28,9 @@
 				<ul id="report-list" class="report-list"></ul>
 			</div>
 		</div>
+
+		<!-- Load RequireJS locally -->
+		<script src="scripts/define.js"></script>
 
 		<!-- Load SDK v4 instead of legacy VSS -->
 		<script src="scripts/SDK.min.js"></script>

@@ -97,10 +97,21 @@ async function run() {
           );
           return;
         } else {
-          tl.debug(`Parsing file '${file}' at path: ${filePath}`);
-          const parsed: object = await parseWhatIfJson(filePath as string);
-          tl.debug(`Generating report for file: ${file}`);
-          report = await generateReport(parsed);
+          try {
+            tl.debug(`Parsing JSON file at path: ${filePath}`);
+            const parsed: object = await parseWhatIfJson(filePath as string);
+            tl.debug(`Generating report for file: ${file}`);
+            report = await generateReport(parsed);
+          } catch (err) {
+            if (err instanceof Error) {
+              tl.error(`Error parsing or generating report for file '${file}': ${err.message}`);
+              tl.setResult(tl.TaskResult.Failed, `Error: ${err.message}`);
+            } else {
+              tl.error(`Unknown Error parsing or generating report for file '${file}': ${err}`);
+              tl.setResult(tl.TaskResult.Failed, `Unknown Error: ${err}`);
+            }
+            return;
+          }
         }
 
         // Write report to output file
