@@ -5,7 +5,8 @@
   "main": "bicep-report-extension.js",
   "scripts": {
     "build": "tsc",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "test": "mocha tests/**/*.test.ts --require ts-node/register --timeout 10000"
   },
   "keywords": [
     "azure-devops",
@@ -18,10 +19,12 @@
     "@types/chai": "^5.2.2",
     "@types/jsdom": "^21.1.7",
     "@types/mocha": "^10.0.10",
+    "@types/node": "^20.0.0",
     "chai": "^5.2.1",
     "jsdom": "^26.1.0",
     "mocha": "^11.7.1",
     "sanitize-html": "^2.17.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "engines": {
