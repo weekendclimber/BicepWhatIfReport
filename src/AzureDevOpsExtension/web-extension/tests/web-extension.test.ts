@@ -79,17 +79,24 @@ describe('Web Extension Tests', () => {
       expect(htmlContent).to.not.include('require.js');
     });
 
-    it('should validate that inline AMD loader is present and functional', () => {
+    it('should validate that external AMD loader is present and functional', () => {
       // Read the HTML file
       const htmlPath = path.join(__dirname, '..', 'contents', 'bicep-what-if-tab.html');
       const htmlContent = fs.readFileSync(htmlPath, 'utf8');
       
-      // Verify AMD loader components are present
-      expect(htmlContent).to.include('window.define = function');
-      expect(htmlContent).to.include('window.define.amd = true');
+      // Verify AMD loader script reference is present
+      expect(htmlContent).to.include('scripts/amd-loader.js');
       expect(htmlContent).to.include('Simple AMD loader');
       
-      // Set up JSDOM with the actual HTML content
+      // Read the AMD loader script file
+      const amdLoaderPath = path.join(__dirname, '..', 'contents', 'scripts', 'amd-loader.js');
+      const amdLoaderContent = fs.readFileSync(amdLoaderPath, 'utf8');
+      
+      // Verify AMD loader components are present in the external file
+      expect(amdLoaderContent).to.include('window.define = function');
+      expect(amdLoaderContent).to.include('window.define.amd = true');
+      
+      // Set up JSDOM and manually load the AMD loader script
       const dom = new JSDOM(htmlContent, {
         resources: 'usable',
         runScripts: 'dangerously',
@@ -97,6 +104,11 @@ describe('Web Extension Tests', () => {
       });
       
       const { window } = dom;
+      
+      // Load the AMD loader script into the JSDOM window
+      const script = dom.window.document.createElement('script');
+      script.textContent = amdLoaderContent;
+      dom.window.document.head.appendChild(script);
       
       // Verify the define function was created
       expect(window.define).to.be.a('function');
@@ -189,6 +201,10 @@ describe('Web Extension Tests', () => {
       const htmlPath = path.join(__dirname, '..', 'contents', 'bicep-what-if-tab.html');
       const htmlContent = fs.readFileSync(htmlPath, 'utf8');
       
+      // Read the AMD loader script file
+      const amdLoaderPath = path.join(__dirname, '..', 'contents', 'scripts', 'amd-loader.js');
+      const amdLoaderContent = fs.readFileSync(amdLoaderPath, 'utf8');
+      
       // Set up JSDOM with the actual HTML content
       const dom = new JSDOM(htmlContent, {
         resources: 'usable',
@@ -197,6 +213,11 @@ describe('Web Extension Tests', () => {
       });
       
       const { window } = dom;
+      
+      // Load the AMD loader script into the JSDOM window
+      const script = dom.window.document.createElement('script');
+      script.textContent = amdLoaderContent;
+      dom.window.document.head.appendChild(script);
       
       // Verify define function exists before any module would be loaded
       expect(window.define, 'define function should be available before SDK.min.js loads')
