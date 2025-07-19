@@ -8,6 +8,7 @@
 		"watch": "tsc --watch",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
+		"lint": "eslint . --ext .ts",
 		"test": "mocha tests/**/*.test.ts --require ts-node/register --timeout 10000"
 	},
 	"keywords": [
