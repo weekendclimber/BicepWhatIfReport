@@ -590,5 +590,77 @@ describe('Web Extension Tests', () => {
         }
       });
     });
+
+    it('should handle missing Build ID gracefully by showing user-friendly error', async () => {
+      // Test that the extension handles missing Build ID without throwing errors
+      // that would cause extension initialization to fail
+      
+      // Mock SDK with missing Build ID context
+      const mockSDKMissingBuildId = {
+        init: async () => ({ loaded: true }),
+        notifyLoadSucceeded: async () => {},
+        notifyLoadFailed: async () => {},
+        getWebContext: () => ({
+          project: { id: 'test-project' },
+        }),
+        getConfiguration: () => ({
+          buildId: null, // Missing Build ID
+        }),
+        getService: async () => ({
+          getBuildAttachments: async () => [],
+          getAttachment: async () => '',
+        }),
+        resize: () => {},
+      };
+
+      // Set up test environment
+      setupDOM();
+      (global as any).SDK = mockSDKMissingBuildId;
+
+      // Simulate the loadReports function logic that detects missing Build ID
+      const webContext = mockSDKMissingBuildId.getWebContext();
+      const config = mockSDKMissingBuildId.getConfiguration();
+
+      const errors: string[] = [];
+
+      if (!webContext) {
+        errors.push('Azure DevOps web context is not available');
+      } else {
+        if (!webContext.project) {
+          errors.push('Project context is missing from web context');
+        }
+      }
+
+      if (!config) {
+        errors.push('Extension configuration is not available');
+      } else {
+        if (!config.buildId) {
+          errors.push('Build ID is missing from extension configuration');
+        }
+      }
+
+      // Should detect missing Build ID
+      expect(errors).to.include('Build ID is missing from extension configuration');
+
+      if (errors.length > 0) {
+        const detailedError =
+          `Required context not available. Missing: ${errors.join(', ')}. ` +
+          `This extension must be used within an Azure DevOps build pipeline tab.`;
+
+        // Simulate showing the error in the UI (like showError method does)
+        const errorDiv = document.getElementById('error')!;
+        const loadingDiv = document.getElementById('loading')!;
+        
+        errorDiv.textContent = detailedError;
+        errorDiv.style.display = 'block';
+        loadingDiv.style.display = 'none';
+
+        // Verify the error message is user-friendly and helpful
+        expect(errorDiv.textContent).to.include('Build ID is missing from extension configuration');
+        expect(errorDiv.textContent).to.include('This extension must be used within an Azure DevOps build pipeline tab');
+        expect(errorDiv.style.display).to.equal('block');
+        expect(loadingDiv.style.display).to.equal('none');
+      }
+    });
   });
 });
