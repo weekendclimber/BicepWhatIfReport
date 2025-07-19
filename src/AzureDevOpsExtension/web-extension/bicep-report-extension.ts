@@ -324,7 +324,7 @@ class BicepReportExtension {
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
     loadingDiv.style.display = 'none';
-    
+
     // Auto-resize to fit content when showing error
     SDK.resize();
   }
