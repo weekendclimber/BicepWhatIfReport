@@ -5,3 +5,9 @@ node_modules/
 !contents/bicep-report-extension.js
 # Ignore source maps
 *.js.map
+
+# Exclude eslint config
+!eslint.config.js
+
+# Ignore test reports
+tests/report.json

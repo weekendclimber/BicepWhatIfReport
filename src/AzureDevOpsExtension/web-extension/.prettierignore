@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+**/node_modules
+
+# Build outputs
+*.js
+*.js.map
+*.d.ts
+
+# Test reports
+tests/report.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

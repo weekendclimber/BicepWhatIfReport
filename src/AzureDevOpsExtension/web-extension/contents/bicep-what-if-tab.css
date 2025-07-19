@@ -1,156 +1,156 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f5f5f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f5f5f5;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: white;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-    overflow: hidden;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
 }
 
 .header {
-    background-color: #106ebe;
-    color: white;
-    padding: 16px 20px;
-    border-bottom: 1px solid #e1e8ed;
+  background-color: #106ebe;
+  color: white;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e8ed;
 }
 
 .header h1 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .loading {
-    text-align: center;
-    padding: 40px;
-    color: #666;
+  text-align: center;
+  padding: 40px;
+  color: #666;
 }
 
 .error {
-    color: #d13438;
-    background-color: #fff4ce;
-    border: 1px solid #d13438;
-    border-radius: 3px;
-    padding: 12px 16px;
-    margin: 20px;
+  color: #d13438;
+  background-color: #fff4ce;
+  border: 1px solid #d13438;
+  border-radius: 3px;
+  padding: 12px 16px;
+  margin: 20px;
 }
 
 .report-content {
-    padding: 20px;
+  padding: 20px;
 }
 
 .report-section {
-    margin-bottom: 20px;
-    border: 1px solid #e1e8ed;
-    border-radius: 4px;
-    overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid #e1e8ed;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .report-section h2 {
-    background-color: #f6f8fa;
-    margin: 0;
-    padding: 12px 16px;
-    border-bottom: 1px solid #e1e8ed;
-    font-size: 16px;
-    font-weight: 600;
+  background-color: #f6f8fa;
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e1e8ed;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .report-section .content {
-    padding: 16px;
+  padding: 16px;
 }
 
 .no-reports {
-    text-align: center;
-    padding: 40px;
-    color: #666;
+  text-align: center;
+  padding: 40px;
+  color: #666;
 }
 
 .report-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .report-item {
-    border-bottom: 1px solid #e1e8ed;
+  border-bottom: 1px solid #e1e8ed;
 }
 
 .report-item:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .report-item summary {
-    padding: 12px 16px;
-    cursor: pointer;
-    font-weight: 600;
-    background-color: #f6f8fa;
-    border: none;
-    outline: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  background-color: #f6f8fa;
+  border: none;
+  outline: none;
 }
 
 .report-item summary:hover {
-    background-color: #f0f3f6;
+  background-color: #f0f3f6;
 }
 
 .report-item .markdown-content {
-    padding: 16px;
-    border-top: 1px solid #e1e8ed;
+  padding: 16px;
+  border-top: 1px solid #e1e8ed;
 }
 
 /* Markdown styling */
 .markdown-content h1,
 .markdown-content h2,
 .markdown-content h3 {
-    margin-top: 0;
-    margin-bottom: 16px;
+  margin-top: 0;
+  margin-bottom: 16px;
 }
 
 .markdown-content h1 {
-    font-size: 24px;
-    border-bottom: 1px solid #e1e8ed;
-    padding-bottom: 8px;
+  font-size: 24px;
+  border-bottom: 1px solid #e1e8ed;
+  padding-bottom: 8px;
 }
 
 .markdown-content h2 {
-    font-size: 20px;
+  font-size: 20px;
 }
 
 .markdown-content h3 {
-    font-size: 16px;
+  font-size: 16px;
 }
 
 .markdown-content ul,
 .markdown-content ol {
-    padding-left: 20px;
+  padding-left: 20px;
 }
 
 .markdown-content blockquote {
-    border-left: 4px solid #dfe2e5;
-    padding: 0 16px;
-    margin: 0;
-    color: #6a737d;
+  border-left: 4px solid #dfe2e5;
+  padding: 0 16px;
+  margin: 0;
+  color: #6a737d;
 }
 
 .markdown-content code {
-    background-color: rgba(27,31,35,0.05);
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    font-size: 85%;
+  background-color: rgba(27, 31, 35, 0.05);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 85%;
 }
 
 .markdown-content pre {
-    background-color: #f6f8fa;
-    border-radius: 6px;
-    font-size: 85%;
-    line-height: 1.45;
-    overflow: auto;
-    padding: 16px;
+  background-color: #f6f8fa;
+  border-radius: 6px;
+  font-size: 85%;
+  line-height: 1.45;
+  overflow: auto;
+  padding: 16px;
 }
