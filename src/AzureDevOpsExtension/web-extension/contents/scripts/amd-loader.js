@@ -56,7 +56,7 @@ window.define = function(deps, factory) {
 	// Expose marked globally if it's the marked library
 	if (exports && exports.marked) {
 		window.marked = exports.marked;
-	} else if (typeof exports === 'function' && exports.name === 'marked') {
+	} else if (typeof exports === 'function' && typeof exports.setOptions === 'function') {
 		window.marked = exports;
 	}
 };
