@@ -8,11 +8,7 @@ node_modules/
 *.d.ts
 
 # Test reports
-tests/test-data/*
 tests/report.json
-
-# Temporary files
-.taskkey
 
 # IDE
 .vscode/
@@ -26,6 +22,3 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Binary files
-*.wasm
