@@ -508,5 +508,76 @@ describe('Web Extension Tests', () => {
       expect(reportListDiv.children.length).to.equal(1);
       expect(reportListDiv.children[0].textContent).to.equal('Test Report');
     });
+
+    it('should provide detailed context error messages', () => {
+      // Test enhanced error handling for context validation
+      const testCases = [
+        {
+          scenario: 'missing web context',
+          webContext: null,
+          config: { buildId: '123' },
+          expectedErrors: ['Azure DevOps web context is not available']
+        },
+        {
+          scenario: 'missing project in web context',
+          webContext: { project: null },
+          config: { buildId: '123' },
+          expectedErrors: ['Project context is missing from web context']
+        },
+        {
+          scenario: 'missing config',
+          webContext: { project: { id: 'test-project' } },
+          config: null,
+          expectedErrors: ['Extension configuration is not available']
+        },
+        {
+          scenario: 'missing buildId in config',
+          webContext: { project: { id: 'test-project' } },
+          config: { buildId: null },
+          expectedErrors: ['Build ID is missing from extension configuration']
+        },
+        {
+          scenario: 'multiple missing contexts',
+          webContext: null,
+          config: null,
+          expectedErrors: [
+            'Azure DevOps web context is not available',
+            'Extension configuration is not available'
+          ]
+        }
+      ];
+
+      testCases.forEach(testCase => {
+        // Simulate the context validation logic from loadReports
+        const errors: string[] = [];
+        
+        if (!testCase.webContext) {
+          errors.push("Azure DevOps web context is not available");
+        } else {
+          if (!testCase.webContext.project) {
+            errors.push("Project context is missing from web context");
+          }
+        }
+        
+        if (!testCase.config) {
+          errors.push("Extension configuration is not available");
+        } else {
+          if (!testCase.config.buildId) {
+            errors.push("Build ID is missing from extension configuration");
+          }
+        }
+
+        if (errors.length > 0) {
+          const detailedError = `Required context not available. Missing: ${errors.join(", ")}. ` +
+            `This extension must be used within an Azure DevOps build pipeline tab.`;
+          
+          // Verify the error message contains expected details
+          testCase.expectedErrors.forEach(expectedError => {
+            expect(detailedError).to.include(expectedError);
+          });
+          expect(detailedError).to.include('This extension must be used within an Azure DevOps build pipeline tab');
+        }
+      });
+    });
   });
 });

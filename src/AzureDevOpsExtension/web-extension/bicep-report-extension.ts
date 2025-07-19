@@ -35,9 +35,20 @@ class BicepReportExtension {
 			await SDK.notifyLoadSucceeded();
 		} catch (error) {
 			console.error("Extension initialization failed:", error);
-			this.showError(
-				"Failed to initialize the extension. Please try again later."
-			);
+			
+			// Provide more specific error message based on the error type
+			let errorMessage = "Failed to initialize the extension.";
+			if (error instanceof Error) {
+				if (error.message.includes("Required context not available")) {
+					errorMessage = error.message;
+				} else if (error.message.includes("SDK")) {
+					errorMessage = "Failed to initialize Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.";
+				} else {
+					errorMessage = `Extension error: ${error.message}`;
+				}
+			}
+			
+			this.showError(errorMessage);
 			await SDK.notifyLoadFailed(
 				error instanceof Error ? error : new Error(String(error))
 			);
@@ -48,8 +59,29 @@ class BicepReportExtension {
 		const webContext = SDK.getWebContext();
 		const config = SDK.getConfiguration();
 
-		if (!webContext.project || !config.buildId) {
-			throw new Error("Required context not available");
+		// Enhanced context validation with detailed error messages
+		const errors: string[] = [];
+		
+		if (!webContext) {
+			errors.push("Azure DevOps web context is not available");
+		} else {
+			if (!webContext.project) {
+				errors.push("Project context is missing from web context");
+			}
+		}
+		
+		if (!config) {
+			errors.push("Extension configuration is not available");
+		} else {
+			if (!config.buildId) {
+				errors.push("Build ID is missing from extension configuration");
+			}
+		}
+		
+		if (errors.length > 0) {
+			const detailedError = `Required context not available. Missing: ${errors.join(", ")}. ` +
+				`This extension must be used within an Azure DevOps build pipeline tab.`;
+			throw new Error(detailedError);
 		}
 
 		const buildId = parseInt(config.buildId);
