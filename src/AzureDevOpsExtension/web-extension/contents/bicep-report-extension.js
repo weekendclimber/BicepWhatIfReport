@@ -12,7 +12,6 @@ class BicepReportExtension {
             await SDK.notifyLoadSucceeded();
         }
         catch (error) {
-            console.error('Extension initialization failed:', error);
             // Handle missing Build ID context gracefully - this is an expected scenario
             // when the extension is accessed outside of a build pipeline context
             if (error instanceof Error && error.message.includes('Required context not available')) {
@@ -22,6 +21,8 @@ class BicepReportExtension {
                 await SDK.notifyLoadSucceeded();
                 return;
             }
+            // Log unexpected errors to console for debugging
+            console.error('Extension initialization failed:', error);
             // Handle other initialization errors that indicate real failures
             let errorMessage = 'Failed to initialize the extension.';
             if (error instanceof Error) {
