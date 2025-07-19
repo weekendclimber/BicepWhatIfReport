@@ -13,13 +13,19 @@ class BicepReportExtension {
         }
         catch (error) {
             console.error('Extension initialization failed:', error);
-            // Provide more specific error message based on the error type
+            // Handle missing Build ID context gracefully - this is an expected scenario
+            // when the extension is accessed outside of a build pipeline context
+            if (error instanceof Error && error.message.includes('Required context not available')) {
+                this.showError(error.message);
+                // Still notify successful load since the extension loaded correctly,
+                // it just can't display reports due to missing context
+                await SDK.notifyLoadSucceeded();
+                return;
+            }
+            // Handle other initialization errors that indicate real failures
             let errorMessage = 'Failed to initialize the extension.';
             if (error instanceof Error) {
-                if (error.message.includes('Required context not available')) {
-                    errorMessage = error.message;
-                }
-                else if (error.message.includes('SDK')) {
+                if (error.message.includes('SDK')) {
                     errorMessage =
                         'Failed to initialize Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.';
                 }
@@ -243,6 +249,8 @@ class BicepReportExtension {
         errorDiv.textContent = message;
         errorDiv.style.display = 'block';
         loadingDiv.style.display = 'none';
+        // Auto-resize to fit content when showing error
+        SDK.resize();
     }
 }
 // Initialize extension
