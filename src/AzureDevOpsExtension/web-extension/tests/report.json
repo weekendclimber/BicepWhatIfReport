@@ -5,16 +5,16 @@
     "passes": 13,
     "pending": 0,
     "failures": 0,
-    "start": "2025-07-19T06:44:10.593Z",
-    "end": "2025-07-19T06:44:10.723Z",
-    "duration": 130
+    "start": "2025-07-19T06:57:07.863Z",
+    "end": "2025-07-19T06:57:07.998Z",
+    "duration": 135
   },
   "tests": [
     {
       "title": "should ensure all script references in HTML exist in the scripts directory",
       "fullTitle": "Web Extension Tests Script Dependency Validation should ensure all script references in HTML exist in the scripts directory",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 1,
+      "duration": 2,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -23,7 +23,7 @@
       "title": "should validate that external AMD loader is present and functional",
       "fullTitle": "Web Extension Tests Script Dependency Validation should validate that external AMD loader is present and functional",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 25,
+      "duration": 26,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -41,7 +41,7 @@
       "title": "should prevent \"define is not defined\" error when loading SDK.min.js",
       "fullTitle": "Web Extension Tests Script Dependency Validation should prevent \"define is not defined\" error when loading SDK.min.js",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 11,
+      "duration": 10,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -50,7 +50,7 @@
       "title": "should have required DOM elements available",
       "fullTitle": "Web Extension Tests BicepReportExtension should have required DOM elements available",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 0,
+      "duration": 1,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -59,16 +59,16 @@
       "title": "should create report elements with proper structure and sanitized content",
       "fullTitle": "Web Extension Tests BicepReportExtension should create report elements with proper structure and sanitized content",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 34,
+      "duration": 40,
       "currentRetry": 0,
-      "speed": "fast",
+      "speed": "medium",
       "err": {}
     },
     {
       "title": "should create error elements with proper structure",
       "fullTitle": "Web Extension Tests BicepReportExtension should create error elements with proper structure",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 7,
+      "duration": 6,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -86,7 +86,7 @@
       "title": "should sanitize malicious content from markdown",
       "fullTitle": "Web Extension Tests BicepReportExtension should sanitize malicious content from markdown",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 23,
+      "duration": 22,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -135,7 +135,7 @@
       "title": "should ensure all script references in HTML exist in the scripts directory",
       "fullTitle": "Web Extension Tests Script Dependency Validation should ensure all script references in HTML exist in the scripts directory",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 1,
+      "duration": 2,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -144,7 +144,7 @@
       "title": "should validate that external AMD loader is present and functional",
       "fullTitle": "Web Extension Tests Script Dependency Validation should validate that external AMD loader is present and functional",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 25,
+      "duration": 26,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -162,7 +162,7 @@
       "title": "should prevent \"define is not defined\" error when loading SDK.min.js",
       "fullTitle": "Web Extension Tests Script Dependency Validation should prevent \"define is not defined\" error when loading SDK.min.js",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 11,
+      "duration": 10,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -171,7 +171,7 @@
       "title": "should have required DOM elements available",
       "fullTitle": "Web Extension Tests BicepReportExtension should have required DOM elements available",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 0,
+      "duration": 1,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -180,16 +180,16 @@
       "title": "should create report elements with proper structure and sanitized content",
       "fullTitle": "Web Extension Tests BicepReportExtension should create report elements with proper structure and sanitized content",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 34,
+      "duration": 40,
       "currentRetry": 0,
-      "speed": "fast",
+      "speed": "medium",
       "err": {}
     },
     {
       "title": "should create error elements with proper structure",
       "fullTitle": "Web Extension Tests BicepReportExtension should create error elements with proper structure",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 7,
+      "duration": 6,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
@@ -207,7 +207,7 @@
       "title": "should sanitize malicious content from markdown",
       "fullTitle": "Web Extension Tests BicepReportExtension should sanitize malicious content from markdown",
       "file": "/home/runner/work/BicepWhatIfReport/BicepWhatIfReport/src/AzureDevOpsExtension/web-extension/tests/web-extension.test.ts",
-      "duration": 23,
+      "duration": 22,
       "currentRetry": 0,
       "speed": "fast",
       "err": {}
