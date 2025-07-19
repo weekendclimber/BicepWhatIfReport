@@ -5,13 +5,13 @@ interface IBuildService {
 	getBuildAttachments(
 		projectId: string,
 		buildId: number,
-		type: string
+		type: string,
 	): Promise<any[]>;
 	getAttachment(
 		projectId: string,
 		buildId: number,
 		type: string,
-		name: string
+		name: string,
 	): Promise<string>;
 }
 
@@ -25,7 +25,7 @@ class BicepReportExtension {
 
 			// Get services
 			this.buildService = await SDK.getService(
-				"ms.vss-build-web.build-service"
+				"ms.vss-build-web.build-service",
 			);
 
 			// Load and display reports
@@ -35,22 +35,23 @@ class BicepReportExtension {
 			await SDK.notifyLoadSucceeded();
 		} catch (error) {
 			console.error("Extension initialization failed:", error);
-			
+
 			// Provide more specific error message based on the error type
 			let errorMessage = "Failed to initialize the extension.";
 			if (error instanceof Error) {
 				if (error.message.includes("Required context not available")) {
 					errorMessage = error.message;
 				} else if (error.message.includes("SDK")) {
-					errorMessage = "Failed to initialize Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.";
+					errorMessage =
+						"Failed to initialize Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.";
 				} else {
 					errorMessage = `Extension error: ${error.message}`;
 				}
 			}
-			
+
 			this.showError(errorMessage);
 			await SDK.notifyLoadFailed(
-				error instanceof Error ? error : new Error(String(error))
+				error instanceof Error ? error : new Error(String(error)),
 			);
 		}
 	}
@@ -61,7 +62,7 @@ class BicepReportExtension {
 
 		// Enhanced context validation with detailed error messages
 		const errors: string[] = [];
-		
+
 		if (!webContext) {
 			errors.push("Azure DevOps web context is not available");
 		} else {
@@ -69,7 +70,7 @@ class BicepReportExtension {
 				errors.push("Project context is missing from web context");
 			}
 		}
-		
+
 		if (!config) {
 			errors.push("Extension configuration is not available");
 		} else {
@@ -77,9 +78,10 @@ class BicepReportExtension {
 				errors.push("Build ID is missing from extension configuration");
 			}
 		}
-		
+
 		if (errors.length > 0) {
-			const detailedError = `Required context not available. Missing: ${errors.join(", ")}. ` +
+			const detailedError =
+				`Required context not available. Missing: ${errors.join(", ")}. ` +
 				`This extension must be used within an Azure DevOps build pipeline tab.`;
 			throw new Error(detailedError);
 		}
@@ -88,7 +90,7 @@ class BicepReportExtension {
 		const attachments = await this.buildService!.getBuildAttachments(
 			webContext.project.id,
 			buildId,
-			"bicepwhatifreport"
+			"bicepwhatifreport",
 		);
 
 		const reports = attachments.filter((att) => att.name.startsWith("md/"));
@@ -104,7 +106,7 @@ class BicepReportExtension {
 	private async displayReports(
 		attachments: any[],
 		projectId: string,
-		buildId: number
+		buildId: number,
 	): Promise<void> {
 		const reportList = document.getElementById("report-list")!;
 
@@ -114,12 +116,12 @@ class BicepReportExtension {
 					projectId,
 					buildId,
 					"bicepwhatifreport",
-					attachment.name
+					attachment.name,
 				);
 
 				const reportElement = this.createReportElement(
 					attachment.name,
-					content
+					content,
 				);
 				reportList.appendChild(reportElement);
 			} catch (error) {
@@ -233,7 +235,7 @@ class BicepReportExtension {
 			tempDiv,
 			allowedTags,
 			allowedAttributes,
-			dangerousProtocols
+			dangerousProtocols,
 		);
 
 		return tempDiv.innerHTML;
@@ -243,7 +245,7 @@ class BicepReportExtension {
 		element: Element,
 		allowedTags: string[],
 		allowedAttributes: Record<string, string[]>,
-		dangerousProtocols: string[]
+		dangerousProtocols: string[],
 	): void {
 		const children = Array.from(element.children);
 
@@ -287,7 +289,7 @@ class BicepReportExtension {
 							value.includes("\t" + protocol) ||
 							value.includes("\n" + protocol) ||
 							value.includes("\r" + protocol) ||
-							value.includes(" " + protocol)
+							value.includes(" " + protocol),
 					);
 
 					if (isDangerous) {
@@ -301,7 +303,7 @@ class BicepReportExtension {
 				child,
 				allowedTags,
 				allowedAttributes,
-				dangerousProtocols
+				dangerousProtocols,
 			);
 		}
 	}

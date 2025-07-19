@@ -49,31 +49,32 @@ describe('Web Extension Tests', () => {
       // Read the HTML file
       const htmlPath = path.join(__dirname, '..', 'contents', 'bicep-what-if-tab.html');
       const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-      
+
       // Parse script src attributes from HTML
       const scriptRegex = /<script[^>]+src\s*=\s*["']([^"']+)["'][^>]*>/gi;
       const scriptMatches = [...htmlContent.matchAll(scriptRegex)];
       const scriptSources = scriptMatches.map(match => match[1]);
-      
+
       // Filter for scripts in the scripts/ directory
       const scriptsInScriptsDir = scriptSources.filter(src => src.startsWith('scripts/'));
-      
+
       // Verify each script file exists
       const scriptsDir = path.join(__dirname, '..', 'contents', 'scripts');
-      
+
       scriptsInScriptsDir.forEach(scriptSrc => {
         const scriptFileName = scriptSrc.replace('scripts/', '');
         const scriptPath = path.join(scriptsDir, scriptFileName);
-        
-        expect(fs.existsSync(scriptPath), 
-          `Script file ${scriptSrc} referenced in HTML does not exist at ${scriptPath}`)
-          .to.be.true;
+
+        expect(
+          fs.existsSync(scriptPath),
+          `Script file ${scriptSrc} referenced in HTML does not exist at ${scriptPath}`
+        ).to.be.true;
       });
-      
+
       // Ensure we found at least the expected scripts
       expect(scriptsInScriptsDir).to.include('scripts/SDK.min.js');
       expect(scriptsInScriptsDir).to.include('scripts/marked.min.js');
-      
+
       // Ensure require.js is NOT referenced (regression test for issue #71)
       expect(scriptsInScriptsDir).to.not.include('scripts/require.js');
       expect(htmlContent).to.not.include('require.js');
@@ -83,47 +84,51 @@ describe('Web Extension Tests', () => {
       // Read the HTML file
       const htmlPath = path.join(__dirname, '..', 'contents', 'bicep-what-if-tab.html');
       const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-      
+
       // Verify AMD loader script reference is present
       expect(htmlContent).to.include('scripts/amd-loader.js');
       expect(htmlContent).to.include('Simple AMD loader');
-      
+
       // Read the AMD loader script file
       const amdLoaderPath = path.join(__dirname, '..', 'contents', 'scripts', 'amd-loader.js');
       const amdLoaderContent = fs.readFileSync(amdLoaderPath, 'utf8');
-      
+
       // Verify AMD loader components are present in the external file
       expect(amdLoaderContent).to.include('window.define = function');
       expect(amdLoaderContent).to.include('window.define.amd = true');
-      
+
       // Set up JSDOM and manually load the AMD loader script
       const dom = new JSDOM(htmlContent, {
         resources: 'usable',
         runScripts: 'dangerously',
-        pretendToBeVisual: true
+        pretendToBeVisual: true,
       });
-      
+
       const { window } = dom;
-      
+
       // Load the AMD loader script into the JSDOM window
       const script = dom.window.document.createElement('script');
       script.textContent = amdLoaderContent;
       dom.window.document.head.appendChild(script);
-      
+
       // Verify the define function was created
       expect(window.define).to.be.a('function');
       expect(window.define.amd).to.be.true;
-      
+
       // Test the define function with SDK-like module pattern
       let moduleExports: any = null;
-      
+
       // Simulate SDK.min.js module pattern: define(["exports"], function(exports) { ... })
-      window.define(["exports"], function(exports: any) {
-        exports.init = async function() { return { loaded: true }; };
-        exports.getService = function() { return {}; };
+      window.define(['exports'], function (exports: any) {
+        exports.init = async function () {
+          return { loaded: true };
+        };
+        exports.getService = function () {
+          return {};
+        };
         moduleExports = exports;
       });
-      
+
       // Verify the module was processed correctly
       expect(moduleExports).to.not.be.null;
       expect(moduleExports.init).to.be.a('function');
@@ -132,7 +137,8 @@ describe('Web Extension Tests', () => {
 
     it('should validate AMD loader handles different module patterns', () => {
       // Set up clean DOM environment
-      const dom = new JSDOM(`
+      const dom = new JSDOM(
+        `
         <script>
           // Copy the AMD loader from our HTML
           window.define = function(deps, factory) {
@@ -169,27 +175,33 @@ describe('Web Extension Tests', () => {
           };
           window.define.amd = true;
         </script>
-      `, { runScripts: 'dangerously' });
-      
+      `,
+        { runScripts: 'dangerously' }
+      );
+
       const { window } = dom;
-      
+
       // Test 1: Function-only pattern (like marked.js)
-      window.define(function() {
-        return function marked(text: string) { return '<p>' + text + '</p>'; };
+      window.define(function () {
+        return function marked(text: string) {
+          return '<p>' + text + '</p>';
+        };
       });
-      
+
       // Test 2: Factory with exports dependency
-      window.define(['exports'], function(exports: any) {
-        exports.testFunction = function() { return 'test'; };
+      window.define(['exports'], function (exports: any) {
+        exports.testFunction = function () {
+          return 'test';
+        };
       });
-      
+
       // Test 3: No dependencies factory
       let result: any = null;
-      window.define(function(exports: any) {
+      window.define(function (exports: any) {
         exports.noDepTest = true;
         result = exports;
       });
-      
+
       expect(window.define).to.be.a('function');
       expect(window.define.amd).to.be.true;
       expect(result.noDepTest).to.be.true;
@@ -200,74 +212,70 @@ describe('Web Extension Tests', () => {
       // Read the HTML file to ensure define function is available before SDK loading
       const htmlPath = path.join(__dirname, '..', 'contents', 'bicep-what-if-tab.html');
       const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-      
+
       // Read the AMD loader script file
       const amdLoaderPath = path.join(__dirname, '..', 'contents', 'scripts', 'amd-loader.js');
       const amdLoaderContent = fs.readFileSync(amdLoaderPath, 'utf8');
-      
+
       // Set up JSDOM with the actual HTML content
       const dom = new JSDOM(htmlContent, {
         resources: 'usable',
         runScripts: 'dangerously',
-        pretendToBeVisual: true
+        pretendToBeVisual: true,
       });
-      
+
       const { window } = dom;
-      
+
       // Load the AMD loader script into the JSDOM window
       const script = dom.window.document.createElement('script');
       script.textContent = amdLoaderContent;
       dom.window.document.head.appendChild(script);
-      
+
       // Verify define function exists before any module would be loaded
-      expect(window.define, 'define function should be available before SDK.min.js loads')
-        .to.be.a('function');
-      expect(window.define.amd, 'define.amd should be true for AMD compatibility')
-        .to.be.true;
-      
+      expect(window.define, 'define function should be available before SDK.min.js loads').to.be.a(
+        'function'
+      );
+      expect(window.define.amd, 'define.amd should be true for AMD compatibility').to.be.true;
+
       // Simulate SDK.min.js attempting to define itself
       // This is the pattern that was failing with "define is not defined"
       let sdkLoaded = false;
       let defineError: Error | null = null;
-      
+
       try {
         // Simulate the actual SDK.min.js module definition pattern
-        window.define(["exports"], function(exports: any) {
+        window.define(['exports'], function (exports: any) {
           // Mock SDK initialization
-          exports.init = async function() { 
-            return { loaded: true, version: 'v4' }; 
+          exports.init = async function () {
+            return { loaded: true, version: 'v4' };
           };
-          exports.notifyLoadSucceeded = async function() {};
-          exports.notifyLoadFailed = async function() {};
-          exports.getWebContext = function() {
+          exports.notifyLoadSucceeded = async function () {};
+          exports.notifyLoadFailed = async function () {};
+          exports.getWebContext = function () {
             return { project: { id: 'test' } };
           };
-          exports.getConfiguration = function() {
+          exports.getConfiguration = function () {
             return { buildId: 123 };
           };
-          exports.getService = async function() {
+          exports.getService = async function () {
             return {
               getBuildAttachments: async () => [],
-              getAttachment: async () => 'test content'
+              getAttachment: async () => 'test content',
             };
           };
-          exports.resize = function() {};
-          
+          exports.resize = function () {};
+
           sdkLoaded = true;
         });
       } catch (error) {
         defineError = error as Error;
       }
-      
+
       // Verify no "define is not defined" error occurred
-      expect(defineError, 'No error should occur when SDK tries to use define function')
-        .to.be.null;
-      expect(sdkLoaded, 'SDK module should load successfully')
-        .to.be.true;
-      expect(window.SDK, 'SDK should be available globally after loading')
-        .to.not.be.undefined;
-      expect(window.SDK.init, 'SDK.init should be available')
-        .to.be.a('function');
+      expect(defineError, 'No error should occur when SDK tries to use define function').to.be.null;
+      expect(sdkLoaded, 'SDK module should load successfully').to.be.true;
+      expect(window.SDK, 'SDK should be available globally after loading').to.not.be.undefined;
+      expect(window.SDK.init, 'SDK.init should be available').to.be.a('function');
     });
   });
 
@@ -516,25 +524,25 @@ describe('Web Extension Tests', () => {
           scenario: 'missing web context',
           webContext: null,
           config: { buildId: '123' },
-          expectedErrors: ['Azure DevOps web context is not available']
+          expectedErrors: ['Azure DevOps web context is not available'],
         },
         {
           scenario: 'missing project in web context',
           webContext: { project: null },
           config: { buildId: '123' },
-          expectedErrors: ['Project context is missing from web context']
+          expectedErrors: ['Project context is missing from web context'],
         },
         {
           scenario: 'missing config',
           webContext: { project: { id: 'test-project' } },
           config: null,
-          expectedErrors: ['Extension configuration is not available']
+          expectedErrors: ['Extension configuration is not available'],
         },
         {
           scenario: 'missing buildId in config',
           webContext: { project: { id: 'test-project' } },
           config: { buildId: null },
-          expectedErrors: ['Build ID is missing from extension configuration']
+          expectedErrors: ['Build ID is missing from extension configuration'],
         },
         {
           scenario: 'multiple missing contexts',
@@ -542,40 +550,43 @@ describe('Web Extension Tests', () => {
           config: null,
           expectedErrors: [
             'Azure DevOps web context is not available',
-            'Extension configuration is not available'
-          ]
-        }
+            'Extension configuration is not available',
+          ],
+        },
       ];
 
       testCases.forEach(testCase => {
         // Simulate the context validation logic from loadReports
         const errors: string[] = [];
-        
+
         if (!testCase.webContext) {
-          errors.push("Azure DevOps web context is not available");
+          errors.push('Azure DevOps web context is not available');
         } else {
           if (!testCase.webContext.project) {
-            errors.push("Project context is missing from web context");
+            errors.push('Project context is missing from web context');
           }
         }
-        
+
         if (!testCase.config) {
-          errors.push("Extension configuration is not available");
+          errors.push('Extension configuration is not available');
         } else {
           if (!testCase.config.buildId) {
-            errors.push("Build ID is missing from extension configuration");
+            errors.push('Build ID is missing from extension configuration');
           }
         }
 
         if (errors.length > 0) {
-          const detailedError = `Required context not available. Missing: ${errors.join(", ")}. ` +
+          const detailedError =
+            `Required context not available. Missing: ${errors.join(', ')}. ` +
             `This extension must be used within an Azure DevOps build pipeline tab.`;
-          
+
           // Verify the error message contains expected details
           testCase.expectedErrors.forEach(expectedError => {
             expect(detailedError).to.include(expectedError);
           });
-          expect(detailedError).to.include('This extension must be used within an Azure DevOps build pipeline tab');
+          expect(detailedError).to.include(
+            'This extension must be used within an Azure DevOps build pipeline tab'
+          );
         }
       });
     });
