@@ -11,8 +11,14 @@
     "rootDir": ".",
     "forceConsistentCasingInFileNames": true,
     "typeRoots": ["../task/node_modules/@types"],
-    "types": ["node", "mocha", "chai"]
+    "types": ["node", "mocha", "chai"],
+    "resolveJsonModule": true
   },
   "include": ["tests/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  }
 }

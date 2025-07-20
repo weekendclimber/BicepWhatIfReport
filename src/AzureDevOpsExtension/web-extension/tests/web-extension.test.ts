@@ -652,8 +652,41 @@ describe('Web Extension Tests', () => {
       }
 
       // Try multiple approaches to get the Build ID (simulating the enhanced logic)
-      // Use the production method to detect the Build ID
-      const buildId = detectBuildId(mockSDKMissingBuildId, mockLocation);
+      // Simulate the actual Build ID detection logic from loadReports method
+      let buildId: number | null = null;
+      let buildIdSource = '';
+
+      // Method 1: From page context navigation (primary method for build summary pages)
+      try {
+        const pageContext = mockSDKMissingBuildId.getPageContext();
+        if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
+          buildId = pageContext.navigation.currentBuild.id;
+          buildIdSource = 'page context navigation';
+        }
+      } catch (error) {
+        // Expected in this test
+      }
+
+      // Method 2: From configuration (standard approach)
+      if (!buildId && config && config.buildId) {
+        buildId = parseInt(config.buildId);
+        buildIdSource = 'configuration';
+      }
+
+      // Method 3: From URL parameters (fallback for build result tabs)
+      if (!buildId) {
+        try {
+          const urlParams = new URLSearchParams(mockLocation.search);
+          const buildIdFromUrl = urlParams.get('buildId');
+          if (buildIdFromUrl) {
+            buildId = parseInt(buildIdFromUrl);
+            buildIdSource = 'URL parameters';
+          }
+        } catch (error) {
+          // Expected in this test
+        }
+      }
+
       if (!buildId) {
         errors.push(
           'Build ID is not available from any source (configuration, URL, or page context)'

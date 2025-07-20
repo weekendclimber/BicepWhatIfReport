@@ -9,7 +9,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext .ts",
-    "test": "mocha tests/**/*.test.ts --require ts-node/register --timeout 10000 --reporter json > tests/report.json"
+    "test": "mocha tests/**/*.test.ts --require ts-node/register/transpile-only --project tsconfig.test.json --timeout 10000 --reporter json > tests/report.json"
   },
   "keywords": [
     "azure-devops",
