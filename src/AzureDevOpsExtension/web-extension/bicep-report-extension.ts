@@ -107,7 +107,9 @@ class BicepReportExtension {
       try {
         // Define configurable URL path patterns for build results
         const buildResultPathPatterns = [/\/_build\/results/, /\/build\/results/];
-        const isBuildResultPath = buildResultPathPatterns.some(pattern => pattern.test(window.location.pathname));
+        const isBuildResultPath = buildResultPathPatterns.some(pattern =>
+          pattern.test(window.location.pathname)
+        );
         if (isBuildResultPath) {
           const urlParams = new URLSearchParams(window.location.search);
           const buildIdFromUrl = urlParams.get('buildId');
