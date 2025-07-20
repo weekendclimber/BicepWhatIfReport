@@ -82,7 +82,7 @@ class BicepReportExtension {
         buildIdSource = 'page context navigation';
       }
     } catch (error) {
-      console.debug('Failed to get build ID from page context navigation:', error);
+      console.log('Failed to get build ID from page context navigation:', error);
     }
 
     // Method 2: From configuration (standard approach)
@@ -101,7 +101,7 @@ class BicepReportExtension {
           buildIdSource = 'URL parameters';
         }
       } catch (error) {
-        console.debug('Failed to extract build ID from URL:', error);
+        console.log('Failed to extract build ID from URL:', error);
       }
     }
 
@@ -117,7 +117,7 @@ class BicepReportExtension {
           }
         }
       } catch (error) {
-        console.debug('Failed to get build ID from host page data service:', error);
+        console.log('Failed to get build ID from host page data service:', error);
       }
     }
 
