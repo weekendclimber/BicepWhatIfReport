@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
 import * as fs from 'fs';
@@ -287,8 +289,6 @@ describe('Web Extension Tests', () => {
   });
 
   describe('BicepReportExtension', () => {
-    let BicepReportExtension: any;
-
     beforeEach(() => {
       setupDOM();
 
@@ -663,6 +663,7 @@ describe('Web Extension Tests', () => {
           buildId = pageContext.navigation.currentBuild.id;
           buildIdSource = 'page context navigation';
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         // Expected in this test
       }
@@ -680,8 +681,10 @@ describe('Web Extension Tests', () => {
           const buildIdFromUrl = urlParams.get('buildId');
           if (buildIdFromUrl) {
             buildId = parseInt(buildIdFromUrl);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             buildIdSource = 'URL parameters';
           }
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           // Expected in this test
         }
@@ -751,6 +754,7 @@ describe('Web Extension Tests', () => {
           buildId = pageContext.navigation.currentBuild.id;
           buildIdSource = 'page context navigation';
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         // Should not reach here in this test
       }
