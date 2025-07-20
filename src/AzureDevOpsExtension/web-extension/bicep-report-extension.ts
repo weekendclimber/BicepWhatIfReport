@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Use the global SDK that's loaded via script tag
 declare const SDK: any;
 
@@ -161,6 +163,7 @@ class BicepReportExtension {
   ): Promise<void> {
     const reportList = document.getElementById('report-list')!;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const fetchPromises = attachments.map(async attachment => {
       try {
         const content = await this.buildService!.getAttachment(
