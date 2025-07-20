@@ -1,6 +1,9 @@
 // Use the global SDK that's loaded via script tag
 declare const SDK: any;
 
+const PAGE_DATA_SERVICE: string = 'ms.vss-tfs-web.tfs-page-data-service';
+const WEB_BUILD_SERVICE: string = 'ms.vss-build-web.build-service';
+
 interface IBuildService {
   getBuildAttachments(projectId: string, buildId: number, type: string): Promise<any[]>;
   getAttachment(projectId: string, buildId: number, type: string, name: string): Promise<string>;
@@ -15,7 +18,7 @@ class BicepReportExtension {
       await SDK.init({ loaded: false, applyTheme: true });
 
       // Get services
-      this.buildService = await SDK.getService('ms.vss-build-web.build-service');
+      this.buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
 
       // Load and display reports
       await this.loadReports();
@@ -105,7 +108,7 @@ class BicepReportExtension {
     // Method 4: From host page data service (advanced approach)
     if (!buildId) {
       try {
-        const hostPageDataService = await SDK.getService<IHostPageDataService>('ms.vss-tfs-web.tfs-page-data-service');
+        const hostPageDataService = await SDK.getService(PAGE_DATA_SERVICE);
         if (hostPageDataService) {
           const pageData = await hostPageDataService.getPageData();
           if (pageData && pageData.buildId) {
