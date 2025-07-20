@@ -105,8 +105,8 @@ class BicepReportExtension {
     // Method 4: From host page data service (advanced approach)
     if (!buildId) {
       try {
-        const hostPageDataService = await SDK.getService('ms.vss-tfs-web.tfs-page-data-service');
-        if (hostPageDataService && hostPageDataService.getPageData) {
+        const hostPageDataService = await SDK.getService<IHostPageDataService>('ms.vss-tfs-web.tfs-page-data-service');
+        if (hostPageDataService) {
           const pageData = await hostPageDataService.getPageData();
           if (pageData && pageData.buildId) {
             buildId = parseInt(pageData.buildId);
