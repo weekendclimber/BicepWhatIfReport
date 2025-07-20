@@ -652,14 +652,8 @@ describe('Web Extension Tests', () => {
       }
 
       // Try multiple approaches to get the Build ID (simulating the enhanced logic)
-      let buildId: number | null = null;
-
       // Use the production method to detect the Build ID
       const buildId = detectBuildId(mockSDKMissingBuildId, mockLocation);
-
-      if (!buildId) {
-        errors.push('Build ID could not be determined');
-      }
       if (!buildId) {
         errors.push(
           'Build ID is not available from any source (configuration, URL, or page context)'

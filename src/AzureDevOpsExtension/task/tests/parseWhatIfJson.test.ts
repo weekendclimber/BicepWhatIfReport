@@ -433,7 +433,7 @@ describe('parseWhatIfJson', () => {
     it('should handle deeply nested JSON structures', async () => {
       // Create a deeply nested JSON structure
       const deepNestedPath = path.join(testDataDir, 'deep-nested.json');
-      let deepObject: any = {};
+      const deepObject: any = {};
       let current = deepObject;
 
       // Create 50 levels of nesting

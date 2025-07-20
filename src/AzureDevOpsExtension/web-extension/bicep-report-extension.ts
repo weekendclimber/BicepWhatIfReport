@@ -102,28 +102,7 @@ class BicepReportExtension {
       }
     }
 
-    // Method 4: From URL path (build results page pattern)
-    if (!buildId) {
-      try {
-        // Define configurable URL path patterns for build results
-        const buildResultPathPatterns = [/\/_build\/results/, /\/build\/results/];
-        const isBuildResultPath = buildResultPathPatterns.some(pattern =>
-          pattern.test(window.location.pathname)
-        );
-        if (isBuildResultPath) {
-          const urlParams = new URLSearchParams(window.location.search);
-          const buildIdFromUrl = urlParams.get('buildId');
-          if (buildIdFromUrl) {
-            buildId = parseInt(buildIdFromUrl);
-            buildIdSource = 'URL path pattern';
-          }
-        }
-      } catch (error) {
-        console.debug('Failed to extract build ID from URL path:', error);
-      }
-    }
-
-    // Method 5: From host page data service (advanced approach)
+    // Method 4: From host page data service (advanced approach)
     if (!buildId) {
       try {
         const hostPageDataService = await SDK.getService('ms.vss-tfs-web.tfs-page-data-service');
