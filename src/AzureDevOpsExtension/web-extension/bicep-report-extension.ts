@@ -105,10 +105,10 @@ class BicepReportExtension {
     // Method 4: From URL path (build results page pattern)
     if (!buildId) {
       try {
-        // Azure DevOps build URLs typically have pattern: .../build/results?buildId=123
-        // or .../_build/results?buildId=123
-        const pathMatch = window.location.pathname.match(/\/_build\/results/);
-        if (pathMatch) {
+        // Define configurable URL path patterns for build results
+        const buildResultPathPatterns = [/\/_build\/results/, /\/build\/results/];
+        const isBuildResultPath = buildResultPathPatterns.some(pattern => pattern.test(window.location.pathname));
+        if (isBuildResultPath) {
           const urlParams = new URLSearchParams(window.location.search);
           const buildIdFromUrl = urlParams.get('buildId');
           if (buildIdFromUrl) {
