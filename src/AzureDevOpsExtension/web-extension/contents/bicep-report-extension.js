@@ -1,25 +1,34 @@
 "use strict";
+const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
+const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
 class BicepReportExtension {
     async initialize() {
         try {
             // Modern SDK initialization
             await SDK.init({ loaded: false, applyTheme: true });
             // Get services
-            this.buildService = await SDK.getService('ms.vss-build-web.build-service');
+            this.buildService = (await SDK.getService(WEB_BUILD_SERVICE));
             // Load and display reports
             await this.loadReports();
             // Notify successful load
             await SDK.notifyLoadSucceeded();
         }
         catch (error) {
+            // Handle missing Build ID context gracefully - this is an expected scenario
+            // when the extension is accessed outside of a build pipeline context
+            if (error instanceof Error && error.message.includes('Required context not available')) {
+                this.showError(error.message);
+                // Still notify successful load since the extension loaded correctly,
+                // it just can't display reports due to missing context
+                await SDK.notifyLoadSucceeded();
+                return;
+            }
+            // Log unexpected errors to console for debugging
             console.error('Extension initialization failed:', error);
-            // Provide more specific error message based on the error type
+            // Handle other initialization errors that indicate real failures
             let errorMessage = 'Failed to initialize the extension.';
             if (error instanceof Error) {
-                if (error.message.includes('Required context not available')) {
-                    errorMessage = error.message;
-                }
-                else if (error.message.includes('SDK')) {
+                if (error.message.includes('SDK')) {
                     errorMessage =
                         'Failed to initialize Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.';
                 }
@@ -44,20 +53,76 @@ class BicepReportExtension {
                 errors.push('Project context is missing from web context');
             }
         }
-        if (!config) {
-            errors.push('Extension configuration is not available');
-        }
-        else {
-            if (!config.buildId) {
-                errors.push('Build ID is missing from extension configuration');
+        // Try multiple approaches to get the Build ID
+        let buildId = null;
+        let buildIdSource = '';
+        // Method 1: From page context navigation (primary method for build summary pages)
+        try {
+            const pageContext = SDK.getPageContext();
+            if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
+                buildId = pageContext.navigation.currentBuild.id;
+                buildIdSource = 'page context navigation';
             }
+        }
+        catch (error) {
+            console.log('Failed to get build ID from page context navigation:', error);
+        }
+        if (!buildId) {
+            console.log('Build ID not found in page context navigation, trying other methods...');
+        }
+        // Method 2: From configuration (standard approach)
+        if (!buildId && config && config.buildId) {
+            buildId = parseInt(config.buildId);
+            buildIdSource = 'configuration';
+        }
+        if (!buildId) {
+            console.log('Build ID not found in configuration, trying URL parameters...');
+        }
+        // Method 3: From URL parameters (fallback for build result tabs)
+        if (!buildId) {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const buildIdFromUrl = urlParams.get('buildId');
+                if (buildIdFromUrl) {
+                    buildId = parseInt(buildIdFromUrl);
+                    buildIdSource = 'URL parameters';
+                }
+            }
+            catch (error) {
+                console.log('Failed to extract build ID from URL:', error);
+            }
+        }
+        if (!buildId) {
+            console.log('Build ID not found in URL parameters, trying host page data service...');
+        }
+        // Method 4: From host page data service (advanced approach)
+        if (!buildId) {
+            try {
+                const hostPageDataService = await SDK.getService(PAGE_DATA_SERVICE);
+                if (hostPageDataService) {
+                    const pageData = await hostPageDataService.getPageData();
+                    if (pageData && pageData.buildId) {
+                        buildId = parseInt(pageData.buildId);
+                        buildIdSource = 'host page data service';
+                    }
+                }
+            }
+            catch (error) {
+                console.log('Failed to get build ID from host page data service:', error);
+            }
+        }
+        if (!buildId) {
+            errors.push('Build ID is not available from any source (configuration, URL, or page context)');
         }
         if (errors.length > 0) {
             const detailedError = `Required context not available. Missing: ${errors.join(', ')}. ` +
-                `This extension must be used within an Azure DevOps build pipeline tab.`;
+                `This extension must be used within an Azure DevOps build pipeline tab. ` +
+                `Debug info: Current URL: ${window.location.href}, ` +
+                `Configuration: ${JSON.stringify(config)}, ` +
+                `Web context project: ${webContext?.project?.id || 'undefined'}`;
             throw new Error(detailedError);
         }
-        const buildId = parseInt(config.buildId);
+        console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
         const attachments = await this.buildService.getBuildAttachments(webContext.project.id, buildId, 'bicepwhatifreport');
         const reports = attachments.filter(att => att.name.startsWith('md/'));
         if (reports.length === 0) {
@@ -68,6 +133,7 @@ class BicepReportExtension {
     }
     async displayReports(attachments, projectId, buildId) {
         const reportList = document.getElementById('report-list');
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const fetchPromises = attachments.map(async (attachment) => {
             try {
                 const content = await this.buildService.getAttachment(projectId, buildId, 'bicepwhatifreport', attachment.name);
@@ -243,6 +309,8 @@ class BicepReportExtension {
         errorDiv.textContent = message;
         errorDiv.style.display = 'block';
         loadingDiv.style.display = 'none';
+        // Auto-resize to fit content when showing error
+        SDK.resize();
     }
 }
 // Initialize extension
