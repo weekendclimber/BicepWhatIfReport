@@ -654,26 +654,12 @@ describe('Web Extension Tests', () => {
       // Try multiple approaches to get the Build ID (simulating the enhanced logic)
       let buildId: number | null = null;
 
-      // Method 1: From page context navigation (primary method)
-      const pageContext = mockSDKMissingBuildId.getPageContext();
-      if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
-        buildId = pageContext.navigation.currentBuild.id;
-      }
+      // Use the production method to detect the Build ID
+      const buildId = detectBuildId(mockSDKMissingBuildId, mockLocation);
 
-      // Method 2: From configuration
-      if (!buildId && config && config.buildId) {
-        buildId = parseInt(config.buildId);
+      if (!buildId) {
+        errors.push('Build ID could not be determined');
       }
-
-      // Method 3: From URL (simulated)
-      if (!buildId && mockLocation.search) {
-        const urlParams = new URLSearchParams(mockLocation.search);
-        const buildIdFromUrl = urlParams.get('buildId');
-        if (buildIdFromUrl) {
-          buildId = parseInt(buildIdFromUrl);
-        }
-      }
-
       if (!buildId) {
         errors.push(
           'Build ID is not available from any source (configuration, URL, or page context)'
