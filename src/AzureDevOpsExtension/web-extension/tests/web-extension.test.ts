@@ -613,9 +613,17 @@ describe('Web Extension Tests', () => {
         resize: () => {},
       };
 
-      // Set up test environment
+      // Set up test environment with clean URL
       setupDOM();
       (global as any).SDK = mockSDKMissingBuildId;
+      
+      // Mock window.location for URL parsing tests
+      const mockLocation = {
+        href: 'https://dev.azure.com/org/project/_build/results',
+        pathname: '/_build/results',
+        search: '', // No buildId in URL either
+      };
+      (global as any).window = { location: mockLocation };
 
       // Simulate the loadReports function logic that detects missing Build ID
       const webContext = mockSDKMissingBuildId.getWebContext();
@@ -631,21 +639,37 @@ describe('Web Extension Tests', () => {
         }
       }
 
-      if (!config) {
-        errors.push('Extension configuration is not available');
-      } else {
-        if (!config.buildId) {
-          errors.push('Build ID is missing from extension configuration');
+      // Try multiple approaches to get the Build ID (simulating the enhanced logic)
+      let buildId: number | null = null;
+
+      // Method 1: From configuration
+      if (config && config.buildId) {
+        buildId = parseInt(config.buildId);
+      }
+
+      // Method 2: From URL (simulated)
+      if (!buildId && mockLocation.search) {
+        const urlParams = new URLSearchParams(mockLocation.search);
+        const buildIdFromUrl = urlParams.get('buildId');
+        if (buildIdFromUrl) {
+          buildId = parseInt(buildIdFromUrl);
         }
       }
 
-      // Should detect missing Build ID
-      expect(errors).to.include('Build ID is missing from extension configuration');
+      if (!buildId) {
+        errors.push('Build ID is not available from any source (configuration, URL, or page context)');
+      }
+
+      // Should detect missing Build ID from all sources
+      expect(errors).to.include('Build ID is not available from any source (configuration, URL, or page context)');
 
       if (errors.length > 0) {
         const detailedError =
           `Required context not available. Missing: ${errors.join(', ')}. ` +
-          `This extension must be used within an Azure DevOps build pipeline tab.`;
+          `This extension must be used within an Azure DevOps build pipeline tab. ` +
+          `Debug info: Current URL: ${mockLocation.href}, ` +
+          `Configuration: ${JSON.stringify(config)}, ` +
+          `Web context project: ${webContext?.project?.id || 'undefined'}`;
 
         // Simulate showing the error in the UI (like showError method does)
         const errorDiv = document.getElementById('error')!;
@@ -656,10 +680,11 @@ describe('Web Extension Tests', () => {
         loadingDiv.style.display = 'none';
 
         // Verify the error message is user-friendly and helpful
-        expect(errorDiv.textContent).to.include('Build ID is missing from extension configuration');
+        expect(errorDiv.textContent).to.include('Build ID is not available from any source');
         expect(errorDiv.textContent).to.include(
           'This extension must be used within an Azure DevOps build pipeline tab'
         );
+        expect(errorDiv.textContent).to.include('Debug info:');
         expect(errorDiv.style.display).to.equal('block');
         expect(loadingDiv.style.display).to.equal('none');
       }

@@ -67,25 +67,83 @@ class BicepReportExtension {
       }
     }
 
-    if (!config) {
-      errors.push('Extension configuration is not available');
-    } else {
-      if (!config.buildId) {
-        errors.push('Build ID is missing from extension configuration');
+    // Try multiple approaches to get the Build ID
+    let buildId: number | null = null;
+    let buildIdSource = '';
+
+    // Method 1: From configuration (standard approach)
+    if (config && config.buildId) {
+      buildId = parseInt(config.buildId);
+      buildIdSource = 'configuration';
+    }
+    
+    // Method 2: From URL parameters (fallback for build result tabs)
+    if (!buildId) {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const buildIdFromUrl = urlParams.get('buildId');
+        if (buildIdFromUrl) {
+          buildId = parseInt(buildIdFromUrl);
+          buildIdSource = 'URL parameters';
+        }
+      } catch (error) {
+        console.debug('Failed to extract build ID from URL:', error);
       }
+    }
+
+    // Method 3: From URL path (build results page pattern)
+    if (!buildId) {
+      try {
+        // Azure DevOps build URLs typically have pattern: .../build/results?buildId=123
+        // or .../_build/results?buildId=123
+        const pathMatch = window.location.pathname.match(/\/_build\/results/);
+        if (pathMatch) {
+          const urlParams = new URLSearchParams(window.location.search);
+          const buildIdFromUrl = urlParams.get('buildId');
+          if (buildIdFromUrl) {
+            buildId = parseInt(buildIdFromUrl);
+            buildIdSource = 'URL path pattern';
+          }
+        }
+      } catch (error) {
+        console.debug('Failed to extract build ID from URL path:', error);
+      }
+    }
+
+    // Method 4: From host page data service (advanced approach)
+    if (!buildId) {
+      try {
+        const hostPageDataService = await SDK.getService('ms.vss-tfs-web.tfs-page-data-service');
+        if (hostPageDataService && hostPageDataService.getPageData) {
+          const pageData = await hostPageDataService.getPageData();
+          if (pageData && pageData.buildId) {
+            buildId = parseInt(pageData.buildId);
+            buildIdSource = 'host page data service';
+          }
+        }
+      } catch (error) {
+        console.debug('Failed to get build ID from host page data service:', error);
+      }
+    }
+
+    if (!buildId) {
+      errors.push('Build ID is not available from any source (configuration, URL, or page context)');
     }
 
     if (errors.length > 0) {
       const detailedError =
         `Required context not available. Missing: ${errors.join(', ')}. ` +
-        `This extension must be used within an Azure DevOps build pipeline tab.`;
+        `This extension must be used within an Azure DevOps build pipeline tab. ` +
+        `Debug info: Current URL: ${window.location.href}, ` +
+        `Configuration: ${JSON.stringify(config)}, ` +
+        `Web context project: ${webContext?.project?.id || 'undefined'}`;
       throw new Error(detailedError);
     }
 
-    const buildId = parseInt(config.buildId);
+    console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
     const attachments = await this.buildService!.getBuildAttachments(
       webContext.project.id,
-      buildId,
+      buildId!,
       'bicepwhatifreport'
     );
 
@@ -96,7 +154,7 @@ class BicepReportExtension {
       return;
     }
 
-    await this.displayReports(reports, webContext.project.id, buildId);
+    await this.displayReports(reports, webContext.project.id, buildId!);
   }
 
   private async displayReports(
