@@ -87,7 +87,7 @@ class BicepReportExtension {
       buildId = parseInt(config.buildId);
       buildIdSource = 'configuration';
     }
-    
+
     // Method 3: From URL parameters (fallback for build result tabs)
     if (!buildId) {
       try {
@@ -138,7 +138,9 @@ class BicepReportExtension {
     }
 
     if (!buildId) {
-      errors.push('Build ID is not available from any source (configuration, URL, or page context)');
+      errors.push(
+        'Build ID is not available from any source (configuration, URL, or page context)'
+      );
     }
 
     if (errors.length > 0) {

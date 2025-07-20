@@ -26,9 +26,9 @@ const mockSDK = {
   getPageContext: () => ({
     navigation: {
       currentBuild: {
-        id: 123
-      }
-    }
+        id: 123,
+      },
+    },
   }),
   getService: async () => ({
     getBuildAttachments: async () => [{ name: 'md/test-report.md', type: 'bicepwhatifreport' }],
@@ -615,8 +615,8 @@ describe('Web Extension Tests', () => {
         }),
         getPageContext: () => ({
           navigation: {
-            currentBuild: null // No build in navigation context
-          }
+            currentBuild: null, // No build in navigation context
+          },
         }),
         getService: async () => ({
           getBuildAttachments: async () => [],
@@ -628,7 +628,7 @@ describe('Web Extension Tests', () => {
       // Set up test environment with clean URL
       setupDOM();
       (global as any).SDK = mockSDKMissingBuildId;
-      
+
       // Mock window.location for URL parsing tests
       const mockLocation = {
         href: 'https://dev.azure.com/org/project/_build/results',
@@ -675,11 +675,15 @@ describe('Web Extension Tests', () => {
       }
 
       if (!buildId) {
-        errors.push('Build ID is not available from any source (configuration, URL, or page context)');
+        errors.push(
+          'Build ID is not available from any source (configuration, URL, or page context)'
+        );
       }
 
       // Should detect missing Build ID from all sources
-      expect(errors).to.include('Build ID is not available from any source (configuration, URL, or page context)');
+      expect(errors).to.include(
+        'Build ID is not available from any source (configuration, URL, or page context)'
+      );
 
       if (errors.length > 0) {
         const detailedError =
@@ -714,13 +718,13 @@ describe('Web Extension Tests', () => {
         getPageContext: () => ({
           navigation: {
             currentBuild: {
-              id: 12345
-            }
-          }
+              id: 12345,
+            },
+          },
         }),
         getConfiguration: () => ({
-          buildId: null // No build ID in config
-        })
+          buildId: null, // No build ID in config
+        }),
       };
 
       // Simulate the Build ID detection logic
