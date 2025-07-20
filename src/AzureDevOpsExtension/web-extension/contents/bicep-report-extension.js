@@ -1,11 +1,13 @@
 "use strict";
+const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
+const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
 class BicepReportExtension {
     async initialize() {
         try {
             // Modern SDK initialization
             await SDK.init({ loaded: false, applyTheme: true });
             // Get services
-            this.buildService = await SDK.getService('ms.vss-build-web.build-service');
+            this.buildService = (await SDK.getService(WEB_BUILD_SERVICE));
             // Load and display reports
             await this.loadReports();
             // Notify successful load
@@ -63,7 +65,7 @@ class BicepReportExtension {
             }
         }
         catch (error) {
-            console.debug('Failed to get build ID from page context navigation:', error);
+            console.log('Failed to get build ID from page context navigation:', error);
         }
         // Method 2: From configuration (standard approach)
         if (!buildId && config && config.buildId) {
@@ -81,14 +83,14 @@ class BicepReportExtension {
                 }
             }
             catch (error) {
-                console.debug('Failed to extract build ID from URL:', error);
+                console.log('Failed to extract build ID from URL:', error);
             }
         }
         // Method 4: From host page data service (advanced approach)
         if (!buildId) {
             try {
-                const hostPageDataService = await SDK.getService('ms.vss-tfs-web.tfs-page-data-service');
-                if (hostPageDataService && hostPageDataService.getPageData) {
+                const hostPageDataService = await SDK.getService(PAGE_DATA_SERVICE);
+                if (hostPageDataService) {
                     const pageData = await hostPageDataService.getPageData();
                     if (pageData && pageData.buildId) {
                         buildId = parseInt(pageData.buildId);
@@ -97,7 +99,7 @@ class BicepReportExtension {
                 }
             }
             catch (error) {
-                console.debug('Failed to get build ID from host page data service:', error);
+                console.log('Failed to get build ID from host page data service:', error);
             }
         }
         if (!buildId) {
@@ -122,6 +124,7 @@ class BicepReportExtension {
     }
     async displayReports(attachments, projectId, buildId) {
         const reportList = document.getElementById('report-list');
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const fetchPromises = attachments.map(async (attachment) => {
             try {
                 const content = await this.buildService.getAttachment(projectId, buildId, 'bicepwhatifreport', attachment.name);
