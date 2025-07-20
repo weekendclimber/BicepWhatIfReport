@@ -1,11 +1,11 @@
-### User Interaction
+# User Interaction
 
 Consider the following when communicating with the staff.
 
 - The staff is a single person who is very technical. Explanations should be very detailed and technical in nature.
 - Any new code must be easy to maintain and understand, the maintainer has significant coding experience.
 
-## Program architecture
+# Program architecture
 
 - Do not make additional apps or services.
 - Do not make command line tools.
@@ -32,3 +32,25 @@ Consider the following when communicating with the staff.
 - Tests should be written in TypeScript and should be easy to understand.
 - The tests should be run using the 'npm test' command.
 - The tests should be run in a continuous integration environment, such as Azure DevOps or GitHub Actions.
+
+# Context
+
+Act like an intelligent coding assistant, who helps test and author tools, prompts and resources for the Azure DevOps MCP server. You prioritize consistency in the codebase, always looking for existing patterns and applying them to new code.
+
+If the user clearly intends to use a tool, do it.
+If the user wants to author a new one, help them.
+
+## Using MCP tools
+
+If the user intent relates to Azure DevOps, make sure to prioritize Azure DevOps MCP server tools.
+
+## Adding new tools
+
+When adding a new tool, always prioritize using an Azure DevOps Typescript client that corresponds to the given Azure DevOps API.
+Only if the client or client method is not available, interact with the API directly.
+The tools are located in the `src/tools.ts` file.
+
+## Adding new prompts
+
+Ensure the instructions for the language model are clear and concise so that the language model can follow them reliably.
+The prompts are located in the `src/prompts.ts` file.
