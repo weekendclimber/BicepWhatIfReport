@@ -23,6 +23,13 @@ const mockSDK = {
   getConfiguration: () => ({
     buildId: '123',
   }),
+  getPageContext: () => ({
+    navigation: {
+      currentBuild: {
+        id: 123
+      }
+    }
+  }),
   getService: async () => ({
     getBuildAttachments: async () => [{ name: 'md/test-report.md', type: 'bicepwhatifreport' }],
     getAttachment: async () => '# Test Report\nThis is a test report.',
@@ -606,6 +613,11 @@ describe('Web Extension Tests', () => {
         getConfiguration: () => ({
           buildId: null, // Missing Build ID
         }),
+        getPageContext: () => ({
+          navigation: {
+            currentBuild: null // No build in navigation context
+          }
+        }),
         getService: async () => ({
           getBuildAttachments: async () => [],
           getAttachment: async () => '',
@@ -613,9 +625,17 @@ describe('Web Extension Tests', () => {
         resize: () => {},
       };
 
-      // Set up test environment
+      // Set up test environment with clean URL
       setupDOM();
       (global as any).SDK = mockSDKMissingBuildId;
+      
+      // Mock window.location for URL parsing tests
+      const mockLocation = {
+        href: 'https://dev.azure.com/org/project/_build/results',
+        pathname: '/_build/results',
+        search: '', // No buildId in URL either
+      };
+      (global as any).window = { location: mockLocation };
 
       // Simulate the loadReports function logic that detects missing Build ID
       const webContext = mockSDKMissingBuildId.getWebContext();
@@ -631,21 +651,43 @@ describe('Web Extension Tests', () => {
         }
       }
 
-      if (!config) {
-        errors.push('Extension configuration is not available');
-      } else {
-        if (!config.buildId) {
-          errors.push('Build ID is missing from extension configuration');
+      // Try multiple approaches to get the Build ID (simulating the enhanced logic)
+      let buildId: number | null = null;
+
+      // Method 1: From page context navigation (primary method)
+      const pageContext = mockSDKMissingBuildId.getPageContext();
+      if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
+        buildId = pageContext.navigation.currentBuild.id;
+      }
+
+      // Method 2: From configuration
+      if (!buildId && config && config.buildId) {
+        buildId = parseInt(config.buildId);
+      }
+
+      // Method 3: From URL (simulated)
+      if (!buildId && mockLocation.search) {
+        const urlParams = new URLSearchParams(mockLocation.search);
+        const buildIdFromUrl = urlParams.get('buildId');
+        if (buildIdFromUrl) {
+          buildId = parseInt(buildIdFromUrl);
         }
       }
 
-      // Should detect missing Build ID
-      expect(errors).to.include('Build ID is missing from extension configuration');
+      if (!buildId) {
+        errors.push('Build ID is not available from any source (configuration, URL, or page context)');
+      }
+
+      // Should detect missing Build ID from all sources
+      expect(errors).to.include('Build ID is not available from any source (configuration, URL, or page context)');
 
       if (errors.length > 0) {
         const detailedError =
           `Required context not available. Missing: ${errors.join(', ')}. ` +
-          `This extension must be used within an Azure DevOps build pipeline tab.`;
+          `This extension must be used within an Azure DevOps build pipeline tab. ` +
+          `Debug info: Current URL: ${mockLocation.href}, ` +
+          `Configuration: ${JSON.stringify(config)}, ` +
+          `Web context project: ${webContext?.project?.id || 'undefined'}`;
 
         // Simulate showing the error in the UI (like showError method does)
         const errorDiv = document.getElementById('error')!;
@@ -656,13 +698,49 @@ describe('Web Extension Tests', () => {
         loadingDiv.style.display = 'none';
 
         // Verify the error message is user-friendly and helpful
-        expect(errorDiv.textContent).to.include('Build ID is missing from extension configuration');
+        expect(errorDiv.textContent).to.include('Build ID is not available from any source');
         expect(errorDiv.textContent).to.include(
           'This extension must be used within an Azure DevOps build pipeline tab'
         );
+        expect(errorDiv.textContent).to.include('Debug info:');
         expect(errorDiv.style.display).to.equal('block');
         expect(loadingDiv.style.display).to.equal('none');
       }
+    });
+
+    it('should successfully get Build ID from page context navigation as primary method', () => {
+      // Test the new primary method for getting Build ID from page context
+      const mockSDKWithPageContext = {
+        getPageContext: () => ({
+          navigation: {
+            currentBuild: {
+              id: 12345
+            }
+          }
+        }),
+        getConfiguration: () => ({
+          buildId: null // No build ID in config
+        })
+      };
+
+      // Simulate the Build ID detection logic
+      let buildId: number | null = null;
+      let buildIdSource = '';
+
+      // Method 1: From page context navigation (primary method)
+      try {
+        const pageContext = mockSDKWithPageContext.getPageContext();
+        if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
+          buildId = pageContext.navigation.currentBuild.id;
+          buildIdSource = 'page context navigation';
+        }
+      } catch (error) {
+        // Should not reach here in this test
+      }
+
+      // Should successfully get build ID from page context
+      expect(buildId).to.equal(12345);
+      expect(buildIdSource).to.equal('page context navigation');
     });
   });
 });
