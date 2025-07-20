@@ -84,26 +84,7 @@ class BicepReportExtension {
                 console.debug('Failed to extract build ID from URL:', error);
             }
         }
-        // Method 4: From URL path (build results page pattern)
-        if (!buildId) {
-            try {
-                // Azure DevOps build URLs typically have pattern: .../build/results?buildId=123
-                // or .../_build/results?buildId=123
-                const pathMatch = window.location.pathname.match(/\/_build\/results/);
-                if (pathMatch) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const buildIdFromUrl = urlParams.get('buildId');
-                    if (buildIdFromUrl) {
-                        buildId = parseInt(buildIdFromUrl);
-                        buildIdSource = 'URL path pattern';
-                    }
-                }
-            }
-            catch (error) {
-                console.debug('Failed to extract build ID from URL path:', error);
-            }
-        }
-        // Method 5: From host page data service (advanced approach)
+        // Method 4: From host page data service (advanced approach)
         if (!buildId) {
             try {
                 const hostPageDataService = await SDK.getService('ms.vss-tfs-web.tfs-page-data-service');
