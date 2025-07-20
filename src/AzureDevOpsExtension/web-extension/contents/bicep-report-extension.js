@@ -54,12 +54,23 @@ class BicepReportExtension {
         // Try multiple approaches to get the Build ID
         let buildId = null;
         let buildIdSource = '';
-        // Method 1: From configuration (standard approach)
-        if (config && config.buildId) {
+        // Method 1: From page context navigation (primary method for build summary pages)
+        try {
+            const pageContext = SDK.getPageContext();
+            if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
+                buildId = pageContext.navigation.currentBuild.id;
+                buildIdSource = 'page context navigation';
+            }
+        }
+        catch (error) {
+            console.debug('Failed to get build ID from page context navigation:', error);
+        }
+        // Method 2: From configuration (standard approach)
+        if (!buildId && config && config.buildId) {
             buildId = parseInt(config.buildId);
             buildIdSource = 'configuration';
         }
-        // Method 2: From URL parameters (fallback for build result tabs)
+        // Method 3: From URL parameters (fallback for build result tabs)
         if (!buildId) {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -73,7 +84,7 @@ class BicepReportExtension {
                 console.debug('Failed to extract build ID from URL:', error);
             }
         }
-        // Method 3: From URL path (build results page pattern)
+        // Method 4: From URL path (build results page pattern)
         if (!buildId) {
             try {
                 // Azure DevOps build URLs typically have pattern: .../build/results?buildId=123
@@ -92,7 +103,7 @@ class BicepReportExtension {
                 console.debug('Failed to extract build ID from URL path:', error);
             }
         }
-        // Method 4: From host page data service (advanced approach)
+        // Method 5: From host page data service (advanced approach)
         if (!buildId) {
             try {
                 const hostPageDataService = await SDK.getService('ms.vss-tfs-web.tfs-page-data-service');
