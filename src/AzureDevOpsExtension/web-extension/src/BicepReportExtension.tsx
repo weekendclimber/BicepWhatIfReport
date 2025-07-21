@@ -10,7 +10,7 @@ import {
   BuildAttachment,
   ReportItem,
   IExtendedPageContext,
-  IPageDataService,
+  //IPageDataService,
 } from './types';
 
 // Azure DevOps UI Components
@@ -25,7 +25,7 @@ import { ZeroData } from 'azure-devops-ui/ZeroData';
 import 'azure-devops-ui/Core/_platformCommon.scss';
 
 // Constants for service names
-const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
+//const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
 const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
 
 const BicepReportExtension: React.FC = () => {
@@ -105,13 +105,19 @@ const BicepReportExtension: React.FC = () => {
         BuildServiceIds.BuildPageDataService
       );
       const buildPageData: IBuildPageData | undefined = buildPageService.getBuildPageData();
-      if (buildPageData && buildPageData.build) {
-        buildId = buildPageData.build.id;
-        buildIdSource = 'build page data service';
-        console.log('Build ID obtained from BuildPageDataService:', buildPageData.build.id);
+      if (buildPageData) {
+        //&& buildPageData.build) {
+        if (buildPageData.build) {
+          buildId = buildPageData.build.id;
+          buildIdSource = 'build page data service';
+          console.log('Build ID obtained from BuildPageDataService:', buildPageData.build.id);
+        } else {
+          console.log('Build ID is not available in BuildPageDataService');
+          errors.push('Build ID is not available in BuildPageDataService.');
+        }
       } else {
-        console.log('Build page data is not available or does not contain build information');
-        errors.push('Build page data is not available or does not contain build information.');
+        console.log('Build page data is not available.');
+        errors.push('Build page data is not available.');
       }
     } catch (error) {
       console.log('Failed to get build page data service:', error);
@@ -142,6 +148,9 @@ const BicepReportExtension: React.FC = () => {
         console.log('Build ID is not available from configuration');
         errors.push('Build ID is not available from configuration.');
       }
+    } else {
+      console.log('Build ID is not available from configuration');
+      errors.push('Build ID is not available from configuration.');
     }
 
     // Method 4: From URL parameters (fallback for build result tabs)
