@@ -19,7 +19,7 @@ const mockReactDOM = {
     // Mock render by updating the container's data attribute
     container.setAttribute('data-react-rendered', 'true');
     container.setAttribute('data-react-component', element.type?.name || 'Component');
-  }
+  },
 };
 
 // Mock Azure DevOps SDK
@@ -51,10 +51,10 @@ describe('React Web Extension Tests', () => {
   beforeEach(() => {
     // Reset DOM
     document.body.innerHTML = '<div id="react-root"></div>';
-    
+
     // Set up global mocks
     (global as any).SDK = mockSDK;
-    
+
     // Mock marked library
     (global as any).marked = {
       parse: (content: string) => `<p>${content}</p>`,
@@ -64,11 +64,11 @@ describe('React Web Extension Tests', () => {
   describe('React Component Structure', () => {
     it('should be able to mock React component rendering', () => {
       const reactRoot = document.getElementById('react-root')!;
-      
+
       // Mock the React rendering process
       const mockComponent = { type: { name: 'BicepReportExtension' } };
       mockReactDOM.render(mockComponent, reactRoot);
-      
+
       // Verify mocked rendering
       expect(reactRoot.getAttribute('data-react-rendered')).to.equal('true');
       expect(reactRoot.getAttribute('data-react-component')).to.equal('BicepReportExtension');
@@ -86,9 +86,9 @@ describe('React Web Extension Tests', () => {
         getAttachment: async (projectId: string, buildId: number, type: string, name: string) => {
           expect(typeof name).to.equal('string');
           return '# Test';
-        }
+        },
       };
-      
+
       expect(mockBuildService.getBuildAttachments).to.be.a('function');
       expect(mockBuildService.getAttachment).to.be.a('function');
     });
@@ -98,7 +98,7 @@ describe('React Web Extension Tests', () => {
     it('should use webpack for bundling', () => {
       const webpackConfigPath = './webpack.config.js';
       expect(fs.existsSync(webpackConfigPath), 'webpack.config.js should exist').to.be.true;
-      
+
       const webpackConfig = fs.readFileSync(webpackConfigPath, 'utf8');
       expect(webpackConfig).to.include('BicepReportApp.tsx');
       expect(webpackConfig).to.include('ts-loader');
@@ -107,14 +107,14 @@ describe('React Web Extension Tests', () => {
     it('should have updated package.json scripts', () => {
       const packageJsonPath = './package.json';
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-      
+
       // Should use webpack for building
       expect(packageJson.scripts.build).to.include('webpack');
-      
+
       // Should have React dependencies
       expect(packageJson.dependencies.react).to.be.a('string');
       expect(packageJson.dependencies['react-dom']).to.be.a('string');
-      
+
       // Should have TypeScript React types
       expect(packageJson.devDependencies['@types/react']).to.be.a('string');
       expect(packageJson.devDependencies['@types/react-dom']).to.be.a('string');
@@ -128,12 +128,12 @@ describe('React Web Extension Tests', () => {
       if (!fs.existsSync(extensionPath)) {
         return;
       }
-      
+
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
-      
+
       // Should use proper ES6 imports
       expect(extensionContent).to.include("import * as SDK from 'azure-devops-extension-sdk'");
-      expect(extensionContent).to.include("import React");
+      expect(extensionContent).to.include('import React');
     });
 
     it('should maintain the same SDK method calls', () => {
@@ -142,9 +142,9 @@ describe('React Web Extension Tests', () => {
       if (!fs.existsSync(extensionPath)) {
         return;
       }
-      
+
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
-      
+
       // Should call the same SDK methods
       expect(extensionContent).to.include('SDK.init');
       expect(extensionContent).to.include('SDK.getWebContext');
@@ -161,9 +161,9 @@ describe('React Web Extension Tests', () => {
       if (!fs.existsSync(extensionPath)) {
         return;
       }
-      
+
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
-      
+
       // Should use azure-devops-ui classes for consistent styling
       expect(extensionContent).to.include('className="flex-grow"');
       expect(extensionContent).to.include('className="page-content page-content-top"');
@@ -176,9 +176,9 @@ describe('React Web Extension Tests', () => {
       if (!fs.existsSync(extensionPath)) {
         return;
       }
-      
+
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
-      
+
       // Should have the same core functions
       expect(extensionContent).to.include('initializeExtension');
       expect(extensionContent).to.include('loadReports');
@@ -195,32 +195,33 @@ describe('React Web Extension Tests', () => {
         // Skip if file doesn't exist (build may not have run)
         return;
       }
-      
+
       const htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
       // Should have React root
       expect(htmlContent).to.include('id="react-root"');
-      
+
       // Should NOT have old DOM structure
       expect(htmlContent).to.not.include('id="loading"');
       expect(htmlContent).to.not.include('id="error"');
       expect(htmlContent).to.not.include('id="content"');
-      
+
       // Should NOT have AMD loader
       expect(htmlContent).to.not.include('amd-loader.js');
       expect(htmlContent).to.not.include('SDK.min.js');
-      
+
       // Should have marked.js and bundled script
       expect(htmlContent).to.include('marked.min.js');
       expect(htmlContent).to.include('bicep-report-extension.js');
-      
+
       // Should have updated CSP for React
       expect(htmlContent).to.include("script-src 'self' 'unsafe-inline'");
     });
 
     it('should ensure marked.min.js still exists for markdown parsing', () => {
       const markedPath = './contents/scripts/marked.min.js';
-      expect(fs.existsSync(markedPath), 'marked.min.js should exist for markdown parsing').to.be.true;
+      expect(fs.existsSync(markedPath), 'marked.min.js should exist for markdown parsing').to.be
+        .true;
     });
 
     it('should have webpack-generated bundle', () => {
@@ -229,7 +230,7 @@ describe('React Web Extension Tests', () => {
         // Skip if build hasn't run yet
         return;
       }
-      
+
       // Bundle should contain React code
       const bundleContent = fs.readFileSync(bundlePath, 'utf8');
       expect(bundleContent.length).to.be.greaterThan(10000); // Should be substantial with React included

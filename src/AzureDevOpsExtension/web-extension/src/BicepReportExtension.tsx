@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import * as SDK from 'azure-devops-extension-sdk';
-import { IBuildService, BuildAttachment, ReportItem, IExtendedPageContext, IPageDataService } from './types';
+import {
+  IBuildService,
+  BuildAttachment,
+  ReportItem,
+  IExtendedPageContext,
+  IPageDataService,
+} from './types';
 
 // Azure DevOps UI Components
 import { Header, TitleSize } from 'azure-devops-ui/Header';
@@ -10,7 +16,7 @@ import { Card } from 'azure-devops-ui/Card';
 import { ZeroData } from 'azure-devops-ui/ZeroData';
 
 // Azure DevOps UI Core and utilities
-import "azure-devops-ui/Core/override.css";
+import 'azure-devops-ui/Core/override.css';
 
 const BicepReportExtension: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -148,7 +154,7 @@ const BicepReportExtension: React.FC = () => {
     }
 
     console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
-    
+
     const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
     const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
     const attachments = await buildService.getBuildAttachments(
@@ -206,10 +212,37 @@ const BicepReportExtension: React.FC = () => {
   const sanitizeHtml = (html: string): string => {
     // List of allowed HTML tags and attributes for markdown content
     const allowedTags = [
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'hr',
-      'strong', 'b', 'em', 'i', 'u', 's', 'del', 'ins',
-      'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
-      'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a', 'img',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'p',
+      'br',
+      'hr',
+      'strong',
+      'b',
+      'em',
+      'i',
+      'u',
+      's',
+      'del',
+      'ins',
+      'ul',
+      'ol',
+      'li',
+      'blockquote',
+      'pre',
+      'code',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
+      'a',
+      'img',
     ];
 
     const allowedAttributes: Record<string, string[]> = {
@@ -222,8 +255,16 @@ const BicepReportExtension: React.FC = () => {
 
     // Dangerous URL protocols to block
     const dangerousProtocols = [
-      'javascript:', 'data:', 'vbscript:', 'file:', 'about:',
-      'chrome:', 'chrome-extension:', 'shell:', 'ftp:', 'jar:',
+      'javascript:',
+      'data:',
+      'vbscript:',
+      'file:',
+      'about:',
+      'chrome:',
+      'chrome-extension:',
+      'shell:',
+      'ftp:',
+      'jar:',
     ];
 
     // Create a temporary div to parse the HTML
@@ -317,9 +358,9 @@ const BicepReportExtension: React.FC = () => {
       <div className="flex-grow">
         <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
         <div className="page-content page-content-top">
-          <Spinner 
-            size={SpinnerSize.large} 
-            label="Loading Bicep What-If reports..." 
+          <Spinner
+            size={SpinnerSize.large}
+            label="Loading Bicep What-If reports..."
             ariaLabel="Loading Bicep What-If reports"
           />
         </div>
@@ -332,10 +373,7 @@ const BicepReportExtension: React.FC = () => {
       <div className="flex-grow">
         <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
         <div className="page-content page-content-top">
-          <MessageBar 
-            severity={MessageBarSeverity.Error}
-            messageClassName="font-family-monospace"
-          >
+          <MessageBar severity={MessageBarSeverity.Error} messageClassName="font-family-monospace">
             {error}
           </MessageBar>
         </div>
@@ -377,17 +415,17 @@ const BicepReportExtension: React.FC = () => {
               }}
             >
               {report.error ? (
-                <MessageBar 
+                <MessageBar
                   severity={MessageBarSeverity.Error}
                   messageClassName="font-family-monospace"
                 >
                   Error loading report: {report.error}
                 </MessageBar>
               ) : (
-                <div 
+                <div
                   className="markdown-content"
-                  dangerouslySetInnerHTML={{ 
-                    __html: parseMarkdown(report.content) 
+                  dangerouslySetInnerHTML={{
+                    __html: parseMarkdown(report.content),
                   }}
                 />
               )}
