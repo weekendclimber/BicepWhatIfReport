@@ -18,6 +18,10 @@ import { ZeroData } from 'azure-devops-ui/ZeroData';
 // Azure DevOps UI Core and utilities
 import 'azure-devops-ui/Core/override.css';
 
+// Constants for service names
+const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
+const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
+
 const BicepReportExtension: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +90,7 @@ const BicepReportExtension: React.FC = () => {
     }
 
     // Try multiple approaches to get the Build ID
-    let buildId: number | null = null;
+    let buildId: number = -1;
     let buildIdSource = '';
 
     // Method 1: From page context navigation (primary method for build summary pages)
@@ -99,15 +103,21 @@ const BicepReportExtension: React.FC = () => {
     } catch (error) {
       console.log('Failed to get build ID from page context navigation:', error);
     }
+    if (buildId === -1) {
+      console.log('Build ID is not available from page context navigation');
+    }
 
     // Method 2: From configuration (standard approach)
-    if (!buildId && config && config.buildId) {
+    if (buildId === -1 && config && config.buildId) {
       buildId = parseInt(config.buildId);
       buildIdSource = 'configuration';
     }
+    if (buildId === -1) {
+      console.log('Build ID is not available from configuration');
+    }
 
     // Method 3: From URL parameters (fallback for build result tabs)
-    if (!buildId) {
+    if (buildId === -1) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const buildIdFromUrl = urlParams.get('buildId');
@@ -119,11 +129,13 @@ const BicepReportExtension: React.FC = () => {
         console.log('Failed to extract build ID from URL:', error);
       }
     }
+    if (buildId === -1) {
+      console.log('Build ID is not available from URL parameters');
+    }
 
     // Method 4: From host page data service (advanced approach)
-    if (!buildId) {
+    if (buildId === -1) {
       try {
-        const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
         const hostPageDataService = (await SDK.getService(PAGE_DATA_SERVICE)) as IPageDataService;
         if (hostPageDataService) {
           const pageData = await hostPageDataService.getPageData();
@@ -136,8 +148,11 @@ const BicepReportExtension: React.FC = () => {
         console.log('Failed to get build ID from host page data service:', error);
       }
     }
+    if (buildId === -1) {
+      console.log('Build ID is not available from host page data service');
+    }
 
-    if (!buildId) {
+    if (buildId === -1) {
       errors.push(
         'Build ID is not available from any source (configuration, URL, or page context)'
       );
@@ -155,22 +170,23 @@ const BicepReportExtension: React.FC = () => {
 
     console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
 
-    const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
-    const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
-    const attachments = await buildService.getBuildAttachments(
-      webContext.project.id,
-      buildId!,
-      'bicepwhatifreport'
-    );
+    if (!buildId) {
+      const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
+      const attachments = await buildService.getBuildAttachments(
+        webContext.project.id,
+        buildId,
+        'bicepwhatifreport'
+      );
 
-    const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
+      const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
 
-    if (reportAttachments.length === 0) {
-      setNoReports(true);
-      return;
+      if (reportAttachments.length === 0) {
+        setNoReports(true);
+        return;
+      }
+
+      await displayReports(reportAttachments, webContext.project.id, buildId, buildService);
     }
-
-    await displayReports(reportAttachments, webContext.project.id, buildId!, buildService);
   };
 
   const displayReports = async (
@@ -335,7 +351,9 @@ const BicepReportExtension: React.FC = () => {
 
   const parseMarkdown = (content: string): string => {
     // Check if marked library is available
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof (window as any).marked !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parsedHtml = (window as any).marked.parse(content);
       return sanitizeHtml(parsedHtml);
     } else {
