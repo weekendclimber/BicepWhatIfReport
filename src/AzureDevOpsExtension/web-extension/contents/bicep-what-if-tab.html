@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self'; object-src 'none'; media-src 'none'; frame-src 'none';"
+    />
+    <title>Bicep What-If Report</title>
+    <link rel="stylesheet" href="bicep-what-if-tab.css" />
+  </head>
+  <body>
+    <div id="react-root"></div>
+
+    <!-- Load marked.js for markdown parsing -->
+    <script src="scripts/marked.min.js"></script>
+    
+    <!-- Load bundled React app -->
+    <script src="bicep-report-extension.js"></script>
+  </body>
+</html>
