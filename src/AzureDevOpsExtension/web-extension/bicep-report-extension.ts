@@ -87,7 +87,7 @@ class BicepReportExtension {
       console.log('Failed to get build ID from page context navigation:', error);
     }
     if (!buildId) {
-      console.log('Build ID not found in page context navigation, trying other methods...');
+      console.log('Wrong: Build ID not found in page context navigation, trying other methods...');
     }
 
     // Method 2: From configuration (standard approach)
@@ -96,7 +96,7 @@ class BicepReportExtension {
       buildIdSource = 'configuration';
     }
     if (!buildId) {
-      console.log('Build ID not found in configuration, trying URL parameters...');
+      console.log('Wrong: Build ID not found in configuration, trying URL parameters...');
     }
 
     // Method 3: From URL parameters (fallback for build result tabs)
@@ -113,7 +113,7 @@ class BicepReportExtension {
       }
     }
     if (!buildId) {
-      console.log('Build ID not found in URL parameters, trying host page data service...');
+      console.log('Wrong: Build ID not found in URL parameters, trying host page data service...');
     }
 
     // Method 4: From host page data service (advanced approach)
