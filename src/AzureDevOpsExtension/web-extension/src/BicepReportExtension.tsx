@@ -3,7 +3,7 @@ import * as SDK from 'azure-devops-extension-sdk';
 import {
   IBuildPageDataService,
   BuildServiceIds,
-  //IBuildPageData,
+  IBuildPageData,
 } from 'azure-devops-extension-api/Build';
 import {
   IBuildService,
@@ -104,9 +104,15 @@ const BicepReportExtension: React.FC = () => {
       const buildPageService: IBuildPageDataService = await SDK.getService(
         BuildServiceIds.BuildPageDataService
       );
-      const buildPageData = buildPageService.getBuildPageData();
-      buildId = buildPageData?.build?.id;
-      buildIdSource = 'build page data service';
+      const buildPageData: IBuildPageData | undefined = buildPageService.getBuildPageData();
+      if (buildPageData && buildPageData.build) {
+        buildId = buildPageData.build.id;
+        buildIdSource = 'build page data service';
+        console.log('Build ID obtained from BuildPageDataService:', buildPageData.build.id);
+      } else {
+        console.log('Build page data is not available or does not contain build information');
+        errors.push('Build page data is not available or does not contain build information.');
+      }
     } catch (error) {
       console.log('Failed to get build page data service:', error);
       errors.push('Failed to get build page data service.');
@@ -114,65 +120,47 @@ const BicepReportExtension: React.FC = () => {
 
     // Method 2: From page context navigation
     try {
-      const pageContext = SDK.getPageContext() as IExtendedPageContext;
+      const pageContext: IExtendedPageContext = SDK.getPageContext() as IExtendedPageContext;
       if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
         buildId = pageContext.navigation.currentBuild.id;
         buildIdSource = 'page context navigation';
+      } else {
+        console.log('Build ID is not available from page context navigation');
+        errors.push('Build ID is not available from page context navigation.');
       }
     } catch (error) {
       console.log('Failed to get build ID from page context navigation:', error);
       errors.push('Failed to get build ID from page context navigation.');
     }
-    if (buildId === undefined) {
-      console.log('Build ID is not available from page context navigation');
-    }
 
     // Method 3: From configuration (standard approach)
     if (buildId === undefined && config && config.buildId) {
-      buildId = parseInt(config.buildId);
-      buildIdSource = 'configuration';
-    }
-    if (buildId === -1) {
-      console.log('Build ID is not available from configuration');
-      errors.push('Build ID is not available from configuration.');
+      if (config.buildId !== undefined) {
+        buildId = parseInt(config.buildId);
+        buildIdSource = 'configuration';
+      } else {
+        console.log('Build ID is not available from configuration');
+        errors.push('Build ID is not available from configuration.');
+      }
     }
 
     // Method 4: From URL parameters (fallback for build result tabs)
     if (buildId === undefined) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
-        const buildIdFromUrl = urlParams.get('buildId');
+        const buildIdFromUrl: string | null = urlParams.get('buildId');
         if (buildIdFromUrl) {
+          console.log('Extracting build ID from URL parameters:', buildIdFromUrl);
           buildId = parseInt(buildIdFromUrl);
           buildIdSource = 'URL parameters';
+        } else {
+          console.log('Build ID is not available from URL parameters');
+          errors.push('Build ID is not available from URL parameters.');
         }
       } catch (error) {
         console.log('Failed to extract build ID from URL:', error);
         errors.push('Failed to extract build ID from URL parameters.');
       }
-    }
-    if (buildId === undefined) {
-      console.log('Build ID is not available from URL parameters');
-    }
-
-    // Method 5: From host page data service (advanced approach)
-    if (buildId === undefined) {
-      try {
-        const hostPageDataService = (await SDK.getService(PAGE_DATA_SERVICE)) as IPageDataService;
-        if (hostPageDataService) {
-          const pageData = await hostPageDataService.getPageData();
-          if (pageData && pageData.buildId) {
-            buildId = parseInt(pageData.buildId);
-            buildIdSource = 'host page data service';
-          }
-        }
-      } catch (error) {
-        console.log('Failed to get build ID from host page data service:', error);
-        errors.push('Failed to get build ID from host page data service.');
-      }
-    }
-    if (buildId === undefined) {
-      console.log('Build ID is not available from host page data service');
     }
 
     if (buildId === undefined) {
@@ -183,15 +171,15 @@ const BicepReportExtension: React.FC = () => {
 
     if (errors.length > 0) {
       const detailedError =
-        `Required context not available. Missing: ${errors.join(', ')}. ` +
-        `This extension must be used within an Azure DevOps build pipeline tab. ` +
-        `Debug info: Current URL: ${window.location.href}, ` +
-        `Configuration: ${JSON.stringify(config)}, ` +
+        `Required context not available. Missing:\n\t${errors.join('\n\t')}\n` +
+        `This extension must be used within an Azure DevOps build pipeline tab.\n` +
+        `Debug info: Current URL: ${window.location.href}\n` +
+        `Configuration: ${JSON.stringify(config)}\n` +
         `Web context project: ${webContext?.project?.id || 'undefined'}`;
       throw new Error(detailedError);
+    } else {
+      console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
     }
-
-    console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
 
     if (buildId !== undefined) {
       const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
