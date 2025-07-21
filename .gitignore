@@ -30,6 +30,7 @@ yarn-error.log*
 !**/.eslintrc.js
 !**/prettier.config.js
 !**/contents/scripts/**/*.js
+!webpack.config.js
 
 # Ignore all VSIX files everywhere
 *.vsix

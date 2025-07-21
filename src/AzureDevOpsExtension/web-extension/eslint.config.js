@@ -20,20 +20,26 @@ module.exports = [
             "**/yarn-debug.log*",
             "**/yarn-error.log*",
             "tests/test-data/",
+            "contents/",
+            "bicep-report-extension.ts", // Ignore the old file
         ]
     },
-    // Configuration for main TypeScript files
+    // Configuration for main TypeScript/TSX files in src
     {
-        files: ["*.ts"],
+        files: ["src/**/*.ts", "src/**/*.tsx"],
         languageOptions: {
             parser: tsParser,
             ecmaVersion: 2022,
             sourceType: "module",
             parserOptions: {
                 project: "./tsconfig.json",
+                ecmaFeatures: {
+                    jsx: true
+                }
             },
             globals: {
-                ...globals.node,
+                ...globals.browser,
+                ...globals.es2022,
             },
         },
         plugins: {

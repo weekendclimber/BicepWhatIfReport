@@ -4,12 +4,13 @@
   "description": "Azure DevOps web extension for Bicep What-If Reports",
   "main": "bicep-report-extension.js",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
+    "build": "webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --ext .ts",
-    "test": "mocha tests/**/*.test.ts --require ts-node/register/transpile-only --project tsconfig.test.json --timeout 10000 --reporter json > tests/report.json"
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "mocha tests/react-web-extension.test.ts --require ts-node/register/transpile-only --project tsconfig.test.json --timeout 10000"
   },
   "keywords": [
     "azure-devops",
@@ -23,22 +24,35 @@
     "@types/jsdom": "^21.1.7",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.0.0",
+    "@types/react": "^16.14.0",
+    "@types/react-dom": "^16.9.0",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
+    "azure-devops-extension-api": "^4.257.0",
     "chai": "^5.2.1",
+    "css-loader": "^7.1.2",
     "eslint": "^9.31.0",
     "globals": "^15.12.0",
     "jsdom": "^26.1.0",
     "mocha": "^11.7.1",
     "sanitize-html": "^2.17.0",
+    "sass": "^1.89.2",
+    "sass-loader": "^16.0.5",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
     "azure-devops-extension-sdk": "^4.0.2",
-    "prettier": "^3.6.2"
+    "azure-devops-ui": "^2.259.0",
+    "prettier": "^3.6.2",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
   }
 }

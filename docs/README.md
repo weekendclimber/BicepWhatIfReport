@@ -13,6 +13,7 @@ This documentation covers two distinct development paths:
 
 ### Azure DevOps Extension SDK v4 (Web Extensions)
 - **[Complete Reference Guide](azure-devops-extension-sdk-v4-reference.md)** - Comprehensive SDK documentation
+- **[Azure DevOps UI Components](azure-devops-ui-reference.md)** - Official React component library reference
 - **[Migration Guide](migration-guide.md)** - Migrate from legacy VSS to modern SDK v4
 - **[Getting Started](index.md)** - Quick start guide and common patterns
 
@@ -105,7 +106,9 @@ run();
 ### Prerequisites
 - **Node.js 18+** - JavaScript runtime
 - **TypeScript 5+** - Type-safe JavaScript
+- **React 16.14.0** - UI library (required for azure-devops-ui compatibility)
 - **Azure DevOps Extension SDK v4.0.2** - For web extensions
+- **Azure DevOps UI v2.259.0** - Official React component library
 - **Azure Pipelines Task Library v5.2.1** - For pipeline tasks
 
 ### Installation
@@ -119,6 +122,10 @@ npm install azure-pipelines-task-lib
 
 # Development dependencies
 npm install typescript @types/node
+
+# React 16 (required for azure-devops-ui compatibility)
+npm install react@^16.14.0 react-dom@^16.14.0
+npm install --save-dev @types/react@^16.14.0 @types/react-dom@^16.9.0
 ```
 
 ### TypeScript Configuration
@@ -132,6 +139,7 @@ npm install typescript @types/node
     "moduleResolution": "node",
     "esModuleInterop": true,
     "strict": true,
+    "jsx": "react",
     "declaration": true,
     "outDir": "./dist"
   }

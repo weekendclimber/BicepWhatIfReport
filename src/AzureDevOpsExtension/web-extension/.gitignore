@@ -3,8 +3,15 @@ node_modules/
 !contents/scripts/SDK.min.js
 !contents/scripts/marked.min.js
 !contents/bicep-report-extension.js
+# Allow webpack config
+!webpack.config.js
 # Ignore source maps
 *.js.map
+# Ignore webpack generated font assets (these are build artifacts)
+contents/scripts/*.woff
+contents/scripts/*.woff2
+contents/scripts/*.ttf
+contents/scripts/*.eot
 
 # Exclude eslint config
 !eslint.config.js

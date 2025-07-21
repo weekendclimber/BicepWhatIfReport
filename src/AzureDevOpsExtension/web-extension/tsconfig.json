@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "none",
+    "module": "ESNext",
     "lib": ["ES2020", "DOM"],
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    "jsx": "react",
     "outDir": "./contents",
-    "rootDir": ".",
-    "forceConsistentCasingInFileNames": true
+    "rootDir": "./src",
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
-  "include": ["*.ts"],
-  "exclude": ["node_modules", "tests"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "tests", "contents"]
 }
