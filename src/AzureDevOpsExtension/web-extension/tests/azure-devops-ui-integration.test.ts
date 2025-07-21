@@ -15,13 +15,11 @@ const { document } = window;
 
 // Mock React DOM for testing
 const mockReactDOM = {
-  createRoot: (container: HTMLElement) => ({
-    render: (element: any) => {
-      // Mock render by updating the container's data attribute
-      container.setAttribute('data-react-rendered', 'true');
-      container.setAttribute('data-react-component', element.type?.name || 'Component');
-    }
-  })
+  render: (element: any, container: HTMLElement) => {
+    // Mock render by updating the container's data attribute
+    container.setAttribute('data-react-rendered', 'true');
+    container.setAttribute('data-react-component', element.type?.name || 'Component');
+  }
 };
 
 // Mock Azure DevOps SDK

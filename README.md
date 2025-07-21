@@ -165,6 +165,20 @@ npm install && npm run build
 
 This separation ensures loose coupling and allows each component to manage its own dependencies.
 
+#### Dependencies
+
+**Web Extension Requirements:**
+- **React 16.14.0** - UI framework (required for azure-devops-ui compatibility)
+- **azure-devops-ui v2.259.0** - Official Azure DevOps React component library
+- **azure-devops-extension-sdk v4.0.2** - Modern Azure DevOps Extension SDK
+
+> **Important:** The web extension requires React 16.x due to azure-devops-ui compatibility requirements. React 17+ is not supported.
+
+**Pipeline Task Requirements:**
+- **Node.js 18+** - JavaScript runtime
+- **azure-pipelines-task-lib v5.2.1** - Azure Pipelines task library
+- **json2md** - Markdown generation
+
 #### Usage
 
 1. Add the "Bicep What If Report Task" to your Azure DevOps pipeline

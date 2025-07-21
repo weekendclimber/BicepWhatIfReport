@@ -15,13 +15,11 @@ const { document } = window;
 
 // Mock React DOM for testing
 const mockReactDOM = {
-  createRoot: (container: HTMLElement) => ({
-    render: (element: any) => {
-      // Mock render by updating the container's data attribute
-      container.setAttribute('data-react-rendered', 'true');
-      container.setAttribute('data-react-component', element.type?.name || 'Component');
-    }
-  })
+  render: (element: any, container: HTMLElement) => {
+    // Mock render by updating the container's data attribute
+    container.setAttribute('data-react-rendered', 'true');
+    container.setAttribute('data-react-component', element.type?.name || 'Component');
+  }
 };
 
 // Mock Azure DevOps SDK
@@ -69,8 +67,7 @@ describe('React Web Extension Tests', () => {
       
       // Mock the React rendering process
       const mockComponent = { type: { name: 'BicepReportExtension' } };
-      const root = mockReactDOM.createRoot(reactRoot);
-      root.render(mockComponent);
+      mockReactDOM.render(mockComponent, reactRoot);
       
       // Verify mocked rendering
       expect(reactRoot.getAttribute('data-react-rendered')).to.equal('true');
