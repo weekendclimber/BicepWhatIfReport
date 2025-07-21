@@ -6,7 +6,7 @@ This Azure DevOps extension provides a pipeline task and web extension to genera
 
 The extension follows Azure DevOps best practices with clear separation of concerns:
 
-```
+```plaintext
 src/AzureDevOpsExtension/
 ├── task/                        # Pipeline task implementation
 │   ├── index.ts                 # Main task entry point
@@ -21,7 +21,7 @@ src/AzureDevOpsExtension/
 │       ├── *.test.ts
 │       └── test-data/
 ├── web-extension/              # Web extension for build summary tab
-│   ├── src/                      # TypeScript source files  
+│   ├── src/                      # TypeScript source files
 │   │   ├── BicepReportApp.tsx    # React app entry point
 │   │   ├── BicepReportExtension.tsx  # Main React component (azure-devops-ui)
 │   │   └── types.ts             # TypeScript interfaces
@@ -55,29 +55,33 @@ src/AzureDevOpsExtension/
 ## Building and Testing
 
 ### Prerequisites
+
 - Node.js 20.x or higher
 - npm
 
 ### Build the Extension
+
 ```bash
 # Build the pipeline task
 cd task/
 npm install
 npm run build
 
-# Build the web extension  
+# Build the web extension
 cd ../web-extension/
 npm install
 npm run build
 ```
 
 This will:
+
 1. Compile the TypeScript task code
 2. Compile the React web extension with webpack bundling
 3. Process azure-devops-ui CSS and assets
 4. Output compiled JavaScript to appropriate locations
 
 ### Run Tests
+
 ```bash
 # Test the pipeline task
 cd task/
@@ -89,6 +93,7 @@ npm test
 ```
 
 The test suite includes:
+
 - **42 task tests**: JSON parsing, report generation, file enumeration
 - **19 web extension tests**: React components, azure-devops-ui integration, DOM manipulation
 
@@ -108,7 +113,7 @@ The web extension uses the official `azure-devops-ui` library to provide a consi
 
 - **Consistency**: Matches native Azure DevOps interface elements
 - **Accessibility**: Built-in ARIA labels and keyboard navigation
-- **Theming**: Automatically adapts to Azure DevOps light/dark themes  
+- **Theming**: Automatically adapts to Azure DevOps light/dark themes
 - **Responsive**: Mobile-friendly responsive design patterns
 - **Performance**: Optimized components with minimal bundle size impact
 
@@ -124,9 +129,9 @@ import { MessageBar, MessageBarSeverity } from 'azure-devops-ui/MessageBar';
 <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
 
 // Loading state
-<Spinner 
-  size={SpinnerSize.large} 
-  label="Loading reports..." 
+<Spinner
+  size={SpinnerSize.large}
+  label="Loading reports..."
   ariaLabel="Loading Bicep What-If reports"
 />
 
@@ -146,6 +151,7 @@ The extension imports `azure-devops-ui/Core/override.css` for core styling and u
 - `font-family-monospace`: Monospace text for error messages
 
 ### Package Extension
+
 ```bash
 # Install tfx-cli globally if not already installed
 npm install -g tfx-cli
@@ -174,27 +180,30 @@ This creates a `.vsix` file that can be uploaded to the Visual Studio Marketplac
 
 ## Task Configuration
 
-| Input | Description | Required |
-|-------|-------------|----------|
-| `bicepWhatIfJSONPath` | Path to the Bicep What-If JSON file(s) | Yes |
+| Input                 | Description                            | Required |
+| --------------------- | -------------------------------------- | -------- |
+| `bicepWhatIfJSONPath` | Path to the Bicep What-If JSON file(s) | Yes      |
 
 Example YAML:
+
 ```yaml
 - task: BicepWhatIfReport@0
-  displayName: 'Generate Bicep What-If Report'
+  displayName: "Generate Bicep What-If Report"
   inputs:
-    bicepWhatIfJSONPath: '$(System.DefaultWorkingDirectory)/**/what-if-output.json'
+    bicepWhatIfJSONPath: "$(System.DefaultWorkingDirectory)/**/what-if-output.json"
 ```
 
 ## Development
 
 ### Folder Structure Benefits
+
 - **Clear separation**: Pipeline logic in `task/`, UI logic in `web-extension/`
 - **Maintainability**: Easy to locate and modify specific functionality
 - **Testing**: Isolated test suites for each component
 - **Build process**: Efficient compilation with minimal cross-dependencies
 
 ### Adding New Features
+
 - Task functionality: Add to `task/services/` or `task/reports/`
 - Web UI features: Add to `web-extension/`
 - Tests: Add to respective `tests/` directories

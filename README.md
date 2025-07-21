@@ -137,7 +137,7 @@ This repository has comprehensive security and quality measures in place:
 - **Language Options:** TypeScript/JavaScript (Node.js), PowerShell, or .NET (C#)
 - [Documentation and setup instructions](./src/AzureDevOpsExtension/README.md)
 
-#### Features
+#### Feature List
 
 - **Pipeline Task**: Generates markdown reports from Bicep what-if JSON output
 - **Web Extension**: Displays reports in Azure DevOps build summary tab
@@ -168,6 +168,7 @@ This separation ensures loose coupling and allows each component to manage its o
 #### Dependencies
 
 **Web Extension Requirements:**
+
 - **React 16.14.0** - UI framework (required for azure-devops-ui compatibility)
 - **azure-devops-ui v2.259.0** - Official Azure DevOps React component library
 - **azure-devops-extension-sdk v4.0.2** - Modern Azure DevOps Extension SDK
@@ -175,6 +176,7 @@ This separation ensures loose coupling and allows each component to manage its o
 > **Important:** The web extension requires React 16.x due to azure-devops-ui compatibility requirements. React 17+ is not supported.
 
 **Pipeline Task Requirements:**
+
 - **Node.js 18+** - JavaScript runtime
 - **azure-pipelines-task-lib v5.2.1** - Azure Pipelines task library
 - **json2md** - Markdown generation
@@ -186,7 +188,7 @@ This separation ensures loose coupling and allows each component to manage its o
 3. View the generated reports in the "Bicep What If Report" tab on the build summary page
 4. Download the raw markdown files from the build artifacts
 
-#### Testing
+#### Testing Azure DevOps Extension
 
 The Azure DevOps Extension includes comprehensive unit tests for all functionality:
 
@@ -213,7 +215,7 @@ npm test
 - **Language Options:** JavaScript/TypeScript (Node.js), or any language via Docker container
 - [Documentation and setup instructions](./src/GitHubAction/README.md)
 
-#### Testing
+#### Testing GitHub Action
 
 The GitHub Action includes comprehensive unit tests:
 
