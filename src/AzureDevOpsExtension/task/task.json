@@ -8,9 +8,9 @@
   "category": "Utility",
   "author": "Weekendclimber",
   "version": {
-    "Major": 0,
-    "Minor": 2,
-    "Patch": 3
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
   },
   "instanceNameFormat": "Echo 'Bicep What If Report'",
   "inputs": [
