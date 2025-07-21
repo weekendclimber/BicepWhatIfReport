@@ -21,17 +21,22 @@ src/AzureDevOpsExtension/
 │       ├── *.test.ts
 │       └── test-data/
 ├── web-extension/              # Web extension for build summary tab
-│   ├── bicep-report-extension.ts  # Main extension code
+│   ├── src/                      # TypeScript source files  
+│   │   ├── BicepReportApp.tsx    # React app entry point
+│   │   ├── BicepReportExtension.tsx  # Main React component (azure-devops-ui)
+│   │   └── types.ts             # TypeScript interfaces
+│   ├── webpack.config.js        # Webpack configuration for React/CSS bundling
 │   ├── tsconfig.json           # TypeScript config for extension
 │   ├── tsconfig.test.json      # TypeScript config for tests
-│   ├── contents/               # Web assets
-│   │   ├── bicep-what-if-tab.html
-│   │   ├── bicep-what-if-tab.css
+│   ├── contents/               # Built web assets
+│   │   ├── bicep-what-if-tab.html  # Main HTML file
+│   │   ├── bicep-what-if-tab.css   # Custom CSS (legacy, minimal usage)
+│   │   ├── bicep-report-extension.js  # Webpack bundled React app
 │   │   └── scripts/
-│   │       └── marked.min.js
+│   │       └── marked.min.js   # Markdown parsing library
 │   └── tests/                  # Web extension tests
-│       ├── _suite.ts
-│       └── web-extension.test.ts
+│       ├── react-web-extension.test.ts        # React component tests
+│       └── azure-devops-ui-integration.test.ts # azure-devops-ui tests
 ├── images/                     # Extension icons and images
 ├── vss-extension.json          # Extension manifest
 └── README.md                   # This file
@@ -40,7 +45,10 @@ src/AzureDevOpsExtension/
 ## Features
 
 - **Pipeline Task**: Generates Markdown reports from Bicep What-If JSON output
-- **Web Extension**: Displays reports in Azure DevOps build summary tab
+- **Web Extension**: Modern React-based UI displaying reports in Azure DevOps build summary tab
+  - **Azure DevOps UI Integration**: Uses official `azure-devops-ui` components for consistent styling
+  - **Professional Components**: Header, Spinner, MessageBar, Card, and ZeroData components
+  - **Responsive Design**: Adapts to Azure DevOps theme and layout standards
 - **Artifact Publishing**: Publishes Markdown files as build artifacts for download
 - **Output Directory**: Reports are saved to `Build.ArtifactStagingDirectory` by default
 
@@ -52,25 +60,90 @@ src/AzureDevOpsExtension/
 
 ### Build the Extension
 ```bash
+# Build the pipeline task
 cd task/
+npm install
+npm run build
+
+# Build the web extension  
+cd ../web-extension/
 npm install
 npm run build
 ```
 
 This will:
 1. Compile the TypeScript task code
-2. Compile the TypeScript web extension code
-3. Output compiled JavaScript to appropriate locations
+2. Compile the React web extension with webpack bundling
+3. Process azure-devops-ui CSS and assets
+4. Output compiled JavaScript to appropriate locations
 
 ### Run Tests
 ```bash
+# Test the pipeline task
 cd task/
+npm test
+
+# Test the web extension
+cd ../web-extension/
 npm test
 ```
 
 The test suite includes:
 - **42 task tests**: JSON parsing, report generation, file enumeration
-- **8 web extension tests**: DOM manipulation, content sanitization, error handling
+- **19 web extension tests**: React components, azure-devops-ui integration, DOM manipulation
+
+## Azure DevOps UI Integration
+
+The web extension uses the official `azure-devops-ui` library to provide a consistent, professional user experience that aligns with Azure DevOps design standards.
+
+### Components Used
+
+- **Header**: Professional page headers with proper typography and theming
+- **Spinner**: Native loading animations with configurable size and labels
+- **MessageBar**: Consistent error and information messaging with severity levels
+- **Card**: Collapsible content containers for reports with proper spacing
+- **ZeroData**: Professional empty state displays with iconography
+
+### Design Benefits
+
+- **Consistency**: Matches native Azure DevOps interface elements
+- **Accessibility**: Built-in ARIA labels and keyboard navigation
+- **Theming**: Automatically adapts to Azure DevOps light/dark themes  
+- **Responsive**: Mobile-friendly responsive design patterns
+- **Performance**: Optimized components with minimal bundle size impact
+
+### Technical Implementation
+
+```typescript
+// Example component usage
+import { Header, TitleSize } from 'azure-devops-ui/Header';
+import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
+import { MessageBar, MessageBarSeverity } from 'azure-devops-ui/MessageBar';
+
+// Professional header
+<Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
+
+// Loading state
+<Spinner 
+  size={SpinnerSize.large} 
+  label="Loading reports..." 
+  ariaLabel="Loading Bicep What-If reports"
+/>
+
+// Error display
+<MessageBar severity={MessageBarSeverity.Error}>
+  {errorMessage}
+</MessageBar>
+```
+
+### CSS and Styling
+
+The extension imports `azure-devops-ui/Core/override.css` for core styling and uses semantic CSS classes:
+
+- `flex-grow`: Layout containers
+- `page-content page-content-top`: Standard page content areas
+- `flex-column rhythm-vertical-16`: Vertical spacing patterns
+- `font-family-monospace`: Monospace text for error messages
 
 ### Package Extension
 ```bash
@@ -79,6 +152,10 @@ npm install -g tfx-cli
 
 # Build first
 cd task/
+npm run build
+
+# Build web extension
+cd ../web-extension/
 npm run build
 
 # Package from extension root
