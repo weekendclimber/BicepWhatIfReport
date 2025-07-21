@@ -106,7 +106,6 @@ const BicepReportExtension: React.FC = () => {
       );
       const buildPageData = await buildPageService.getBuildPageData();
       if (buildPageData) {
-        //&& buildPageData.build) {
         if (buildPageData.build) {
           buildId = buildPageData.build.id;
           buildIdSource = 'build page data service';
