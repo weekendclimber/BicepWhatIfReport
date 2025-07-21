@@ -3,7 +3,7 @@ import * as SDK from 'azure-devops-extension-sdk';
 import {
   IBuildPageDataService,
   BuildServiceIds,
-  IBuildPageData,
+  //IBuildPageData,
 } from 'azure-devops-extension-api/Build';
 import {
   IBuildService,
@@ -197,21 +197,24 @@ const BicepReportExtension: React.FC = () => {
     }
 
     if (buildId !== undefined) {
-      const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
-      const attachments = await buildService.getBuildAttachments(
-        webContext.project.id,
-        buildId,
-        'bicepwhatifreport'
-      );
-
-      const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
-
-      if (reportAttachments.length === 0) {
-        setNoReports(true);
-        return;
+      try {
+        const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
+        const attachments = await buildService.getBuildAttachments(
+          webContext.project.id,
+          buildId,
+          'bicepwhatifreport'
+        );
+        const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
+        if (reportAttachments.length === 0) {
+          setNoReports(true);
+          return;
+        }
+        await displayReports(reportAttachments, webContext.project.id, buildId, buildService);
+      } catch (error) {
+        throw new Error(
+          `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
-
-      await displayReports(reportAttachments, webContext.project.id, buildId, buildService);
     }
   };
 
