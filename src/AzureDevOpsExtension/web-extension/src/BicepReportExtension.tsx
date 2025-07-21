@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import * as SDK from 'azure-devops-extension-sdk';
 import {
+  IBuildPageDataService,
+  BuildServiceIds,
+  //IBuildPageData,
+} from 'azure-devops-extension-api/Build';
+import {
   IBuildService,
   BuildAttachment,
   ReportItem,
@@ -91,10 +96,23 @@ const BicepReportExtension: React.FC = () => {
     }
 
     // Try multiple approaches to get the Build ID
-    let buildId: number = -1;
+    let buildId: number | undefined;
     let buildIdSource = '';
 
-    // Method 1: From page context navigation (primary method for build summary pages)
+    // Method 1: From BuildPageDataService (primary method for build summary pages)
+    try {
+      const buildPageService: IBuildPageDataService = await SDK.getService(
+        BuildServiceIds.BuildPageDataService
+      );
+      const buildPageData = buildPageService.getBuildPageData();
+      buildId = buildPageData?.build?.id;
+      buildIdSource = 'build page data service';
+    } catch (error) {
+      console.log('Failed to get build page data service:', error);
+      errors.push('Failed to get build page data service.');
+    }
+
+    // Method 2: From page context navigation
     try {
       const pageContext = SDK.getPageContext() as IExtendedPageContext;
       if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
@@ -103,22 +121,24 @@ const BicepReportExtension: React.FC = () => {
       }
     } catch (error) {
       console.log('Failed to get build ID from page context navigation:', error);
+      errors.push('Failed to get build ID from page context navigation.');
     }
-    if (buildId === -1) {
+    if (buildId === undefined) {
       console.log('Build ID is not available from page context navigation');
     }
 
-    // Method 2: From configuration (standard approach)
-    if (buildId === -1 && config && config.buildId) {
+    // Method 3: From configuration (standard approach)
+    if (buildId === undefined && config && config.buildId) {
       buildId = parseInt(config.buildId);
       buildIdSource = 'configuration';
     }
     if (buildId === -1) {
       console.log('Build ID is not available from configuration');
+      errors.push('Build ID is not available from configuration.');
     }
 
-    // Method 3: From URL parameters (fallback for build result tabs)
-    if (buildId === -1) {
+    // Method 4: From URL parameters (fallback for build result tabs)
+    if (buildId === undefined) {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const buildIdFromUrl = urlParams.get('buildId');
@@ -128,14 +148,15 @@ const BicepReportExtension: React.FC = () => {
         }
       } catch (error) {
         console.log('Failed to extract build ID from URL:', error);
+        errors.push('Failed to extract build ID from URL parameters.');
       }
     }
-    if (buildId === -1) {
+    if (buildId === undefined) {
       console.log('Build ID is not available from URL parameters');
     }
 
-    // Method 4: From host page data service (advanced approach)
-    if (buildId === -1) {
+    // Method 5: From host page data service (advanced approach)
+    if (buildId === undefined) {
       try {
         const hostPageDataService = (await SDK.getService(PAGE_DATA_SERVICE)) as IPageDataService;
         if (hostPageDataService) {
@@ -147,13 +168,14 @@ const BicepReportExtension: React.FC = () => {
         }
       } catch (error) {
         console.log('Failed to get build ID from host page data service:', error);
+        errors.push('Failed to get build ID from host page data service.');
       }
     }
-    if (buildId === -1) {
+    if (buildId === undefined) {
       console.log('Build ID is not available from host page data service');
     }
 
-    if (buildId === -1) {
+    if (buildId === undefined) {
       errors.push(
         'Build ID is not available from any source (configuration, URL, or page context)'
       );
@@ -171,7 +193,7 @@ const BicepReportExtension: React.FC = () => {
 
     console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
 
-    if (!buildId) {
+    if (buildId !== undefined) {
       const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
       const attachments = await buildService.getBuildAttachments(
         webContext.project.id,
