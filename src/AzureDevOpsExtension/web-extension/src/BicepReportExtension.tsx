@@ -16,7 +16,8 @@ import { Card } from 'azure-devops-ui/Card';
 import { ZeroData } from 'azure-devops-ui/ZeroData';
 
 // Azure DevOps UI Core and utilities
-import 'azure-devops-ui/Core/override.css';
+//import 'azure-devops-ui/Core/override.css';
+import 'azure-devops-ui/Core/_platformCommon.scss';
 
 // Constants for service names
 const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
