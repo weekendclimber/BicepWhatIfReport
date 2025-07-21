@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import * as SDK from 'azure-devops-extension-sdk';
 import { IBuildService, BuildAttachment, ReportItem, IExtendedPageContext, IPageDataService } from './types';
 
+// Azure DevOps UI Components
+import { Header, TitleSize } from 'azure-devops-ui/Header';
+import { Spinner, SpinnerSize } from 'azure-devops-ui/Spinner';
+import { MessageBar, MessageBarSeverity } from 'azure-devops-ui/MessageBar';
+import { Card } from 'azure-devops-ui/Card';
+import { ZeroData } from 'azure-devops-ui/ZeroData';
+
+// Azure DevOps UI Core and utilities
+import "azure-devops-ui/Core/override.css";
+
 const BicepReportExtension: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -304,73 +314,86 @@ const BicepReportExtension: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container">
-        <div className="header">
-          <h1>Bicep What-If Report</h1>
+      <div className="flex-grow">
+        <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
+        <div className="page-content page-content-top">
+          <Spinner 
+            size={SpinnerSize.large} 
+            label="Loading Bicep What-If reports..." 
+            ariaLabel="Loading Bicep What-If reports"
+          />
         </div>
-        <div className="loading">Loading Bicep What-If reports...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container">
-        <div className="header">
-          <h1>Bicep What-If Report</h1>
+      <div className="flex-grow">
+        <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
+        <div className="page-content page-content-top">
+          <MessageBar 
+            severity={MessageBarSeverity.Error}
+            messageClassName="font-family-monospace"
+          >
+            {error}
+          </MessageBar>
         </div>
-        <div className="error">{error}</div>
       </div>
     );
   }
 
   if (noReports) {
     return (
-      <div className="container">
-        <div className="header">
-          <h1>Bicep What-If Report</h1>
-        </div>
-        <div className="report-content">
-          <div className="no-reports">
-            No Bicep What-If reports found for this build.
-          </div>
+      <div className="flex-grow">
+        <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
+        <div className="page-content page-content-top">
+          <ZeroData
+            primaryText="No Bicep What-If reports found"
+            secondaryText="No Bicep What-If reports found for this build."
+            imageAltText="No reports found"
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <h1>Bicep What-If Report</h1>
-      </div>
-      <div className="report-content">
-        <ul className="report-list">
+    <div className="flex-grow">
+      <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
+      <div className="page-content page-content-top">
+        <div className="flex-column rhythm-vertical-16">
           {reports.map((report, index) => (
-            <li key={index} className="report-item">
+            <Card
+              key={index}
+              collapsible={true}
+              collapsed={false}
+              titleProps={{
+                text: getDisplayName(report.name),
+                size: TitleSize.Medium,
+              }}
+              contentProps={{
+                contentPadding: true,
+              }}
+            >
               {report.error ? (
-                <details>
-                  <summary style={{ color: '#d13438' }}>
-                    {getDisplayName(report.name)} (Error)
-                  </summary>
-                  <div className="error">
-                    Error loading report: {report.error}
-                  </div>
-                </details>
+                <MessageBar 
+                  severity={MessageBarSeverity.Error}
+                  messageClassName="font-family-monospace"
+                >
+                  Error loading report: {report.error}
+                </MessageBar>
               ) : (
-                <details>
-                  <summary>{getDisplayName(report.name)}</summary>
-                  <div 
-                    className="markdown-content"
-                    dangerouslySetInnerHTML={{ 
-                      __html: parseMarkdown(report.content) 
-                    }}
-                  />
-                </details>
+                <div 
+                  className="markdown-content"
+                  dangerouslySetInnerHTML={{ 
+                    __html: parseMarkdown(report.content) 
+                  }}
+                />
               )}
-            </li>
+            </Card>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );

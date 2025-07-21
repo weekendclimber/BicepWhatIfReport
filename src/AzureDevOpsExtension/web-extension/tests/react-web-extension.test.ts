@@ -159,7 +159,7 @@ describe('React Web Extension Tests', () => {
       expect(extensionContent).to.include('SDK.resize');
     });
 
-    it('should maintain the same CSS classes', () => {
+    it('should use appropriate styling classes', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -167,15 +167,10 @@ describe('React Web Extension Tests', () => {
       
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
       
-      // Should use the same CSS classes as before
-      expect(extensionContent).to.include('className="container"');
-      expect(extensionContent).to.include('className="header"');
-      expect(extensionContent).to.include('className="loading"');
-      expect(extensionContent).to.include('className="error"');
-      expect(extensionContent).to.include('className="report-content"');
-      expect(extensionContent).to.include('className="no-reports"');
-      expect(extensionContent).to.include('className="report-list"');
-      expect(extensionContent).to.include('className="report-item"');
+      // Should use azure-devops-ui classes for consistent styling
+      expect(extensionContent).to.include('className="flex-grow"');
+      expect(extensionContent).to.include('className="page-content page-content-top"');
+      expect(extensionContent).to.include('className="flex-column rhythm-vertical-16"');
       expect(extensionContent).to.include('className="markdown-content"');
     });
 
