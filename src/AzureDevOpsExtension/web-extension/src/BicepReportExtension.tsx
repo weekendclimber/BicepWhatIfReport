@@ -41,13 +41,19 @@ const BicepReportExtension: React.FC = () => {
   const initializeExtension = async (): Promise<void> => {
     try {
       // Modern SDK initialization
+      console.log('Initializing Bicep What-If Report Extension...');
       await SDK.init({ loaded: false, applyTheme: true });
+      console.log('Azure DevOps SDK initialized successfully.');
 
       // Load and display reports
+      console.log('Loading Bicep What-If reports...');
       await loadReports();
+      console.log('Bicep What-If reports loaded successfully.');
 
       // Notify successful load
+      console.log('Notifying Azure DevOps SDK of successful load.');
       await SDK.notifyLoadSucceeded();
+      console.log('Azure DevOps SDK notified of successful load.');
     } catch (error) {
       // Handle missing Build ID context gracefully - this is an expected scenario
       // when the extension is accessed outside of a build pipeline context
@@ -88,11 +94,13 @@ const BicepReportExtension: React.FC = () => {
     const errors: string[] = [];
 
     if (!webContext) {
+      console.log('Azure DevOps web context is not available');
       errors.push('Azure DevOps web context is not available');
+    } else if (!webContext.project) {
+      console.log('Project context is missing from web context');
+      errors.push('Project context is missing from web context');
     } else {
-      if (!webContext.project) {
-        errors.push('Project context is missing from web context');
-      }
+      console.log(`Web context project ID: ${webContext.project.id}`);
     }
 
     // Try multiple approaches to get the Build ID
@@ -101,9 +109,14 @@ const BicepReportExtension: React.FC = () => {
 
     // Method 1: From BuildPageDataService (primary method for build summary pages)
     try {
+      console.log('Attempting to get Build ID from BuildPageDataService...');
       const buildPageService: IBuildPageDataService = await SDK.getService(
         BuildServiceIds.BuildPageDataService
       );
+      console.log('BuildPageDataService obtained successfully.');
+
+      // Use the BuildPageDataService to get build data
+      console.log('Fetching build page data...');
       const buildPageData = await buildPageService.getBuildPageData();
       if (buildPageData) {
         if (buildPageData.build) {
@@ -198,7 +211,9 @@ const BicepReportExtension: React.FC = () => {
     if (buildId !== undefined) {
       try {
         // Use the proper Azure DevOps Extension API client instead of SDK.getService()
+        console.log('Getting BuildRestClient...');
         const buildClient = getClient(BuildRestClient);
+        console.log('BuildRestClient obtained successfully.');
 
         // The BuildRestClient is always available when properly initialized
         if (!buildClient) {
@@ -210,17 +225,20 @@ const BicepReportExtension: React.FC = () => {
               `- The Azure DevOps SDK version is incompatible\n` +
               `Please ensure this extension is accessed from a build pipeline results page.`
           );
+        } else {
+          console.log('BuildRestClient is available.');
         }
 
         // Get all build artifacts and look for Bicep What-If reports
+        console.log(`Fetching artifacts for build ID ${buildId}...`);
         const artifacts = await buildClient.getArtifacts(webContext.project.id, buildId);
-
         console.log(
           `Found ${artifacts.length} artifacts for build ${buildId}:`,
           artifacts.map(a => a.name)
         );
 
         // Look for the specific 'BicepWhatIfReports' artifact first (this is what the pipeline task uploads)
+        console.log('Filtering artifacts for Bicep What-If reports...');
         let bicepArtifacts = artifacts.filter(artifact => artifact.name === 'BicepWhatIfReports');
 
         if (bicepArtifacts.length === 0) {
@@ -230,6 +248,8 @@ const BicepReportExtension: React.FC = () => {
               artifact.name.toLowerCase().includes('bicep') ||
               artifact.name.toLowerCase().includes('whatif')
           );
+        } else {
+          console.log('Found Bicep What-If reports artifacts.');
         }
 
         if (bicepArtifacts.length === 0) {
@@ -267,6 +287,8 @@ const BicepReportExtension: React.FC = () => {
           bicepArtifacts.map(a => a.name)
         );
 
+        // Display the reports from the found artifacts
+        console.log('Displaying reports from Bicep What-If artifacts...');
         await displayReportsFromArtifacts(
           bicepArtifacts,
           webContext.project.id,
