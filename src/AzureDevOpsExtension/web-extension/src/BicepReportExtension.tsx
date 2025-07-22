@@ -198,6 +198,27 @@ const BicepReportExtension: React.FC = () => {
     if (buildId !== undefined) {
       try {
         const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
+        
+        // Add proper null checking for the build service
+        if (!buildService) {
+          throw new Error(
+            `Build service is not available. The service '${WEB_BUILD_SERVICE}' could not be loaded. ` +
+            `This may occur when:\n` +
+            `- The extension is not running in a proper Azure DevOps build context\n` +
+            `- The required permissions are missing\n` +
+            `- The Azure DevOps SDK version is incompatible\n` +
+            `Please ensure this extension is accessed from a build pipeline results page.`
+          );
+        }
+
+        // Verify the buildService has the required methods
+        if (typeof buildService.getBuildAttachments !== 'function') {
+          throw new Error(
+            `Build service is missing required method 'getBuildAttachments'. ` +
+            `Service object: ${JSON.stringify(Object.keys(buildService || {}))}`
+          );
+        }
+
         const attachments = await buildService.getBuildAttachments(
           webContext.project.id,
           buildId,

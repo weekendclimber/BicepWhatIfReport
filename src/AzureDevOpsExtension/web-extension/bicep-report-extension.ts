@@ -22,6 +22,26 @@ class BicepReportExtension {
       // Get services
       this.buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
 
+      // Add proper null checking for the build service
+      if (!this.buildService) {
+        throw new Error(
+          `Build service is not available. The service '${WEB_BUILD_SERVICE}' could not be loaded. ` +
+          `This may occur when:\n` +
+          `- The extension is not running in a proper Azure DevOps build context\n` +
+          `- The required permissions are missing\n` +
+          `- The Azure DevOps SDK version is incompatible\n` +
+          `Please ensure this extension is accessed from a build pipeline results page.`
+        );
+      }
+
+      // Verify the buildService has the required methods
+      if (typeof this.buildService.getBuildAttachments !== 'function') {
+        throw new Error(
+          `Build service is missing required method 'getBuildAttachments'. ` +
+          `Service object: ${JSON.stringify(Object.keys(this.buildService || {}))}`
+        );
+      }
+
       // Load and display reports
       await this.loadReports();
 
@@ -149,6 +169,27 @@ class BicepReportExtension {
     }
 
     console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
+    
+    // Add additional check to ensure buildService is available before using it
+    if (!this.buildService) {
+      throw new Error(
+        `Build service is not available. The service '${WEB_BUILD_SERVICE}' could not be loaded during initialization. ` +
+        `This may occur when:\n` +
+        `- The extension is not running in a proper Azure DevOps build context\n` +
+        `- The required permissions are missing\n` +
+        `- The Azure DevOps SDK version is incompatible\n` +
+        `Please ensure this extension is accessed from a build pipeline results page.`
+      );
+    }
+
+    // Verify the buildService has the required methods
+    if (typeof this.buildService.getBuildAttachments !== 'function') {
+      throw new Error(
+        `Build service is missing required method 'getBuildAttachments'. ` +
+        `Service object: ${JSON.stringify(Object.keys(this.buildService || {}))}`
+      );
+    }
+
     const attachments = await this.buildService!.getBuildAttachments(
       webContext.project.id,
       buildId!,
