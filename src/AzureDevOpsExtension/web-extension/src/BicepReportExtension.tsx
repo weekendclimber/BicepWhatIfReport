@@ -230,8 +230,11 @@ const BicepReportExtension: React.FC = () => {
         }
 
         // Get all build artifacts and look for Bicep What-If reports
-        console.log(`Fetching artifacts for build ID ${buildId}...`);
+        console.log(
+          `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
+        );
         const artifacts = await buildClient.getArtifacts(webContext.project.id, buildId);
+        console.log(`Artifacts fetched for build ID (${buildId}).`);
         console.log(
           `Found ${artifacts.length} artifacts for build ${buildId}:`,
           artifacts.map(a => a.name)
