@@ -26,11 +26,11 @@ class BicepReportExtension {
       if (!this.buildService) {
         throw new Error(
           `Build service is not available. The service '${WEB_BUILD_SERVICE}' could not be loaded. ` +
-          `This may occur when:\n` +
-          `- The extension is not running in a proper Azure DevOps build context\n` +
-          `- The required permissions are missing\n` +
-          `- The Azure DevOps SDK version is incompatible\n` +
-          `Please ensure this extension is accessed from a build pipeline results page.`
+            `This may occur when:\n` +
+            `- The extension is not running in a proper Azure DevOps build context\n` +
+            `- The required permissions are missing\n` +
+            `- The Azure DevOps SDK version is incompatible\n` +
+            `Please ensure this extension is accessed from a build pipeline results page.`
         );
       }
 
@@ -38,7 +38,7 @@ class BicepReportExtension {
       if (typeof this.buildService.getBuildAttachments !== 'function') {
         throw new Error(
           `Build service is missing required method 'getBuildAttachments'. ` +
-          `Service object: ${JSON.stringify(Object.keys(this.buildService || {}))}`
+            `Service object: ${JSON.stringify(Object.keys(this.buildService || {}))}`
         );
       }
 
@@ -169,16 +169,16 @@ class BicepReportExtension {
     }
 
     console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
-    
+
     // Add additional check to ensure buildService is available before using it
     if (!this.buildService) {
       throw new Error(
         `Build service is not available. The service '${WEB_BUILD_SERVICE}' could not be loaded during initialization. ` +
-        `This may occur when:\n` +
-        `- The extension is not running in a proper Azure DevOps build context\n` +
-        `- The required permissions are missing\n` +
-        `- The Azure DevOps SDK version is incompatible\n` +
-        `Please ensure this extension is accessed from a build pipeline results page.`
+          `This may occur when:\n` +
+          `- The extension is not running in a proper Azure DevOps build context\n` +
+          `- The required permissions are missing\n` +
+          `- The Azure DevOps SDK version is incompatible\n` +
+          `Please ensure this extension is accessed from a build pipeline results page.`
       );
     }
 
@@ -186,7 +186,7 @@ class BicepReportExtension {
     if (typeof this.buildService.getBuildAttachments !== 'function') {
       throw new Error(
         `Build service is missing required method 'getBuildAttachments'. ` +
-        `Service object: ${JSON.stringify(Object.keys(this.buildService || {}))}`
+          `Service object: ${JSON.stringify(Object.keys(this.buildService || {}))}`
       );
     }
 

@@ -71,7 +71,9 @@ describe('Build Service Null Check Tests', () => {
       expect(errorThrown).to.be.true;
       expect(errorMessage).to.include('Build service is not available');
       expect(errorMessage).to.include('ms.vss-build-web.build-service');
-      expect(errorMessage).to.include('extension is not running in a proper Azure DevOps build context');
+      expect(errorMessage).to.include(
+        'extension is not running in a proper Azure DevOps build context'
+      );
       expect(errorMessage).to.include('required permissions are missing');
       expect(errorMessage).to.include('Azure DevOps SDK version is incompatible');
     });
@@ -87,9 +89,7 @@ describe('Build Service Null Check Tests', () => {
 
       try {
         const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
-        const buildService = (await mockSDKUndefinedService.getService(
-          WEB_BUILD_SERVICE
-        )) as any;
+        const buildService = (await mockSDKUndefinedService.getService(WEB_BUILD_SERVICE)) as any;
 
         // This is the new null check logic we added
         if (!buildService) {
@@ -124,9 +124,7 @@ describe('Build Service Null Check Tests', () => {
 
       try {
         const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
-        const buildService = (await mockSDKIncompleteService.getService(
-          WEB_BUILD_SERVICE
-        )) as any;
+        const buildService = (await mockSDKIncompleteService.getService(WEB_BUILD_SERVICE)) as any;
 
         // Check if buildService exists (it does)
         if (!buildService) {
@@ -150,7 +148,9 @@ describe('Build Service Null Check Tests', () => {
 
       // Verify the error was caught and has the expected message
       expect(errorThrown).to.be.true;
-      expect(errorMessage).to.include("Build service is missing required method 'getBuildAttachments'");
+      expect(errorMessage).to.include(
+        "Build service is missing required method 'getBuildAttachments'"
+      );
       expect(errorMessage).to.include('Service object:');
       expect(errorMessage).to.include('someOtherMethod');
     });
@@ -227,7 +227,9 @@ describe('Build Service Null Check Tests', () => {
 
       // Verify this produces the original error
       expect(originalErrorThrown).to.be.true;
-      expect(originalErrorMessage).to.include("Cannot read properties of null (reading 'getBuildAttachments')");
+      expect(originalErrorMessage).to.include(
+        "Cannot read properties of null (reading 'getBuildAttachments')"
+      );
     });
   });
 });
