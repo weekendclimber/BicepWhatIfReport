@@ -214,23 +214,30 @@ const BicepReportExtension: React.FC = () => {
 
         // Get all build artifacts and look for Bicep What-If reports
         const artifacts = await buildClient.getArtifacts(webContext.project.id, buildId);
-        
-        console.log(`Found ${artifacts.length} artifacts for build ${buildId}:`, artifacts.map(a => a.name));
-        
+
+        console.log(
+          `Found ${artifacts.length} artifacts for build ${buildId}:`,
+          artifacts.map(a => a.name)
+        );
+
         // Look for the specific 'BicepWhatIfReports' artifact first (this is what the pipeline task uploads)
         let bicepArtifacts = artifacts.filter(artifact => artifact.name === 'BicepWhatIfReports');
-        
+
         if (bicepArtifacts.length === 0) {
           // Fallback: look for any artifacts that might contain Bicep What-If reports
-          bicepArtifacts = artifacts.filter(artifact => 
-            artifact.name.toLowerCase().includes('bicep') || 
-            artifact.name.toLowerCase().includes('whatif')
+          bicepArtifacts = artifacts.filter(
+            artifact =>
+              artifact.name.toLowerCase().includes('bicep') ||
+              artifact.name.toLowerCase().includes('whatif')
           );
         }
-        
+
         if (bicepArtifacts.length === 0) {
-          console.log('No Bicep What-If artifacts found. Available artifacts:', artifacts.map(a => a.name));
-          
+          console.log(
+            'No Bicep What-If artifacts found. Available artifacts:',
+            artifacts.map(a => a.name)
+          );
+
           // Try to fall back to attachments as a secondary approach
           console.log('Falling back to attachment-based approach...');
           try {
@@ -239,13 +246,13 @@ const BicepReportExtension: React.FC = () => {
               buildId,
               'bicepwhatifreport'
             );
-            
+
             const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
             if (reportAttachments.length === 0) {
               setNoReports(true);
               return;
             }
-            
+
             await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
             return;
           } catch (attachmentError) {
@@ -254,10 +261,18 @@ const BicepReportExtension: React.FC = () => {
             return;
           }
         }
-        
-        console.log(`Found ${bicepArtifacts.length} Bicep What-If artifacts:`, bicepArtifacts.map(a => a.name));
-        
-        await displayReportsFromArtifacts(bicepArtifacts, webContext.project.id, buildId, buildClient);
+
+        console.log(
+          `Found ${bicepArtifacts.length} Bicep What-If artifacts:`,
+          bicepArtifacts.map(a => a.name)
+        );
+
+        await displayReportsFromArtifacts(
+          bicepArtifacts,
+          webContext.project.id,
+          buildId,
+          buildClient
+        );
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -274,8 +289,10 @@ const BicepReportExtension: React.FC = () => {
   ): Promise<void> => {
     const reportPromises = artifacts.map(async artifact => {
       try {
-        console.log(`Processing artifact: ${artifact.name}, resource type: ${artifact.resource?.type}`);
-        
+        console.log(
+          `Processing artifact: ${artifact.name}, resource type: ${artifact.resource?.type}`
+        );
+
         // Check if the artifact has a downloadUrl we can use
         if (artifact.resource?.downloadUrl) {
           // Try to fetch the content from the download URL
@@ -284,15 +301,16 @@ const BicepReportExtension: React.FC = () => {
             if (response.ok) {
               const contentType = response.headers.get('content-type');
               console.log(`Downloaded artifact ${artifact.name}, content-type: ${contentType}`);
-              
+
               if (contentType?.includes('application/zip') || artifact.name.endsWith('.zip')) {
                 // It's a ZIP file, we need to indicate that this needs extraction
-                const content = `# Bicep What-If Reports Available\n\n` +
-                              `The artifact "${artifact.name}" contains Bicep What-If reports but is in ZIP format.\n\n` +
-                              `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl})\n\n` +
-                              `Please download and extract the ZIP file to view the individual Markdown reports.\n\n` +
-                              `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
-                
+                const content =
+                  `# Bicep What-If Reports Available\n\n` +
+                  `The artifact "${artifact.name}" contains Bicep What-If reports but is in ZIP format.\n\n` +
+                  `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl})\n\n` +
+                  `Please download and extract the ZIP file to view the individual Markdown reports.\n\n` +
+                  `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
+
                 return {
                   name: `${artifact.name} (ZIP Format)`,
                   content: content,
@@ -306,26 +324,38 @@ const BicepReportExtension: React.FC = () => {
                 };
               }
             } else {
-              throw new Error(`Failed to download artifact: ${response.status} ${response.statusText}`);
+              throw new Error(
+                `Failed to download artifact: ${response.status} ${response.statusText}`
+              );
             }
           } catch (downloadError) {
-            console.log(`Direct download failed for ${artifact.name}, trying ZIP extraction:`, downloadError);
-            
+            console.log(
+              `Direct download failed for ${artifact.name}, trying ZIP extraction:`,
+              downloadError
+            );
+
             // Fallback: Try to get the artifact content as a ZIP and provide download info
             try {
-              const zipBuffer = await buildClient.getArtifactContentZip(projectId, buildId, artifact.name);
-              const content = `# Bicep What-If Reports Available\n\n` +
-                            `The artifact "${artifact.name}" contains Bicep What-If reports (${zipBuffer.byteLength} bytes).\n\n` +
-                            `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl || '#'})\n\n` +
-                            `The reports are available for download as a ZIP file. Extract the ZIP to view the individual Markdown reports.\n\n` +
-                            `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
-              
+              const zipBuffer = await buildClient.getArtifactContentZip(
+                projectId,
+                buildId,
+                artifact.name
+              );
+              const content =
+                `# Bicep What-If Reports Available\n\n` +
+                `The artifact "${artifact.name}" contains Bicep What-If reports (${zipBuffer.byteLength} bytes).\n\n` +
+                `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl || '#'})\n\n` +
+                `The reports are available for download as a ZIP file. Extract the ZIP to view the individual Markdown reports.\n\n` +
+                `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
+
               return {
                 name: `${artifact.name} (Available for Download)`,
                 content: content,
               };
             } catch (zipError) {
-              throw new Error(`Failed to access artifact: ${zipError instanceof Error ? zipError.message : String(zipError)}`);
+              throw new Error(
+                `Failed to access artifact: ${zipError instanceof Error ? zipError.message : String(zipError)}`
+              );
             }
           }
         } else {
@@ -384,7 +414,7 @@ const BicepReportExtension: React.FC = () => {
               'bicepwhatifreport',
               attachment.name
             );
-            
+
             // Convert ArrayBuffer to string
             const content = new TextDecoder().decode(contentBuffer);
             return {
@@ -396,7 +426,7 @@ const BicepReportExtension: React.FC = () => {
             continue;
           }
         }
-        
+
         // If we reach here, no record had the attachment
         throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
       } catch (error) {
