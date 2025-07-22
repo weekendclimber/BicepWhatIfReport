@@ -40,10 +40,17 @@ const BicepReportExtension: React.FC = () => {
 
   const initializeExtension = async (): Promise<void> => {
     try {
-      // Modern SDK initialization
+      // Modern SDK initialization with double-loading protection
       console.log('Initializing Bicep What-If Report Extension...');
-      await SDK.init({ loaded: false, applyTheme: true });
-      console.log('Azure DevOps SDK initialized successfully.');
+      
+      // Check if SDK is already initialized to prevent double loading
+      if (!(window as any).VSS_SDK_INITIALIZED) {
+        await SDK.init({ loaded: false, applyTheme: true });
+        (window as any).VSS_SDK_INITIALIZED = true;
+        console.log('Azure DevOps SDK initialized successfully.');
+      } else {
+        console.log('Azure DevOps SDK already initialized, skipping initialization.');
+      }
 
       // Load and display reports
       console.log('Loading Bicep What-If reports...');
@@ -233,12 +240,39 @@ const BicepReportExtension: React.FC = () => {
         console.log(
           `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
         );
-        const artifacts = await buildClient.getArtifacts(webContext.project.id, buildId);
-        console.log(`Artifacts fetched for build ID (${buildId}).`);
-        console.log(
-          `Found ${artifacts.length} artifacts for build ${buildId}:`,
-          artifacts.map(a => a.name)
-        );
+        
+        // Add timeout wrapper to prevent indefinite hanging
+        const ARTIFACT_FETCH_TIMEOUT = 30000; // 30 seconds
+        const fetchArtifactsWithTimeout = () => {
+          return Promise.race([
+            buildClient.getArtifacts(webContext.project.id, buildId),
+            new Promise<never>((_, reject) => 
+              setTimeout(() => reject(new Error(`Artifact fetch timeout after ${ARTIFACT_FETCH_TIMEOUT}ms`)), ARTIFACT_FETCH_TIMEOUT)
+            )
+          ]);
+        };
+
+        let artifacts;
+        try {
+          artifacts = await fetchArtifactsWithTimeout();
+          console.log(`Artifacts fetched for build ID (${buildId}).`);
+          console.log(
+            `Found ${artifacts.length} artifacts for build ${buildId}:`,
+            artifacts.map(a => a.name)
+          );
+        } catch (fetchError) {
+          console.error('Failed to fetch artifacts:', fetchError);
+          throw new Error(
+            `Failed to fetch build artifacts. ` +
+            `This may occur when:\n` +
+            `- Network connectivity issues\n` +
+            `- Insufficient permissions to access build artifacts\n` +
+            `- Build service API is temporarily unavailable\n` +
+            `- The build may not have completed successfully\n` +
+            `Error details: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}\n` +
+            `Please check your network connection and ensure you have the required permissions.`
+          );
+        }
 
         // Look for the specific 'BicepWhatIfReports' artifact first (this is what the pipeline task uploads)
         console.log('Filtering artifacts for Bicep What-If reports...');
