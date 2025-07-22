@@ -5,9 +5,10 @@ import {
   BuildServiceIds,
   //IBuildPageData,
 } from 'azure-devops-extension-api/Build';
+import { BuildRestClient } from 'azure-devops-extension-api/Build';
+import { getClient } from 'azure-devops-extension-api';
+import * as Build from 'azure-devops-extension-api/Build/Build';
 import {
-  IBuildService,
-  BuildAttachment,
   ReportItem,
   IExtendedPageContext,
   //IPageDataService,
@@ -26,7 +27,6 @@ import 'azure-devops-ui/Core/_platformCommon.scss';
 
 // Constants for service names
 //const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
-const WEB_BUILD_SERVICE = 'ms.vss-build-web.build-service';
 
 const BicepReportExtension: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -197,39 +197,67 @@ const BicepReportExtension: React.FC = () => {
 
     if (buildId !== undefined) {
       try {
-        const buildService = (await SDK.getService(WEB_BUILD_SERVICE)) as IBuildService;
+        // Use the proper Azure DevOps Extension API client instead of SDK.getService()
+        const buildClient = getClient(BuildRestClient);
 
-        // Add proper null checking for the build service
-        if (!buildService) {
+        // The BuildRestClient is always available when properly initialized
+        if (!buildClient) {
           throw new Error(
-            `Build service is not available. The service '${WEB_BUILD_SERVICE}' could not be loaded. ` +
+            `Build client could not be initialized. ` +
               `This may occur when:\n` +
-              `- The extension is not running in a proper Azure DevOps build context\n` +
+              `- The extension is not running in a proper Azure DevOps context\n` +
               `- The required permissions are missing\n` +
               `- The Azure DevOps SDK version is incompatible\n` +
               `Please ensure this extension is accessed from a build pipeline results page.`
           );
         }
 
-        // Verify the buildService has the required methods
-        if (typeof buildService.getBuildAttachments !== 'function') {
-          throw new Error(
-            `Build service is missing required method 'getBuildAttachments'. ` +
-              `Service object: ${JSON.stringify(Object.keys(buildService || {}))}`
+        // Get all build artifacts and look for Bicep What-If reports
+        const artifacts = await buildClient.getArtifacts(webContext.project.id, buildId);
+        
+        console.log(`Found ${artifacts.length} artifacts for build ${buildId}:`, artifacts.map(a => a.name));
+        
+        // Look for the specific 'BicepWhatIfReports' artifact first (this is what the pipeline task uploads)
+        let bicepArtifacts = artifacts.filter(artifact => artifact.name === 'BicepWhatIfReports');
+        
+        if (bicepArtifacts.length === 0) {
+          // Fallback: look for any artifacts that might contain Bicep What-If reports
+          bicepArtifacts = artifacts.filter(artifact => 
+            artifact.name.toLowerCase().includes('bicep') || 
+            artifact.name.toLowerCase().includes('whatif')
           );
         }
-
-        const attachments = await buildService.getBuildAttachments(
-          webContext.project.id,
-          buildId,
-          'bicepwhatifreport'
-        );
-        const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
-        if (reportAttachments.length === 0) {
-          setNoReports(true);
-          return;
+        
+        if (bicepArtifacts.length === 0) {
+          console.log('No Bicep What-If artifacts found. Available artifacts:', artifacts.map(a => a.name));
+          
+          // Try to fall back to attachments as a secondary approach
+          console.log('Falling back to attachment-based approach...');
+          try {
+            const attachments = await buildClient.getAttachments(
+              webContext.project.id,
+              buildId,
+              'bicepwhatifreport'
+            );
+            
+            const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
+            if (reportAttachments.length === 0) {
+              setNoReports(true);
+              return;
+            }
+            
+            await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
+            return;
+          } catch (attachmentError) {
+            console.log('Attachment fallback also failed:', attachmentError);
+            setNoReports(true);
+            return;
+          }
         }
-        await displayReports(reportAttachments, webContext.project.id, buildId, buildService);
+        
+        console.log(`Found ${bicepArtifacts.length} Bicep What-If artifacts:`, bicepArtifacts.map(a => a.name));
+        
+        await displayReportsFromArtifacts(bicepArtifacts, webContext.project.id, buildId, buildClient);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -238,25 +266,139 @@ const BicepReportExtension: React.FC = () => {
     }
   };
 
-  const displayReports = async (
-    attachments: BuildAttachment[],
+  const displayReportsFromArtifacts = async (
+    artifacts: Build.BuildArtifact[],
     projectId: string,
     buildId: number,
-    buildService: IBuildService
+    buildClient: BuildRestClient
   ): Promise<void> => {
+    const reportPromises = artifacts.map(async artifact => {
+      try {
+        console.log(`Processing artifact: ${artifact.name}, resource type: ${artifact.resource?.type}`);
+        
+        // Check if the artifact has a downloadUrl we can use
+        if (artifact.resource?.downloadUrl) {
+          // Try to fetch the content from the download URL
+          try {
+            const response = await fetch(artifact.resource.downloadUrl);
+            if (response.ok) {
+              const contentType = response.headers.get('content-type');
+              console.log(`Downloaded artifact ${artifact.name}, content-type: ${contentType}`);
+              
+              if (contentType?.includes('application/zip') || artifact.name.endsWith('.zip')) {
+                // It's a ZIP file, we need to indicate that this needs extraction
+                const content = `# Bicep What-If Reports Available\n\n` +
+                              `The artifact "${artifact.name}" contains Bicep What-If reports but is in ZIP format.\n\n` +
+                              `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl})\n\n` +
+                              `Please download and extract the ZIP file to view the individual Markdown reports.\n\n` +
+                              `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
+                
+                return {
+                  name: `${artifact.name} (ZIP Format)`,
+                  content: content,
+                };
+              } else {
+                // Try to get the content as text (might be a single markdown file)
+                const content = await response.text();
+                return {
+                  name: artifact.name,
+                  content: content,
+                };
+              }
+            } else {
+              throw new Error(`Failed to download artifact: ${response.status} ${response.statusText}`);
+            }
+          } catch (downloadError) {
+            console.log(`Direct download failed for ${artifact.name}, trying ZIP extraction:`, downloadError);
+            
+            // Fallback: Try to get the artifact content as a ZIP and provide download info
+            try {
+              const zipBuffer = await buildClient.getArtifactContentZip(projectId, buildId, artifact.name);
+              const content = `# Bicep What-If Reports Available\n\n` +
+                            `The artifact "${artifact.name}" contains Bicep What-If reports (${zipBuffer.byteLength} bytes).\n\n` +
+                            `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl || '#'})\n\n` +
+                            `The reports are available for download as a ZIP file. Extract the ZIP to view the individual Markdown reports.\n\n` +
+                            `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
+              
+              return {
+                name: `${artifact.name} (Available for Download)`,
+                content: content,
+              };
+            } catch (zipError) {
+              throw new Error(`Failed to access artifact: ${zipError instanceof Error ? zipError.message : String(zipError)}`);
+            }
+          }
+        } else {
+          throw new Error(`Artifact ${artifact.name} has no download URL available`);
+        }
+      } catch (error) {
+        console.error('Error loading artifact:', artifact.name, error);
+        return {
+          name: artifact.name,
+          content: '',
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
+    const loadedReports = await Promise.all(reportPromises);
+    setReports(loadedReports);
+
+    // Auto-resize to fit content
+    SDK.resize();
+  };
+
+  const displayReports = async (
+    attachments: Build.Attachment[],
+    projectId: string,
+    buildId: number,
+    buildClient: BuildRestClient
+  ): Promise<void> => {
+    // Since BuildRestClient.getAttachment requires timelineId and recordId,
+    // we need to get the timeline first to find the record IDs for our attachments
+    let timeline: Build.Timeline | null = null;
+    try {
+      timeline = await buildClient.getBuildTimeline(projectId, buildId);
+    } catch (error) {
+      console.error('Failed to get build timeline:', error);
+      setError('Failed to get build timeline information needed to retrieve attachment content.');
+      return;
+    }
+
+    if (!timeline || !timeline.records) {
+      setError('Build timeline is not available or contains no records.');
+      return;
+    }
+
     const reportPromises = attachments.map(async attachment => {
       try {
-        const content = await buildService.getAttachment(
-          projectId,
-          buildId,
-          'bicepwhatifreport',
-          attachment.name
-        );
-
-        return {
-          name: attachment.name,
-          content: content,
-        };
+        // Find a timeline record that might contain this attachment
+        // This is a heuristic approach since we don't have exact timeline/record mapping
+        for (const record of timeline.records) {
+          try {
+            const contentBuffer = await buildClient.getAttachment(
+              projectId,
+              buildId,
+              timeline.id,
+              record.id,
+              'bicepwhatifreport',
+              attachment.name
+            );
+            
+            // Convert ArrayBuffer to string
+            const content = new TextDecoder().decode(contentBuffer);
+            return {
+              name: attachment.name,
+              content: content,
+            };
+          } catch (recordError: unknown) {
+            // This record doesn't have the attachment, try the next one
+            continue;
+          }
+        }
+        
+        // If we reach here, no record had the attachment
+        throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
       } catch (error) {
         console.error('Error loading report:', attachment.name, error);
         return {
