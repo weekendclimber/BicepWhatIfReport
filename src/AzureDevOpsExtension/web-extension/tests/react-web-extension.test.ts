@@ -230,7 +230,7 @@ describe('React Web Extension Tests', () => {
       expect(extensionContent).to.include('getArtifactsFileEntries call');
     });
 
-    it('should support both JSON and Markdown files', () => {
+    it('should process only markdown files from artifacts', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -238,10 +238,12 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should handle both file types in the display logic
-      expect(extensionContent).to.include("endsWith('.json')");
-      expect(extensionContent).to.include('convertWhatIfJsonToMarkdown');
-      expect(extensionContent).to.include('JSON.parse(content)');
+      // Should handle only markdown files since build task creates .md files
+      expect(extensionContent).to.include('\.md');
+      expect(extensionContent).to.include('Files in artifacts are already markdown');
+      // Should NOT include JSON processing since files are already markdown
+      expect(extensionContent).to.not.include('convertWhatIfJsonToMarkdown');
+      expect(extensionContent).to.not.include("endsWith('.json')");
     });
 
     it('should use ZIP extraction for content retrieval', () => {
@@ -275,7 +277,7 @@ describe('React Web Extension Tests', () => {
       expect(extensionContent).to.include('FileEntry[]');
     });
 
-    it('should handle file processing correctly', () => {
+    it('should handle markdown file processing correctly', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -283,9 +285,12 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should handle JSON to markdown conversion
-      expect(extensionContent).to.include('JSON.parse(content)');
-      expect(extensionContent).to.include('convertWhatIfJsonToMarkdown');
+      // Should handle markdown files directly without conversion
+      expect(extensionContent).to.include('contentsPromise');
+      expect(extensionContent).to.include('displayName');
+      // Should NOT include JSON processing since artifacts contain markdown files
+      expect(extensionContent).to.not.include('JSON.parse(content)');
+      expect(extensionContent).to.not.include('convertWhatIfJsonToMarkdown');
     });
 
     it('should have appropriate error handling for file entries', () => {

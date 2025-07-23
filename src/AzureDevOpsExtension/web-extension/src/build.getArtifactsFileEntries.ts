@@ -79,7 +79,7 @@ export async function getArtifactContentZip(downloadUrl: string): Promise<ArrayB
 
 /**
  * Extracts file entries from Azure DevOps build artifacts
- * Filters for Bicep What-If related files (JSON and Markdown)
+ * Filters for Bicep What-If related markdown files created by the build task
  * 
  * @param buildClient The Azure DevOps build client
  * @param project The project ID or name
@@ -100,7 +100,7 @@ export async function getArtifactsFileEntries(
     const files = await Promise.all(
       artifacts
         .filter(artifact => {
-          // Filter for artifacts that might contain Bicep What-If reports
+          // Filter for artifacts that might contain Bicep What-If markdown reports
           // Look for common artifact names or patterns
           const name = artifact.name.toLowerCase();
           return (
@@ -112,9 +112,8 @@ export async function getArtifactsFileEntries(
             // Include common pipeline artifact names
             name.includes('drop') ||
             name.includes('build') ||
-            // Allow artifacts ending with .md or .json
-            name.endsWith('.md') ||
-            name.endsWith('.json')
+            // Allow artifacts ending with .md
+            name.endsWith('.md')
           );
         })
         .map(async artifact => {
@@ -136,15 +135,14 @@ export async function getArtifactsFileEntries(
 
               return Object.values(zip.files)
                 .filter(entry => {
-                  // Filter for relevant file types within the ZIP
+                  // Filter for markdown files created by the build task
                   if (entry.dir) return false;
                   
                   const fileName = entry.name.toLowerCase();
                   return (
-                    fileName.endsWith('.json') ||
                     fileName.endsWith('.md') ||
                     fileName.endsWith('.markdown') ||
-                    // Include What-If specific patterns
+                    // Include What-If specific patterns for backwards compatibility
                     fileName.includes('whatif') ||
                     fileName.includes('what-if') ||
                     fileName.includes('bicep')

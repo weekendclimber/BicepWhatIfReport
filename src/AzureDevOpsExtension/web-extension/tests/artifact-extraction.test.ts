@@ -130,12 +130,11 @@ describe('Artifact File Extraction', () => {
     expect(fileEntries).to.be.an('array');
     expect(fileEntries.length).to.be.greaterThan(0);
 
-    // Check that we found the expected files
+    // Check that we found the expected markdown files
     const fileNames = fileEntries.map(entry => entry.name);
     expect(fileNames).to.include('what-if-report.md');
-    expect(fileNames).to.include('what-if-data.json');
     expect(fileNames).to.include('README.md');
-    expect(fileNames).to.include('bicep-analysis.json');
+    // May also include other relevant files based on patterns
 
     // Check file entry structure
     const mdFile = fileEntries.find(entry => entry.name === 'what-if-report.md');
@@ -163,17 +162,16 @@ describe('Artifact File Extraction', () => {
   it('should filter files by relevant extensions', async () => {
     const fileEntries = await getArtifactsFileEntries(mockBuildClient, 'test-project', 123);
 
-    // Should only include .md and .json files
+    // Should primarily include .md files as the build task creates markdown files
     const extensions = fileEntries.map(entry => {
       const name = entry.name.toLowerCase();
       if (name.endsWith('.md') || name.endsWith('.markdown')) return 'markdown';
-      if (name.endsWith('.json')) return 'json';
+      if (name.includes('bicep') || name.includes('whatif') || name.includes('what-if')) return 'relevant';
       return 'other';
     });
 
     expect(extensions).to.not.include('other');
     expect(extensions).to.include('markdown');
-    expect(extensions).to.include('json');
   });
 
   it('should handle artifacts without downloadUrl gracefully', async () => {
@@ -205,17 +203,15 @@ describe('Artifact File Extraction', () => {
     expect(fileEntries.length).to.equal(0);
   });
 
-  it('should process JSON What-If data correctly', async () => {
+  it('should process markdown files correctly', async () => {
     const fileEntries = await getArtifactsFileEntries(mockBuildClient, 'test-project', 123);
     
-    const jsonFile = fileEntries.find(entry => entry.name === 'what-if-data.json');
-    expect(jsonFile).to.not.be.undefined;
+    const mdFile = fileEntries.find(entry => entry.name === 'what-if-report.md');
+    expect(mdFile).to.not.be.undefined;
 
-    const content = await jsonFile!.contentsPromise;
-    const parsed = JSON.parse(content);
-    expect(parsed).to.have.property('changes');
-    expect(parsed.changes).to.be.an('array');
-    expect(parsed.changes[0]).to.have.property('changeType', 'Create');
+    const content = await mdFile!.contentsPromise;
+    expect(content).to.equal('# Bicep What-If Report\n\nThis is a mock report.');
+    expect(content).to.include('Bicep What-If Report');
   });
 
   describe('getArtifactContentZip', () => {

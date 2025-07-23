@@ -250,40 +250,12 @@ const BicepReportExtension: React.FC = () => {
         // Get the file content using the contentsPromise
         const content = await fileEntry.contentsPromise;
 
-        // Determine if this is a JSON file that needs to be converted to markdown
-        // or if it's already a markdown file
-        let reportContent = content;
-        let displayName = fileEntry.name;
-
-        if (fileEntry.name.toLowerCase().endsWith('.json')) {
-          // Handle JSON files - could be What-If JSON output that needs processing
-          try {
-            const jsonData = JSON.parse(content);
-            
-            // Check if this is a What-If JSON result that we can convert to markdown
-            if (jsonData && (jsonData.changes || jsonData.properties)) {
-              // Simple JSON to markdown conversion for What-If results
-              reportContent = convertWhatIfJsonToMarkdown(jsonData, fileEntry.name);
-              displayName = fileEntry.name.replace(/\.json$/i, ''); // Remove .json extension
-            } else {
-              // Generic JSON display
-              reportContent = `# ${fileEntry.name}\n\n\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\``;
-              displayName = fileEntry.name.replace(/\.json$/i, ''); // Remove .json extension
-            }
-          } catch (jsonError) {
-            console.warn(`Failed to parse JSON content for ${fileEntry.name}:`, jsonError);
-            // Fall back to raw content display
-            reportContent = `# ${fileEntry.name}\n\n\`\`\`\n${content}\n\`\`\``;
-            displayName = fileEntry.name;
-          }
-        } else {
-          // For .md files, use content as-is
-          displayName = fileEntry.name.replace(/\.md$/i, ''); // Remove .md extension for display
-        }
+        // Files in artifacts are already markdown files created by the build task
+        const displayName = fileEntry.name.replace(/\.md$/i, ''); // Remove .md extension for display
 
         return {
           name: displayName,
-          content: reportContent,
+          content: content,
           sourcePath: fileEntry.filePath,
           artifactName: fileEntry.artifactName,
         };
@@ -304,49 +276,6 @@ const BicepReportExtension: React.FC = () => {
 
     // Auto-resize to fit content
     SDK.resize();
-  };
-
-  /**
-   * Converts What-If JSON output to Markdown format
-   */
-  const convertWhatIfJsonToMarkdown = (jsonData: Record<string, unknown>, fileName: string): string => {
-    let markdown = `# What-If Analysis Results\n\n`;
-    markdown += `**Source File:** ${fileName}\n\n`;
-
-    try {
-      if (jsonData.changes && Array.isArray(jsonData.changes)) {
-        markdown += `## Changes (${jsonData.changes.length})\n\n`;
-        
-        jsonData.changes.forEach((change: Record<string, unknown>, index: number) => {
-          markdown += `### Change ${index + 1}\n\n`;
-          
-          if (change.changeType) {
-            markdown += `**Change Type:** ${change.changeType}\n\n`;
-          }
-          
-          if (change.resourceId) {
-            markdown += `**Resource ID:** \`${change.resourceId}\`\n\n`;
-          }
-          
-          if (change.before || change.after) {
-            markdown += `**Details:**\n\`\`\`json\n`;
-            if (change.before) markdown += `Before: ${JSON.stringify(change.before, null, 2)}\n`;
-            if (change.after) markdown += `After: ${JSON.stringify(change.after, null, 2)}\n`;
-            markdown += `\`\`\`\n\n`;
-          }
-          
-          markdown += `---\n\n`;
-        });
-      } else {
-        // Fallback for other JSON structures
-        markdown += `## Raw Data\n\n\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\`\n\n`;
-      }
-    } catch (error) {
-      markdown += `## Error Processing Data\n\nFailed to process What-If data: ${error}\n\n`;
-      markdown += `\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\`\n\n`;
-    }
-
-    return markdown;
   };
 
   const sanitizeHtml = (html: string): string => {

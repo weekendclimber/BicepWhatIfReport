@@ -66,15 +66,15 @@ This repository has comprehensive security and quality measures in place:
 
 ---
 
-## New in v0.2.14: Enhanced Artifact Processing
+## New in v0.2.15: Simplified Markdown Processing
 
-### ZIP Artifact Extraction
+### Direct Markdown File Support
 
-The Azure DevOps extension now supports advanced artifact processing capabilities inspired by the Microsoft SARIF Azure DevOps Extension:
+The Azure DevOps extension now processes markdown files directly from build artifacts, eliminating the need for JSON-to-markdown conversion:
 
 #### Key Features:
 - **ZIP Download & Extraction:** Downloads and extracts files from ZIP artifacts using JSZip
-- **Multi-Format Support:** Processes both JSON (What-If input) and Markdown (generated reports)
+- **Markdown File Processing:** Processes markdown files (*.md) created by the build task
 - **Intelligent Filtering:** Automatically identifies relevant artifacts and files by name patterns
 - **Robust Authentication:** Uses Azure DevOps access tokens with proper header handling
 - **Error Recovery:** Handles redirects, network timeouts, and malformed artifacts gracefully
@@ -87,16 +87,15 @@ import { getArtifactsFileEntries } from './build.getArtifactsFileEntries';
 // Extract files from ZIP artifacts
 const fileEntries = await getArtifactsFileEntries(buildClient, projectId, buildId);
 
-// Process file contents asynchronously
+// Process file contents asynchronously (files are already markdown)
 for (const entry of fileEntries) {
   const content = await entry.contentsPromise;
-  // Process content...
+  // Display markdown content directly
 }
 ```
 
 #### Supported File Types:
-- **JSON Files:** What-If analysis results, converted to readable Markdown
-- **Markdown Files:** Pre-generated reports displayed directly
+- **Markdown Files:** Pre-generated reports created by the build task, displayed directly
 - **Artifact Patterns:** Automatically detects Bicep, What-If, and report artifacts
 
 #### Error Handling:
