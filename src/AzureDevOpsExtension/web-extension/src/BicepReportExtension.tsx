@@ -25,9 +25,8 @@ import { ZeroData } from 'azure-devops-ui/ZeroData';
 //import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/_platformCommon.scss';
 
-// No longer need attachment type constant for artifacts-based approach
-// But keeping for backward compatibility in comments and error messages
-const ATTACHMENT_TYPE: string = 'bicepwhatifreport';
+// Constants for debugging messages referencing the legacy implementation
+// The artifacts-based approach no longer requires attachment type constants
 
 // Constants for service names
 //const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
@@ -261,9 +260,9 @@ const BicepReportExtension: React.FC = () => {
 
   const displayReports = async (
     artifacts: Build.BuildArtifact[],
-    projectId: string,
-    buildId: number,
-    buildClient: BuildRestClient
+    _projectId: string,
+    _buildId: number,
+    _buildClient: BuildRestClient
   ): Promise<void> => {
     // Use artifacts with downloadUrl - much simpler than timeline navigation
     const reportPromises = artifacts.map(async artifact => {
