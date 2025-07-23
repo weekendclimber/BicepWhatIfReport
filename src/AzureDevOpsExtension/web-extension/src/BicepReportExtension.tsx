@@ -249,10 +249,10 @@ const BicepReportExtension: React.FC = () => {
         );
 
         console.log(`Found ${attachments.length} attachments for build ${buildId}`);
-        
+
         // Filter for markdown report attachments (pipeline task prefixes with 'md/')
         const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
-        
+
         if (reportAttachments.length === 0) {
           console.log('No Bicep What-If report attachments found.');
           setNoReports(true);
@@ -273,7 +273,6 @@ const BicepReportExtension: React.FC = () => {
       }
     }
   };
-
 
   const displayReports = async (
     attachments: Build.Attachment[],
