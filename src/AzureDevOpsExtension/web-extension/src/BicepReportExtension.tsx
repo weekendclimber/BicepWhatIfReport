@@ -147,58 +147,6 @@ const BicepReportExtension: React.FC = () => {
       errors.push('Failed to get build page data service.');
     }
 
-    // Method 2: From page context navigation
-    if (buildId === undefined) {
-      try {
-        const pageContext: IExtendedPageContext = SDK.getPageContext() as IExtendedPageContext;
-        if (pageContext && pageContext.navigation && pageContext.navigation.currentBuild) {
-          buildId = pageContext.navigation.currentBuild.id;
-          buildIdSource = 'page context navigation';
-        } else {
-          console.log('Build ID is not available from page context navigation');
-          errors.push('Build ID is not available from page context navigation.');
-        }
-      } catch (error) {
-        console.log('Failed to get build ID from page context navigation:', error);
-        errors.push('Failed to get build ID from page context navigation.');
-      }
-    }
-
-    // Method 3: From configuration (standard approach)
-    if (buildId === undefined) {
-      if (config && config.buildId) {
-        if (config.buildId !== undefined) {
-          buildId = parseInt(config.buildId);
-          buildIdSource = 'configuration';
-        } else {
-          console.log('Build ID is not available from configuration');
-          errors.push('Build ID is not available from configuration.');
-        }
-      } else {
-        console.log('Build ID is not available from configuration');
-        errors.push('Build ID is not available from configuration.');
-      }
-    }
-
-    // Method 4: From URL parameters (fallback for build result tabs)
-    if (buildId === undefined) {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const buildIdFromUrl: string | null = urlParams.get('buildId');
-        if (buildIdFromUrl) {
-          console.log('Extracting build ID from URL parameters:', buildIdFromUrl);
-          buildId = parseInt(buildIdFromUrl);
-          buildIdSource = 'URL parameters';
-        } else {
-          console.log('Build ID is not available from URL parameters');
-          errors.push('Build ID is not available from URL parameters.');
-        }
-      } catch (error) {
-        console.log('Failed to extract build ID from URL:', error);
-        errors.push('Failed to extract build ID from URL parameters.');
-      }
-    }
-
     if (buildId === undefined) {
       errors.push(
         'Build ID is not available from any source (configuration, URL, or page context)'
