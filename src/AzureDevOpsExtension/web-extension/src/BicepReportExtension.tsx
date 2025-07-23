@@ -25,7 +25,8 @@ import { ZeroData } from 'azure-devops-ui/ZeroData';
 //import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/_platformCommon.scss';
 
-// Constants for attachment type
+// No longer need attachment type constant for artifacts-based approach
+// But keeping for backward compatibility in comments and error messages
 const ATTACHMENT_TYPE: string = 'bicepwhatifreport';
 
 // Constants for service names
@@ -189,95 +190,67 @@ const BicepReportExtension: React.FC = () => {
           console.log('BuildRestClient is available.');
         }
 
-        // Get build attachments for Bicep What-If reports (matches how pipeline task uploads them)
+        // Get build artifacts for Bicep What-If reports (simpler than attachments approach)
         console.log(
-          `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type '${ATTACHMENT_TYPE}'...`
+          `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
         );
 
         // Add detailed parameter logging for troubleshooting
-        console.log('Parameters for getAttachments call:');
+        console.log('Parameters for getArtifacts call:');
         console.log(
           `  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`
         );
         console.log(`  - buildId: ${buildId} (type: ${typeof buildId})`);
-        console.log(`  - type: "${ATTACHMENT_TYPE}" (case-sensitive)`);
 
-        // Use the attachment-based approach that matches the pipeline task upload method
+        // Use the artifacts-based approach - simpler than attachments
         // Wrap in timeout to prevent indefinite hanging
-        let attachments: Build.Attachment[];
+        let artifacts: Build.BuildArtifact[];
         try {
           const timeoutMs = 30000; // 30 second timeout
-          console.log(`Setting ${timeoutMs}ms timeout for getAttachments call...`);
+          console.log(`Setting ${timeoutMs}ms timeout for getArtifacts call...`);
 
-          attachments = await Promise.race([
-            buildClient.getAttachments(webContext.project.id, buildId, ATTACHMENT_TYPE),
+          artifacts = await Promise.race([
+            buildClient.getArtifacts(webContext.project.id, buildId),
             new Promise<never>((_, reject) =>
               setTimeout(
-                () => reject(new Error(`getAttachments call timed out after ${timeoutMs}ms`)),
+                () => reject(new Error(`getArtifacts call timed out after ${timeoutMs}ms`)),
                 timeoutMs
               )
             ),
           ]);
 
-          console.log(`getAttachments call completed successfully.`);
+          console.log(`getArtifacts call completed successfully.`);
         } catch (timeoutError) {
-          console.error('getAttachments call failed:', timeoutError);
+          console.error('getArtifacts call failed:', timeoutError);
 
-          // Try a diagnostic call with a standard attachment type to test API connectivity
-          console.log('Attempting diagnostic call with standard attachment type "logs"...');
-          try {
-            const diagnosticAttachments = await Promise.race([
-              buildClient.getAttachments(webContext.project.id, buildId, 'logs'),
-              new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('Diagnostic call timed out')), 10000)
-              ),
-            ]);
-            console.log(
-              `Diagnostic call successful: found ${diagnosticAttachments.length} log attachments`
-            );
-
-            // If diagnostic call works, the issue is specific to 'bicepwhatifreport' type
-            throw new Error(
-              `Failed to retrieve '${ATTACHMENT_TYPE}' attachments (call timed out after 30s), ` +
-                `but API connectivity is working (diagnostic call found ${diagnosticAttachments.length} log attachments). ` +
-                `This suggests:\n` +
-                `1. No attachments of type '${ATTACHMENT_TYPE}' exist for this build\n` +
-                `2. The attachment type name may be case-sensitive or misspelled\n` +
-                `3. The pipeline task may not have uploaded attachments correctly\n` +
-                `Please verify the pipeline task uploaded attachments with exact type '${ATTACHMENT_TYPE}'.`
-            );
-          } catch (diagnosticError) {
-            // Both calls failed - likely an API/permission issue
-            throw new Error(
-              `Both main and diagnostic API calls failed. This indicates an API connectivity or permissions issue:\n` +
-                `- Main error: ${timeoutError instanceof Error ? timeoutError.message : String(timeoutError)}\n` +
-                `- Diagnostic error: ${diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError)}\n` +
-                `Please check:\n` +
-                `1. Extension permissions for Build API access\n` +
-                `2. Network connectivity to Azure DevOps APIs\n` +
-                `3. Build ID ${buildId} exists and is accessible in project ${webContext.project.id}`
-            );
-          }
+          throw new Error(
+            `Failed to retrieve artifacts: ${timeoutError instanceof Error ? timeoutError.message : String(timeoutError)}. ` +
+              `This suggests:\n` +
+              `1. No artifacts exist for this build\n` +
+              `2. API connectivity or permission issue\n` +
+              `3. The build may still be running\n` +
+              `Please verify the build has completed and artifacts were published.`
+          );
         }
 
-        console.log(`Found ${attachments.length} attachments for build ${buildId}`);
+        console.log(`Found ${artifacts.length} artifacts for build ${buildId}`);
 
-        // Filter for markdown report attachments (pipeline task prefixes with 'md/')
-        const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
+        // Filter for markdown report artifacts (look for .md files)
+        const reportArtifacts = artifacts.filter(artifact => artifact.name.endsWith('.md'));
 
-        if (reportAttachments.length === 0) {
-          console.log('No Bicep What-If report attachments found.');
+        if (reportArtifacts.length === 0) {
+          console.log('No Bicep What-If report artifacts (.md files) found.');
           setNoReports(true);
           return;
         }
 
         console.log(
-          `Found ${reportAttachments.length} Bicep What-If report attachments:`,
-          reportAttachments.map(a => a.name)
+          `Found ${reportArtifacts.length} Bicep What-If report artifacts:`,
+          reportArtifacts.map(a => a.name)
         );
 
-        // Display the reports from the attachments
-        await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
+        // Display the reports from the artifacts
+        await displayReports(reportArtifacts, webContext.project.id, buildId, buildClient);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -287,63 +260,43 @@ const BicepReportExtension: React.FC = () => {
   };
 
   const displayReports = async (
-    attachments: Build.Attachment[],
+    artifacts: Build.BuildArtifact[],
     projectId: string,
     buildId: number,
     buildClient: BuildRestClient
   ): Promise<void> => {
-    // Since BuildRestClient.getAttachment requires timelineId and recordId,
-    // we need to get the timeline first to find the record IDs for our attachments
-    let timeline: Build.Timeline | null = null;
-    try {
-      timeline = await buildClient.getBuildTimeline(projectId, buildId);
-    } catch (error) {
-      console.error('Failed to get build timeline:', error);
-      setError('Failed to get build timeline information needed to retrieve attachment content.');
-      return;
-    }
-
-    if (!timeline || !timeline.records) {
-      setError('Build timeline is not available or contains no records.');
-      return;
-    }
-
-    const reportPromises = attachments.map(async attachment => {
+    // Use artifacts with downloadUrl - much simpler than timeline navigation
+    const reportPromises = artifacts.map(async artifact => {
       try {
-        // Find a timeline record that might contain this attachment
-        // This is a heuristic approach since we don't have exact timeline/record mapping
-        for (const record of timeline.records) {
-          try {
-            const contentBuffer = await buildClient.getAttachment(
-              projectId,
-              buildId,
-              timeline.id,
-              record.id,
-              ATTACHMENT_TYPE,
-              attachment.name
-            );
-
-            // Convert ArrayBuffer to string
-            const content = new TextDecoder().decode(contentBuffer);
-            return {
-              name: attachment.name,
-              content: content,
-            };
-          } catch (recordError: unknown) {
-            // This record doesn't have the attachment, try the next one
-            console.log(
-              `Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`
-            );
-            continue;
-          }
+        // Check if the artifact has a downloadUrl
+        if (!artifact.resource?.downloadUrl) {
+          throw new Error(`Artifact ${artifact.name} does not have a downloadUrl`);
         }
 
-        // If we reach here, no record had the attachment
-        throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
-      } catch (error) {
-        console.error('Error loading report:', attachment.name, error);
+        console.log(`Downloading artifact content from: ${artifact.resource.downloadUrl}`);
+
+        // Fetch content directly from downloadUrl with timeout protection
+        const timeoutMs = 30000; // 30 second timeout
+        const response = await Promise.race([
+          fetch(artifact.resource.downloadUrl),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Download timed out after ${timeoutMs}ms`)), timeoutMs)
+          ),
+        ]);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const content = await response.text();
         return {
-          name: attachment.name,
+          name: artifact.name.endsWith('.md') ? artifact.name.slice(0, -3) : artifact.name, // Remove .md extension for display
+          content: content,
+        };
+      } catch (error) {
+        console.error('Error loading report:', artifact.name, error);
+        return {
+          name: artifact.name,
           content: '',
           error: error instanceof Error ? error.message : String(error),
         };

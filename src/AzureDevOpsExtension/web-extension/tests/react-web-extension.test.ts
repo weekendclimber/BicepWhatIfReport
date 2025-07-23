@@ -41,6 +41,15 @@ const mockSDK = {
     },
   }),
   getService: async () => ({
+    getArtifacts: async () => [{ 
+      name: 'test-report.md', 
+      id: 1,
+      resource: { 
+        downloadUrl: 'https://example.com/artifact/test-report.md',
+        data: 'file'
+      }
+    }],
+    // Legacy methods for backward compatibility in tests
     getBuildAttachments: async () => [{ name: 'md/test-report.md', type: 'bicepwhatifreport' }],
     getAttachment: async () => '# Test Report\nThis is a test report.',
   }),
@@ -77,6 +86,19 @@ describe('React Web Extension Tests', () => {
     it('should validate component interfaces', () => {
       // Test the types we defined
       const mockBuildService = {
+        getArtifacts: async (projectId: string, buildId: number) => {
+          expect(typeof projectId).to.equal('string');
+          expect(typeof buildId).to.equal('number');
+          return [{ 
+            name: 'test.md', 
+            id: 1,
+            resource: { 
+              downloadUrl: 'https://example.com/artifact/test.md',
+              data: 'file'
+            }
+          }];
+        },
+        // Legacy methods for backward compatibility
         getBuildAttachments: async (projectId: string, buildId: number, type: string) => {
           expect(typeof projectId).to.equal('string');
           expect(typeof buildId).to.equal('number');
@@ -89,6 +111,7 @@ describe('React Web Extension Tests', () => {
         },
       };
 
+      expect(mockBuildService.getArtifacts).to.be.a('function');
       expect(mockBuildService.getBuildAttachments).to.be.a('function');
       expect(mockBuildService.getAttachment).to.be.a('function');
     });
@@ -184,6 +207,99 @@ describe('React Web Extension Tests', () => {
       expect(extensionContent).to.include('displayReports');
       expect(extensionContent).to.include('parseMarkdown');
       expect(extensionContent).to.include('getDisplayName');
+    });
+
+    it('should use getArtifacts instead of getAttachments', () => {
+      const extensionPath = './src/BicepReportExtension.tsx';
+      if (!fs.existsSync(extensionPath)) {
+        return;
+      }
+
+      const extensionContent = fs.readFileSync(extensionPath, 'utf8');
+
+      // Should use the new artifacts-based approach
+      expect(extensionContent).to.include('getArtifacts');
+      expect(extensionContent).to.include('Build.BuildArtifact');
+
+      // Should mention artifacts in logging
+      expect(extensionContent).to.include('Fetching artifacts for build');
+      expect(extensionContent).to.include('getArtifacts call');
+    });
+
+    it('should filter artifacts by .md extension', () => {
+      const extensionPath = './src/BicepReportExtension.tsx';
+      if (!fs.existsSync(extensionPath)) {
+        return;
+      }
+
+      const extensionContent = fs.readFileSync(extensionPath, 'utf8');
+
+      // Should filter for .md files instead of md/ prefix
+      expect(extensionContent).to.include("endsWith('.md')");
+      expect(extensionContent).to.include('report artifacts (.md files)');
+    });
+
+    it('should use downloadUrl for content retrieval', () => {
+      const extensionPath = './src/BicepReportExtension.tsx';
+      if (!fs.existsSync(extensionPath)) {
+        return;
+      }
+
+      const extensionContent = fs.readFileSync(extensionPath, 'utf8');
+
+      // Should use fetch with downloadUrl instead of timeline navigation
+      expect(extensionContent).to.include('artifact.resource?.downloadUrl');
+      expect(extensionContent).to.include('fetch(artifact.resource.downloadUrl)');
+      expect(extensionContent).to.include('does not have a downloadUrl');
+    });
+
+    it('should have simplified displayReports function', () => {
+      const extensionPath = './src/BicepReportExtension.tsx';
+      if (!fs.existsSync(extensionPath)) {
+        return;
+      }
+
+      const extensionContent = fs.readFileSync(extensionPath, 'utf8');
+
+      // Should NOT have timeline-based logic
+      expect(extensionContent).to.not.include('getBuildTimeline');
+      expect(extensionContent).to.not.include('timeline.records');
+      expect(extensionContent).to.not.include('getAttachment(');
+
+      // Should have simpler artifact-based logic
+      expect(extensionContent).to.include('artifacts: Build.BuildArtifact[]');
+      expect(extensionContent).to.include('much simpler than timeline navigation');
+    });
+
+    it('should handle artifact names correctly', () => {
+      const extensionPath = './src/BicepReportExtension.tsx';
+      if (!fs.existsSync(extensionPath)) {
+        return;
+      }
+
+      const extensionContent = fs.readFileSync(extensionPath, 'utf8');
+
+      // Should remove .md extension for display names
+      expect(extensionContent).to.include("artifact.name.endsWith('.md') ? artifact.name.slice(0, -3)");
+    });
+
+    it('should have appropriate error handling for artifacts', () => {
+      const extensionPath = './src/BicepReportExtension.tsx';
+      if (!fs.existsSync(extensionPath)) {
+        return;
+      }
+
+      const extensionContent = fs.readFileSync(extensionPath, 'utf8');
+
+      // Should handle missing downloadUrl
+      expect(extensionContent).to.include('does not have a downloadUrl');
+      
+      // Should handle HTTP errors
+      expect(extensionContent).to.include('response.ok');
+      expect(extensionContent).to.include('HTTP ${response.status}');
+      
+      // Should have timeout protection
+      expect(extensionContent).to.include('Download timed out');
     });
   });
 
