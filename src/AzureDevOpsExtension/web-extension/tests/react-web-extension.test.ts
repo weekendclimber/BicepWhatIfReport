@@ -41,14 +41,16 @@ const mockSDK = {
     },
   }),
   getService: async () => ({
-    getArtifacts: async () => [{ 
-      name: 'test-report.md', 
-      id: 1,
-      resource: { 
-        downloadUrl: 'https://example.com/artifact/test-report.md',
-        data: 'file'
-      }
-    }],
+    getArtifacts: async () => [
+      {
+        name: 'test-report.md',
+        id: 1,
+        resource: {
+          downloadUrl: 'https://example.com/artifact/test-report.md',
+          data: 'file',
+        },
+      },
+    ],
     // Legacy methods for backward compatibility in tests
     getBuildAttachments: async () => [{ name: 'md/test-report.md', type: 'bicepwhatifreport' }],
     getAttachment: async () => '# Test Report\nThis is a test report.',
@@ -89,14 +91,16 @@ describe('React Web Extension Tests', () => {
         getArtifacts: async (projectId: string, buildId: number) => {
           expect(typeof projectId).to.equal('string');
           expect(typeof buildId).to.equal('number');
-          return [{ 
-            name: 'test.md', 
-            id: 1,
-            resource: { 
-              downloadUrl: 'https://example.com/artifact/test.md',
-              data: 'file'
-            }
-          }];
+          return [
+            {
+              name: 'test.md',
+              id: 1,
+              resource: {
+                downloadUrl: 'https://example.com/artifact/test.md',
+                data: 'file',
+              },
+            },
+          ];
         },
         // Legacy methods for backward compatibility
         getBuildAttachments: async (projectId: string, buildId: number, type: string) => {
@@ -280,7 +284,9 @@ describe('React Web Extension Tests', () => {
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
       // Should remove .md extension for display names
-      expect(extensionContent).to.include("artifact.name.endsWith('.md') ? artifact.name.slice(0, -3)");
+      expect(extensionContent).to.include(
+        "artifact.name.endsWith('.md') ? artifact.name.slice(0, -3)"
+      );
     });
 
     it('should have appropriate error handling for artifacts', () => {
@@ -293,11 +299,11 @@ describe('React Web Extension Tests', () => {
 
       // Should handle missing downloadUrl
       expect(extensionContent).to.include('does not have a downloadUrl');
-      
+
       // Should handle HTTP errors
       expect(extensionContent).to.include('response.ok');
       expect(extensionContent).to.include('HTTP ${response.status}');
-      
+
       // Should have timeout protection
       expect(extensionContent).to.include('Download timed out');
     });
