@@ -44,8 +44,10 @@ const BicepReportExtension: React.FC = () => {
       console.log('Initializing Bicep What-If Report Extension...');
 
       // Check if SDK is already initialized to prevent double loading
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!(window as any).VSS_SDK_INITIALIZED) {
         await SDK.init({ loaded: false, applyTheme: true });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).VSS_SDK_INITIALIZED = true;
         console.log('Azure DevOps SDK initialized successfully.');
       } else {
