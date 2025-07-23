@@ -1,18 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import * as SDK from 'azure-devops-extension-sdk';
-import {
-  IBuildPageDataService,
-  BuildServiceIds,
-  //IBuildPageData,
-} from 'azure-devops-extension-api/Build';
+import { IBuildPageDataService, BuildServiceIds } from 'azure-devops-extension-api/Build';
 import { BuildRestClient } from 'azure-devops-extension-api/Build';
 import { getClient } from 'azure-devops-extension-api';
 import * as Build from 'azure-devops-extension-api/Build/Build';
-import {
-  ReportItem,
-  //IExtendedPageContext,
-  //IPageDataService,
-} from './types';
+import { ReportItem } from './types';
 
 // Azure DevOps UI Components
 import { Header, TitleSize } from 'azure-devops-ui/Header';
@@ -24,12 +16,6 @@ import { ZeroData } from 'azure-devops-ui/ZeroData';
 // Azure DevOps UI Core and utilities
 //import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/_platformCommon.scss';
-
-// Constants for debugging messages referencing the legacy implementation
-// The artifacts-based approach no longer requires attachment type constants
-
-// Constants for service names
-//const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
 
 const BicepReportExtension: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -279,7 +265,10 @@ const BicepReportExtension: React.FC = () => {
         const response = await Promise.race([
           fetch(artifact.resource.downloadUrl),
           new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error(`Download timed out after ${timeoutMs}ms`)), timeoutMs)
+            setTimeout(
+              () => reject(new Error(`Download timed out after ${timeoutMs}ms`)),
+              timeoutMs
+            )
           ),
         ]);
 
