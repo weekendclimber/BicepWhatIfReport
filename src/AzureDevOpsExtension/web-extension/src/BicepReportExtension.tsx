@@ -235,7 +235,7 @@ const BicepReportExtension: React.FC = () => {
         );
 
         // Display the reports from the artifacts
-        await displayReports(reportArtifacts, webContext.project.id, buildId, buildClient);
+        await displayReports(reportArtifacts);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -244,12 +244,7 @@ const BicepReportExtension: React.FC = () => {
     }
   };
 
-  const displayReports = async (
-    artifacts: Build.BuildArtifact[],
-    _projectId: string,
-    _buildId: number,
-    _buildClient: BuildRestClient
-  ): Promise<void> => {
+  const displayReports = async (artifacts: Build.BuildArtifact[]): Promise<void> => {
     // Use artifacts with downloadUrl - much simpler than timeline navigation
     const reportPromises = artifacts.map(async artifact => {
       try {
