@@ -3,8 +3,8 @@ import * as SDK from 'azure-devops-extension-sdk';
 import { IBuildPageDataService, BuildServiceIds } from 'azure-devops-extension-api/Build';
 import { BuildRestClient } from 'azure-devops-extension-api/Build';
 import { getClient } from 'azure-devops-extension-api';
-import * as Build from 'azure-devops-extension-api/Build/Build';
 import { ReportItem } from './types';
+import { getArtifactsFileEntries } from './build.getArtifactsFileEntries';
 
 // Azure DevOps UI Components
 import { Header, TitleSize } from 'azure-devops-ui/Header';
@@ -175,67 +175,64 @@ const BicepReportExtension: React.FC = () => {
           console.log('BuildRestClient is available.');
         }
 
-        // Get build artifacts for Bicep What-If reports (simpler than attachments approach)
+        // Get build artifacts for Bicep What-If reports using enhanced ZIP extraction
         console.log(
           `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
         );
 
         // Add detailed parameter logging for troubleshooting
-        console.log('Parameters for getArtifacts call:');
+        console.log('Parameters for getArtifactsFileEntries call:');
         console.log(
           `  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`
         );
         console.log(`  - buildId: ${buildId} (type: ${typeof buildId})`);
 
-        // Use the artifacts-based approach - simpler than attachments
+        // Use the enhanced artifacts-based approach with ZIP extraction
         // Wrap in timeout to prevent indefinite hanging
-        let artifacts: Build.BuildArtifact[];
+        let fileEntries;
         try {
           const timeoutMs = 30000; // 30 second timeout
-          console.log(`Setting ${timeoutMs}ms timeout for getArtifacts call...`);
+          console.log(`Setting ${timeoutMs}ms timeout for getArtifactsFileEntries call...`);
 
-          artifacts = await Promise.race([
-            buildClient.getArtifacts(webContext.project.id, buildId),
+          fileEntries = await Promise.race([
+            getArtifactsFileEntries(buildClient, webContext.project.id, buildId),
             new Promise<never>((_, reject) =>
               setTimeout(
-                () => reject(new Error(`getArtifacts call timed out after ${timeoutMs}ms`)),
+                () => reject(new Error(`getArtifactsFileEntries call timed out after ${timeoutMs}ms`)),
                 timeoutMs
               )
             ),
           ]);
 
-          console.log(`getArtifacts call completed successfully.`);
+          console.log(`getArtifactsFileEntries call completed successfully.`);
         } catch (timeoutError) {
-          console.error('getArtifacts call failed:', timeoutError);
+          console.error('getArtifactsFileEntries call failed:', timeoutError);
 
           throw new Error(
-            `Failed to retrieve artifacts: ${timeoutError instanceof Error ? timeoutError.message : String(timeoutError)}. ` +
+            `Failed to retrieve artifact file entries: ${timeoutError instanceof Error ? timeoutError.message : String(timeoutError)}. ` +
               `This suggests:\n` +
-              `1. No artifacts exist for this build\n` +
+              `1. No artifacts with relevant files exist for this build\n` +
               `2. API connectivity or permission issue\n` +
               `3. The build may still be running\n` +
               `Please verify the build has completed and artifacts were published.`
           );
         }
 
-        console.log(`Found ${artifacts.length} artifacts for build ${buildId}`);
+        console.log(`Found ${fileEntries.length} relevant files in artifacts for build ${buildId}`);
 
-        // Filter for markdown report artifacts (look for .md files)
-        const reportArtifacts = artifacts.filter(artifact => artifact.name.endsWith('.md'));
-
-        if (reportArtifacts.length === 0) {
-          console.log('No Bicep What-If report artifacts (.md files) found.');
+        if (fileEntries.length === 0) {
+          console.log('No Bicep What-If report files found in artifacts.');
           setNoReports(true);
           return;
         }
 
         console.log(
-          `Found ${reportArtifacts.length} Bicep What-If report artifacts:`,
-          reportArtifacts.map(a => a.name)
+          `Found ${fileEntries.length} Bicep What-If report files:`,
+          fileEntries.map(f => `${f.name} (from ${f.artifactName})`)
         );
 
-        // Display the reports from the artifacts
-        await displayReports(reportArtifacts);
+        // Display the reports from the extracted file entries
+        await displayReportsFromFileEntries(fileEntries);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -244,44 +241,60 @@ const BicepReportExtension: React.FC = () => {
     }
   };
 
-  const displayReports = async (artifacts: Build.BuildArtifact[]): Promise<void> => {
-    // Use artifacts with downloadUrl - much simpler than timeline navigation
-    const reportPromises = artifacts.map(async artifact => {
+  const displayReportsFromFileEntries = async (fileEntries: import('./build.getArtifactsFileEntries').FileEntry[]): Promise<void> => {
+    // Process file entries extracted from ZIP artifacts
+    const reportPromises = fileEntries.map(async fileEntry => {
       try {
-        // Check if the artifact has a downloadUrl
-        if (!artifact.resource?.downloadUrl) {
-          throw new Error(`Artifact ${artifact.name} does not have a downloadUrl`);
+        console.log(`Loading content for file: ${fileEntry.name} from artifact: ${fileEntry.artifactName}`);
+
+        // Get the file content using the contentsPromise
+        const content = await fileEntry.contentsPromise;
+
+        // Determine if this is a JSON file that needs to be converted to markdown
+        // or if it's already a markdown file
+        let reportContent = content;
+        let displayName = fileEntry.name;
+
+        if (fileEntry.name.toLowerCase().endsWith('.json')) {
+          // Handle JSON files - could be What-If JSON output that needs processing
+          try {
+            const jsonData = JSON.parse(content);
+            
+            // Check if this is a What-If JSON result that we can convert to markdown
+            if (jsonData && (jsonData.changes || jsonData.properties)) {
+              // Simple JSON to markdown conversion for What-If results
+              reportContent = convertWhatIfJsonToMarkdown(jsonData, fileEntry.name);
+              displayName = fileEntry.name.replace(/\.json$/i, ''); // Remove .json extension
+            } else {
+              // Generic JSON display
+              reportContent = `# ${fileEntry.name}\n\n\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\``;
+              displayName = fileEntry.name.replace(/\.json$/i, ''); // Remove .json extension
+            }
+          } catch (jsonError) {
+            console.warn(`Failed to parse JSON content for ${fileEntry.name}:`, jsonError);
+            // Fall back to raw content display
+            reportContent = `# ${fileEntry.name}\n\n\`\`\`\n${content}\n\`\`\``;
+            displayName = fileEntry.name;
+          }
+        } else {
+          // For .md files, use content as-is
+          displayName = fileEntry.name.replace(/\.md$/i, ''); // Remove .md extension for display
         }
 
-        console.log(`Downloading artifact content from: ${artifact.resource.downloadUrl}`);
-
-        // Fetch content directly from downloadUrl with timeout protection
-        const timeoutMs = 30000; // 30 second timeout
-        const response = await Promise.race([
-          fetch(artifact.resource.downloadUrl),
-          new Promise<never>((_, reject) =>
-            setTimeout(
-              () => reject(new Error(`Download timed out after ${timeoutMs}ms`)),
-              timeoutMs
-            )
-          ),
-        ]);
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const content = await response.text();
         return {
-          name: artifact.name.endsWith('.md') ? artifact.name.slice(0, -3) : artifact.name, // Remove .md extension for display
-          content: content,
+          name: displayName,
+          content: reportContent,
+          sourcePath: fileEntry.filePath,
+          artifactName: fileEntry.artifactName,
         };
       } catch (error) {
-        console.error('Error loading report:', artifact.name, error);
+        console.error('Error loading file entry:', fileEntry.name, error);
         return {
-          name: artifact.name,
+          name: fileEntry.name,
           content: '',
           error: error instanceof Error ? error.message : String(error),
+          sourcePath: fileEntry.filePath,
+          artifactName: fileEntry.artifactName,
         };
       }
     });
@@ -291,6 +304,49 @@ const BicepReportExtension: React.FC = () => {
 
     // Auto-resize to fit content
     SDK.resize();
+  };
+
+  /**
+   * Converts What-If JSON output to Markdown format
+   */
+  const convertWhatIfJsonToMarkdown = (jsonData: Record<string, unknown>, fileName: string): string => {
+    let markdown = `# What-If Analysis Results\n\n`;
+    markdown += `**Source File:** ${fileName}\n\n`;
+
+    try {
+      if (jsonData.changes && Array.isArray(jsonData.changes)) {
+        markdown += `## Changes (${jsonData.changes.length})\n\n`;
+        
+        jsonData.changes.forEach((change: Record<string, unknown>, index: number) => {
+          markdown += `### Change ${index + 1}\n\n`;
+          
+          if (change.changeType) {
+            markdown += `**Change Type:** ${change.changeType}\n\n`;
+          }
+          
+          if (change.resourceId) {
+            markdown += `**Resource ID:** \`${change.resourceId}\`\n\n`;
+          }
+          
+          if (change.before || change.after) {
+            markdown += `**Details:**\n\`\`\`json\n`;
+            if (change.before) markdown += `Before: ${JSON.stringify(change.before, null, 2)}\n`;
+            if (change.after) markdown += `After: ${JSON.stringify(change.after, null, 2)}\n`;
+            markdown += `\`\`\`\n\n`;
+          }
+          
+          markdown += `---\n\n`;
+        });
+      } else {
+        // Fallback for other JSON structures
+        markdown += `## Raw Data\n\n\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\`\n\n`;
+      }
+    } catch (error) {
+      markdown += `## Error Processing Data\n\nFailed to process What-If data: ${error}\n\n`;
+      markdown += `\`\`\`json\n${JSON.stringify(jsonData, null, 2)}\n\`\`\`\n\n`;
+    }
+
+    return markdown;
   };
 
   const sanitizeHtml = (html: string): string => {

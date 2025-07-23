@@ -27,4 +27,8 @@ export interface ReportItem {
   name: string;
   content: string;
   error?: string;
+  /** Optional source file path for debugging */
+  sourcePath?: string;
+  /** Optional artifact name this report came from */
+  artifactName?: string;
 }

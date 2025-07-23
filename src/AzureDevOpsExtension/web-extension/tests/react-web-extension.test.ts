@@ -213,7 +213,7 @@ describe('React Web Extension Tests', () => {
       expect(extensionContent).to.include('getDisplayName');
     });
 
-    it('should use getArtifacts instead of getAttachments', () => {
+    it('should use getArtifactsFileEntries instead of direct getArtifacts', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -221,16 +221,16 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should use the new artifacts-based approach
-      expect(extensionContent).to.include('getArtifacts');
-      expect(extensionContent).to.include('Build.BuildArtifact');
+      // Should use the new ZIP extraction utility
+      expect(extensionContent).to.include('getArtifactsFileEntries');
+      expect(extensionContent).to.include('displayReportsFromFileEntries');
 
-      // Should mention artifacts in logging
+      // Should mention the enhanced approach in logging
       expect(extensionContent).to.include('Fetching artifacts for build');
-      expect(extensionContent).to.include('getArtifacts call');
+      expect(extensionContent).to.include('getArtifactsFileEntries call');
     });
 
-    it('should filter artifacts by .md extension', () => {
+    it('should support both JSON and Markdown files', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -238,12 +238,13 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should filter for .md files instead of md/ prefix
-      expect(extensionContent).to.include("endsWith('.md')");
-      expect(extensionContent).to.include('report artifacts (.md files)');
+      // Should handle both file types in the display logic
+      expect(extensionContent).to.include("endsWith('.json')");
+      expect(extensionContent).to.include('convertWhatIfJsonToMarkdown');
+      expect(extensionContent).to.include('JSON.parse(content)');
     });
 
-    it('should use downloadUrl for content retrieval', () => {
+    it('should use ZIP extraction for content retrieval', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -251,13 +252,13 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should use fetch with downloadUrl instead of timeline navigation
-      expect(extensionContent).to.include('artifact.resource?.downloadUrl');
-      expect(extensionContent).to.include('fetch(artifact.resource.downloadUrl)');
-      expect(extensionContent).to.include('does not have a downloadUrl');
+      // Should use the ZIP extraction approach
+      expect(extensionContent).to.include('contentsPromise');
+      expect(extensionContent).to.include('getArtifactsFileEntries');
+      expect(extensionContent).to.include('FileEntry[]');
     });
 
-    it('should have simplified displayReports function', () => {
+    it('should have enhanced displayReportsFromFileEntries function', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -265,17 +266,16 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should NOT have timeline-based logic
+      // Should NOT have the old artifact-based logic
       expect(extensionContent).to.not.include('getBuildTimeline');
       expect(extensionContent).to.not.include('timeline.records');
-      expect(extensionContent).to.not.include('getAttachment(');
 
-      // Should have simpler artifact-based logic
-      expect(extensionContent).to.include('artifacts: Build.BuildArtifact[]');
-      expect(extensionContent).to.include('much simpler than timeline navigation');
+      // Should have the new file entry based logic
+      expect(extensionContent).to.include('displayReportsFromFileEntries');
+      expect(extensionContent).to.include('FileEntry[]');
     });
 
-    it('should handle artifact names correctly', () => {
+    it('should handle file processing correctly', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -283,13 +283,12 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should remove .md extension for display names
-      expect(extensionContent).to.include(
-        "artifact.name.endsWith('.md') ? artifact.name.slice(0, -3)"
-      );
+      // Should handle JSON to markdown conversion
+      expect(extensionContent).to.include('JSON.parse(content)');
+      expect(extensionContent).to.include('convertWhatIfJsonToMarkdown');
     });
 
-    it('should have appropriate error handling for artifacts', () => {
+    it('should have appropriate error handling for file entries', () => {
       const extensionPath = './src/BicepReportExtension.tsx';
       if (!fs.existsSync(extensionPath)) {
         return;
@@ -297,15 +296,13 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should handle missing downloadUrl
-      expect(extensionContent).to.include('does not have a downloadUrl');
-
-      // Should handle HTTP errors
-      expect(extensionContent).to.include('response.ok');
-      expect(extensionContent).to.include('HTTP ${response.status}');
+      // Should handle file processing errors
+      expect(extensionContent).to.include('Error loading file entry');
+      expect(extensionContent).to.include('sourcePath');
+      expect(extensionContent).to.include('artifactName');
 
       // Should have timeout protection
-      expect(extensionContent).to.include('Download timed out');
+      expect(extensionContent).to.include('timed out');
     });
   });
 
