@@ -36,7 +36,7 @@ Consider the following when communicating with the staff.
 - The tests should be run using the 'npm test' command.
 - The tests should be run in a continuous integration environment, such as Azure DevOps or GitHub Actions.
 - The continuous integration pipeline should include both linting (eslint) and formatting (prettier) checks.
-- Before submitting any coffee changes, ensure that linting (eslint) and formatting (prettier) checks are passing.
+- Before submitting any code changes, ensure that linting (eslint) and formatting (prettier) checks are passing.
 
 # Context
 
