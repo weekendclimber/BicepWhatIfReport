@@ -25,6 +25,9 @@ import { ZeroData } from 'azure-devops-ui/ZeroData';
 //import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/_platformCommon.scss';
 
+// Constants for attachment type
+const ATTACHMENT_TYPE: string = 'bicepwhatifreport';
+
 // Constants for service names
 //const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
 
@@ -188,7 +191,7 @@ const BicepReportExtension: React.FC = () => {
 
         // Get build attachments for Bicep What-If reports (matches how pipeline task uploads them)
         console.log(
-          `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type 'bicepwhatifreport'...`
+          `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type '${ATTACHMENT_TYPE}'...`
         );
 
         // Add detailed parameter logging for troubleshooting
@@ -197,7 +200,7 @@ const BicepReportExtension: React.FC = () => {
           `  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`
         );
         console.log(`  - buildId: ${buildId} (type: ${typeof buildId})`);
-        console.log(`  - type: "bicepwhatifreport" (case-sensitive)`);
+        console.log(`  - type: "${ATTACHMENT_TYPE}" (case-sensitive)`);
 
         // Use the attachment-based approach that matches the pipeline task upload method
         // Wrap in timeout to prevent indefinite hanging
@@ -207,7 +210,7 @@ const BicepReportExtension: React.FC = () => {
           console.log(`Setting ${timeoutMs}ms timeout for getAttachments call...`);
 
           attachments = await Promise.race([
-            buildClient.getAttachments(webContext.project.id, buildId, 'bicepwhatifreport'),
+            buildClient.getAttachments(webContext.project.id, buildId, ATTACHMENT_TYPE),
             new Promise<never>((_, reject) =>
               setTimeout(
                 () => reject(new Error(`getAttachments call timed out after ${timeoutMs}ms`)),
@@ -235,13 +238,13 @@ const BicepReportExtension: React.FC = () => {
 
             // If diagnostic call works, the issue is specific to 'bicepwhatifreport' type
             throw new Error(
-              `Failed to retrieve 'bicepwhatifreport' attachments (call timed out after 30s), ` +
+              `Failed to retrieve '${ATTACHMENT_TYPE}' attachments (call timed out after 30s), ` +
                 `but API connectivity is working (diagnostic call found ${diagnosticAttachments.length} log attachments). ` +
                 `This suggests:\n` +
-                `1. No attachments of type 'bicepwhatifreport' exist for this build\n` +
+                `1. No attachments of type '${ATTACHMENT_TYPE}' exist for this build\n` +
                 `2. The attachment type name may be case-sensitive or misspelled\n` +
                 `3. The pipeline task may not have uploaded attachments correctly\n` +
-                `Please verify the pipeline task uploaded attachments with exact type 'bicepwhatifreport'.`
+                `Please verify the pipeline task uploaded attachments with exact type '${ATTACHMENT_TYPE}'.`
             );
           } catch (diagnosticError) {
             // Both calls failed - likely an API/permission issue
@@ -316,7 +319,7 @@ const BicepReportExtension: React.FC = () => {
               buildId,
               timeline.id,
               record.id,
-              'bicepwhatifreport',
+              ATTACHMENT_TYPE,
               attachment.name
             );
 
