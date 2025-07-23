@@ -236,105 +236,36 @@ const BicepReportExtension: React.FC = () => {
           console.log('BuildRestClient is available.');
         }
 
-        // Get all build artifacts and look for Bicep What-If reports
+        // Get build attachments for Bicep What-If reports (matches how pipeline task uploads them)
         console.log(
-          `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
+          `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type 'bicepwhatifreport'...`
         );
 
-        // Add timeout wrapper to prevent indefinite hanging
-        const ARTIFACT_FETCH_TIMEOUT = 30000; // 30 seconds
-        const fetchArtifactsWithTimeout = () => {
-          return Promise.race([
-            buildClient.getArtifacts(webContext.project.id, buildId),
-            new Promise<never>((_, reject) =>
-              setTimeout(
-                () => reject(new Error(`Artifact fetch timeout after ${ARTIFACT_FETCH_TIMEOUT}ms`)),
-                ARTIFACT_FETCH_TIMEOUT
-              )
-            ),
-          ]);
-        };
-
-        let artifacts;
-        try {
-          artifacts = await fetchArtifactsWithTimeout();
-          console.log(`Artifacts fetched for build ID (${buildId}).`);
-          console.log(
-            `Found ${artifacts.length} artifacts for build ${buildId}:`,
-            artifacts.map(a => a.name)
-          );
-        } catch (fetchError) {
-          console.error('Failed to fetch artifacts:', fetchError);
-          throw new Error(
-            `Failed to fetch build artifacts. ` +
-              `This may occur when:\n` +
-              `- Network connectivity issues\n` +
-              `- Insufficient permissions to access build artifacts\n` +
-              `- Build service API is temporarily unavailable\n` +
-              `- The build may not have completed successfully\n` +
-              `Error details: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}\n` +
-              `Please check your network connection and ensure you have the required permissions.`
-          );
-        }
-
-        // Look for the specific 'BicepWhatIfReports' artifact first (this is what the pipeline task uploads)
-        console.log('Filtering artifacts for Bicep What-If reports...');
-        let bicepArtifacts = artifacts.filter(artifact => artifact.name === 'BicepWhatIfReports');
-
-        if (bicepArtifacts.length === 0) {
-          // Fallback: look for any artifacts that might contain Bicep What-If reports
-          bicepArtifacts = artifacts.filter(
-            artifact =>
-              artifact.name.toLowerCase().includes('bicep') ||
-              artifact.name.toLowerCase().includes('whatif')
-          );
-        } else {
-          console.log('Found Bicep What-If reports artifacts.');
-        }
-
-        if (bicepArtifacts.length === 0) {
-          console.log(
-            'No Bicep What-If artifacts found. Available artifacts:',
-            artifacts.map(a => a.name)
-          );
-
-          // Try to fall back to attachments as a secondary approach
-          console.log('Falling back to attachment-based approach...');
-          try {
-            const attachments = await buildClient.getAttachments(
-              webContext.project.id,
-              buildId,
-              'bicepwhatifreport'
-            );
-
-            const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
-            if (reportAttachments.length === 0) {
-              setNoReports(true);
-              return;
-            }
-
-            await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
-            return;
-          } catch (attachmentError) {
-            console.log('Attachment fallback also failed:', attachmentError);
-            setNoReports(true);
-            return;
-          }
-        }
-
-        console.log(
-          `Found ${bicepArtifacts.length} Bicep What-If artifacts:`,
-          bicepArtifacts.map(a => a.name)
-        );
-
-        // Display the reports from the found artifacts
-        console.log('Displaying reports from Bicep What-If artifacts...');
-        await displayReportsFromArtifacts(
-          bicepArtifacts,
+        // Use the attachment-based approach that matches the pipeline task upload method
+        const attachments = await buildClient.getAttachments(
           webContext.project.id,
           buildId,
-          buildClient
+          'bicepwhatifreport'
         );
+
+        console.log(`Found ${attachments.length} attachments for build ${buildId}`);
+        
+        // Filter for markdown report attachments (pipeline task prefixes with 'md/')
+        const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
+        
+        if (reportAttachments.length === 0) {
+          console.log('No Bicep What-If report attachments found.');
+          setNoReports(true);
+          return;
+        }
+
+        console.log(
+          `Found ${reportAttachments.length} Bicep What-If report attachments:`,
+          reportAttachments.map(a => a.name)
+        );
+
+        // Display the reports from the attachments
+        await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -343,102 +274,6 @@ const BicepReportExtension: React.FC = () => {
     }
   };
 
-  const displayReportsFromArtifacts = async (
-    artifacts: Build.BuildArtifact[],
-    projectId: string,
-    buildId: number,
-    buildClient: BuildRestClient
-  ): Promise<void> => {
-    const reportPromises = artifacts.map(async artifact => {
-      try {
-        console.log(
-          `Processing artifact: ${artifact.name}, resource type: ${artifact.resource?.type}`
-        );
-
-        // Check if the artifact has a downloadUrl we can use
-        if (artifact.resource?.downloadUrl) {
-          // Try to fetch the content from the download URL
-          try {
-            const response = await fetch(artifact.resource.downloadUrl);
-            if (response.ok) {
-              const contentType = response.headers.get('content-type');
-              console.log(`Downloaded artifact ${artifact.name}, content-type: ${contentType}`);
-
-              if (contentType?.includes('application/zip') || artifact.name.endsWith('.zip')) {
-                // It's a ZIP file, we need to indicate that this needs extraction
-                const content =
-                  `# Bicep What-If Reports Available\n\n` +
-                  `The artifact "${artifact.name}" contains Bicep What-If reports but is in ZIP format.\n\n` +
-                  `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl})\n\n` +
-                  `Please download and extract the ZIP file to view the individual Markdown reports.\n\n` +
-                  `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
-
-                return {
-                  name: `${artifact.name} (ZIP Format)`,
-                  content: content,
-                };
-              } else {
-                // Try to get the content as text (might be a single markdown file)
-                const content = await response.text();
-                return {
-                  name: artifact.name,
-                  content: content,
-                };
-              }
-            } else {
-              throw new Error(
-                `Failed to download artifact: ${response.status} ${response.statusText}`
-              );
-            }
-          } catch (downloadError) {
-            console.log(
-              `Direct download failed for ${artifact.name}, trying ZIP extraction:`,
-              downloadError
-            );
-
-            // Fallback: Try to get the artifact content as a ZIP and provide download info
-            try {
-              const zipBuffer = await buildClient.getArtifactContentZip(
-                projectId,
-                buildId,
-                artifact.name
-              );
-              const content =
-                `# Bicep What-If Reports Available\n\n` +
-                `The artifact "${artifact.name}" contains Bicep What-If reports (${zipBuffer.byteLength} bytes).\n\n` +
-                `**Download Link:** [${artifact.name}](${artifact.resource.downloadUrl || '#'})\n\n` +
-                `The reports are available for download as a ZIP file. Extract the ZIP to view the individual Markdown reports.\n\n` +
-                `This artifact was published by the Bicep What-If pipeline task and contains all generated reports.`;
-
-              return {
-                name: `${artifact.name} (Available for Download)`,
-                content: content,
-              };
-            } catch (zipError) {
-              throw new Error(
-                `Failed to access artifact: ${zipError instanceof Error ? zipError.message : String(zipError)}`
-              );
-            }
-          }
-        } else {
-          throw new Error(`Artifact ${artifact.name} has no download URL available`);
-        }
-      } catch (error) {
-        console.error('Error loading artifact:', artifact.name, error);
-        return {
-          name: artifact.name,
-          content: '',
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-    });
-
-    const loadedReports = await Promise.all(reportPromises);
-    setReports(loadedReports);
-
-    // Auto-resize to fit content
-    SDK.resize();
-  };
 
   const displayReports = async (
     attachments: Build.Attachment[],
