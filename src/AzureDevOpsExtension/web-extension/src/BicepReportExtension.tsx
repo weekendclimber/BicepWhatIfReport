@@ -198,7 +198,8 @@ const BicepReportExtension: React.FC = () => {
             getArtifactsFileEntries(buildClient, webContext.project.id, buildId),
             new Promise<never>((_, reject) =>
               setTimeout(
-                () => reject(new Error(`getArtifactsFileEntries call timed out after ${timeoutMs}ms`)),
+                () =>
+                  reject(new Error(`getArtifactsFileEntries call timed out after ${timeoutMs}ms`)),
                 timeoutMs
               )
             ),
@@ -241,11 +242,15 @@ const BicepReportExtension: React.FC = () => {
     }
   };
 
-  const displayReportsFromFileEntries = async (fileEntries: import('./build.getArtifactsFileEntries').FileEntry[]): Promise<void> => {
+  const displayReportsFromFileEntries = async (
+    fileEntries: import('./build.getArtifactsFileEntries').FileEntry[]
+  ): Promise<void> => {
     // Process file entries extracted from ZIP artifacts
     const reportPromises = fileEntries.map(async fileEntry => {
       try {
-        console.log(`Loading content for file: ${fileEntry.name} from artifact: ${fileEntry.artifactName}`);
+        console.log(
+          `Loading content for file: ${fileEntry.name} from artifact: ${fileEntry.artifactName}`
+        );
 
         // Get the file content using the contentsPromise
         const content = await fileEntry.contentsPromise;

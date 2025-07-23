@@ -26,7 +26,7 @@ export type ArtifactBuildRestClient = Pick<BuildRestClient, 'getArtifacts'>;
 /**
  * Downloads artifact content as a ZIP file from Azure DevOps
  * Based on Microsoft SARIF extension implementation
- * 
+ *
  * @param downloadUrl The download URL for the artifact
  * @returns Promise that resolves to the artifact content as ArrayBuffer
  */
@@ -80,7 +80,7 @@ export async function getArtifactContentZip(downloadUrl: string): Promise<ArrayB
 /**
  * Extracts file entries from Azure DevOps build artifacts
  * Filters for Bicep What-If related markdown files created by the build task
- * 
+ *
  * @param buildClient The Azure DevOps build client
  * @param project The project ID or name
  * @param buildId The build ID to get artifacts from
@@ -119,7 +119,7 @@ export async function getArtifactsFileEntries(
         .map(async artifact => {
           try {
             console.log(`Processing artifact: ${artifact.name}`);
-            
+
             if (!artifact.resource?.downloadUrl) {
               console.warn(`Artifact ${artifact.name} does not have a downloadUrl`);
               return [];
@@ -131,13 +131,15 @@ export async function getArtifactsFileEntries(
             if (arrayBuffer) {
               const zip = await JSZip.loadAsync(arrayBuffer);
 
-              console.log(`Loaded ZIP for artifact ${artifact.name}, found ${Object.keys(zip.files).length} files`);
+              console.log(
+                `Loaded ZIP for artifact ${artifact.name}, found ${Object.keys(zip.files).length} files`
+              );
 
               return Object.values(zip.files)
                 .filter(entry => {
                   // Filter for markdown files created by the build task
                   if (entry.dir) return false;
-                  
+
                   const fileName = entry.name.toLowerCase();
                   return (
                     fileName.endsWith('.md') ||
@@ -150,9 +152,9 @@ export async function getArtifactsFileEntries(
                 })
                 .map(entry => {
                   const displayName = entry.name.replace(`${artifact.name}/`, '');
-                  
+
                   console.log(`Found relevant file: ${entry.name} (display: ${displayName})`);
-                  
+
                   return {
                     name: displayName,
                     artifactName: artifact.name,
@@ -166,7 +168,10 @@ export async function getArtifactsFileEntries(
               return [];
             }
           } catch (error) {
-            console.error(`Error processing artifact ${artifact.name} from build ${buildId}:`, error);
+            console.error(
+              `Error processing artifact ${artifact.name} from build ${buildId}:`,
+              error
+            );
             return [];
           }
         })
@@ -174,7 +179,7 @@ export async function getArtifactsFileEntries(
 
     const flatFiles = files.flat();
     console.log(`Extracted ${flatFiles.length} relevant files from artifacts`);
-    
+
     return flatFiles;
   } catch (error) {
     console.error('Error getting artifacts file entries:', error);

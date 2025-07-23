@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { expect } from 'chai';
 import { JSDOM } from 'jsdom';
-import { getArtifactsFileEntries, getArtifactContentZip, ArtifactBuildRestClient } from '../src/build.getArtifactsFileEntries';
+import {
+  getArtifactsFileEntries,
+  getArtifactContentZip,
+  ArtifactBuildRestClient,
+} from '../src/build.getArtifactsFileEntries';
 import * as JSZip from 'jszip';
 
 // Set up a minimal DOM environment
@@ -47,11 +51,11 @@ describe('Artifact File Extraction', () => {
   // Mock JSZip with test data
   const createMockZip = async (files: { [fileName: string]: string }): Promise<ArrayBuffer> => {
     const zip = new JSZip();
-    
+
     Object.entries(files).forEach(([fileName, content]) => {
       zip.file(fileName, content);
     });
-    
+
     return await zip.generateAsync({ type: 'arraybuffer' });
   };
 
@@ -59,7 +63,7 @@ describe('Artifact File Extraction', () => {
     // Mock global fetch for artifact downloads
     (global as any).fetch = async (url: string) => {
       console.log(`Mock fetch called with URL: ${url}`);
-      
+
       if (url.includes('bicep-reports.zip')) {
         const mockFiles = {
           'bicep-reports/what-if-report.md': '# Bicep What-If Report\n\nThis is a mock report.',
@@ -67,7 +71,8 @@ describe('Artifact File Extraction', () => {
             changes: [
               {
                 changeType: 'Create',
-                resourceId: '/subscriptions/test/resourceGroups/test/providers/Microsoft.Storage/storageAccounts/test',
+                resourceId:
+                  '/subscriptions/test/resourceGroups/test/providers/Microsoft.Storage/storageAccounts/test',
                 before: null,
                 after: { kind: 'StorageV2' },
               },
@@ -106,7 +111,7 @@ describe('Artifact File Extraction', () => {
           arrayBuffer: async () => zipBuffer,
         } as Response;
       }
-      
+
       return {
         ok: false,
         status: 404,
@@ -166,7 +171,8 @@ describe('Artifact File Extraction', () => {
     const extensions = fileEntries.map(entry => {
       const name = entry.name.toLowerCase();
       if (name.endsWith('.md') || name.endsWith('.markdown')) return 'markdown';
-      if (name.includes('bicep') || name.includes('whatif') || name.includes('what-if')) return 'relevant';
+      if (name.includes('bicep') || name.includes('whatif') || name.includes('what-if'))
+        return 'relevant';
       return 'other';
     });
 
@@ -176,13 +182,14 @@ describe('Artifact File Extraction', () => {
 
   it('should handle artifacts without downloadUrl gracefully', async () => {
     const mockClientWithoutUrl: ArtifactBuildRestClient = {
-      getArtifacts: async () => [
-        {
-          id: 1,
-          name: 'bicep-reports',
-          resource: {}, // No downloadUrl
-        },
-      ] as any[],
+      getArtifacts: async () =>
+        [
+          {
+            id: 1,
+            name: 'bicep-reports',
+            resource: {}, // No downloadUrl
+          },
+        ] as any[],
     };
 
     const fileEntries = await getArtifactsFileEntries(mockClientWithoutUrl, 'test-project', 123);
@@ -205,7 +212,7 @@ describe('Artifact File Extraction', () => {
 
   it('should process markdown files correctly', async () => {
     const fileEntries = await getArtifactsFileEntries(mockBuildClient, 'test-project', 123);
-    
+
     const mdFile = fileEntries.find(entry => entry.name === 'what-if-report.md');
     expect(mdFile).to.not.be.undefined;
 
@@ -240,7 +247,7 @@ describe('Artifact File Extraction', () => {
           return {
             status: 302,
             headers: {
-              get: (name: string) => name === 'location' ? 'https://redirect.url/test.zip' : null,
+              get: (name: string) => (name === 'location' ? 'https://redirect.url/test.zip' : null),
             },
           };
         } else {
