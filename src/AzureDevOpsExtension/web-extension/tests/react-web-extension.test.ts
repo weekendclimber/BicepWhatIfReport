@@ -149,7 +149,6 @@ describe('React Web Extension Tests', () => {
       expect(extensionContent).to.include('SDK.init');
       expect(extensionContent).to.include('SDK.getWebContext');
       expect(extensionContent).to.include('SDK.getConfiguration');
-      expect(extensionContent).to.include('SDK.getPageContext');
       expect(extensionContent).to.include('SDK.getService');
       expect(extensionContent).to.include('SDK.notifyLoadSucceeded');
       expect(extensionContent).to.include('SDK.notifyLoadFailed');

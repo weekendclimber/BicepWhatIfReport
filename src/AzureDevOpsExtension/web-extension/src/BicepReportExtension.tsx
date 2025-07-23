@@ -191,12 +191,64 @@ const BicepReportExtension: React.FC = () => {
           `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type 'bicepwhatifreport'...`
         );
 
+        // Add detailed parameter logging for troubleshooting
+        console.log('Parameters for getAttachments call:');
+        console.log(`  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`);
+        console.log(`  - buildId: ${buildId} (type: ${typeof buildId})`);
+        console.log(`  - type: "bicepwhatifreport" (case-sensitive)`);
+
         // Use the attachment-based approach that matches the pipeline task upload method
-        const attachments = await buildClient.getAttachments(
-          webContext.project.id,
-          buildId,
-          'bicepwhatifreport'
-        );
+        // Wrap in timeout to prevent indefinite hanging
+        let attachments: Build.Attachment[];
+        try {
+          const timeoutMs = 30000; // 30 second timeout
+          console.log(`Setting ${timeoutMs}ms timeout for getAttachments call...`);
+          
+          attachments = await Promise.race([
+            buildClient.getAttachments(webContext.project.id, buildId, 'bicepwhatifreport'),
+            new Promise<never>((_, reject) =>
+              setTimeout(() => reject(new Error(`getAttachments call timed out after ${timeoutMs}ms`)), timeoutMs)
+            )
+          ]);
+          
+          console.log(`getAttachments call completed successfully.`);
+        } catch (timeoutError) {
+          console.error('getAttachments call failed:', timeoutError);
+          
+          // Try a diagnostic call with a standard attachment type to test API connectivity
+          console.log('Attempting diagnostic call with standard attachment type "logs"...');
+          try {
+            const diagnosticAttachments = await Promise.race([
+              buildClient.getAttachments(webContext.project.id, buildId, 'logs'),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Diagnostic call timed out')), 10000)
+              )
+            ]);
+            console.log(`Diagnostic call successful: found ${diagnosticAttachments.length} log attachments`);
+            
+            // If diagnostic call works, the issue is specific to 'bicepwhatifreport' type
+            throw new Error(
+              `Failed to retrieve 'bicepwhatifreport' attachments (call timed out after 30s), ` +
+              `but API connectivity is working (diagnostic call found ${diagnosticAttachments.length} log attachments). ` +
+              `This suggests:\n` +
+              `1. No attachments of type 'bicepwhatifreport' exist for this build\n` +
+              `2. The attachment type name may be case-sensitive or misspelled\n` +
+              `3. The pipeline task may not have uploaded attachments correctly\n` +
+              `Please verify the pipeline task uploaded attachments with exact type 'bicepwhatifreport'.`
+            );
+          } catch (diagnosticError) {
+            // Both calls failed - likely an API/permission issue
+            throw new Error(
+              `Both main and diagnostic API calls failed. This indicates an API connectivity or permissions issue:\n` +
+              `- Main error: ${timeoutError instanceof Error ? timeoutError.message : String(timeoutError)}\n` +
+              `- Diagnostic error: ${diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError)}\n` +
+              `Please check:\n` +
+              `1. Extension permissions for Build API access\n` +
+              `2. Network connectivity to Azure DevOps APIs\n` +
+              `3. Build ID ${buildId} exists and is accessible in project ${webContext.project.id}`
+            );
+          }
+        }
 
         console.log(`Found ${attachments.length} attachments for build ${buildId}`);
 
