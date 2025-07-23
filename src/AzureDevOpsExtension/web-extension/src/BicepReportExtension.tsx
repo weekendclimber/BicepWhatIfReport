@@ -234,6 +234,7 @@ const BicepReportExtension: React.FC = () => {
           `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
         );
         const artifacts = await buildClient.getArtifacts(webContext.project.id, buildId);
+        1;
         console.log(`Artifacts fetched for build ID (${buildId}).`);
         console.log(
           `Found ${artifacts.length} artifacts for build ${buildId}:`,
@@ -448,6 +449,9 @@ const BicepReportExtension: React.FC = () => {
             };
           } catch (recordError: unknown) {
             // This record doesn't have the attachment, try the next one
+            console.log(
+              `Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`
+            );
             continue;
           }
         }
