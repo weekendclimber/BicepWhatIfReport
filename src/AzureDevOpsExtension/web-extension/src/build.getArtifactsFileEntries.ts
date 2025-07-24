@@ -15,7 +15,7 @@ export async function getArtifactsFileEntries(
   buildId: number
 ): Promise<FileEntry[]> {
   const artifacts = await buildClient.getArtifacts(project, buildId);
-  
+
   const files = await Promise.all(
     artifacts
       .filter(artifact => {
@@ -56,6 +56,6 @@ export async function getArtifactsFileEntries(
         }
       })
   );
-  
+
   return files.flat();
 }
