@@ -10,9 +10,11 @@ import { getClient } from 'azure-devops-extension-api';
 import * as Build from 'azure-devops-extension-api/Build/Build';
 import {
   ReportItem,
+  FileEntry,
   //IExtendedPageContext,
   //IPageDataService,
 } from './types';
+import { getArtifactsFileEntries } from './build.getArtifactsFileEntries';
 
 // Azure DevOps UI Components
 import { Header, TitleSize } from 'azure-devops-ui/Header';
@@ -186,67 +188,65 @@ const BicepReportExtension: React.FC = () => {
           console.log('BuildRestClient is available.');
         }
 
-        // Get build attachments for Bicep What-If reports (matches how pipeline task uploads them)
+        // Use artifact-based approach to discover Bicep What-If reports
         console.log(
-          `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type 'bicepwhatifreport'...`
+          `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
         );
 
         // Add detailed parameter logging for troubleshooting
-        console.log('Parameters for getAttachments call:');
+        console.log('Parameters for getArtifacts call:');
         console.log(
           `  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`
         );
         console.log(`  - buildId: ${buildId} (type: ${typeof buildId})`);
-        console.log(`  - type: "bicepwhatifreport" (case-sensitive)`);
 
-        // Use the attachment-based approach that matches the pipeline task upload method
-        // Wrap in timeout to prevent indefinite hanging
-        let attachments: Build.Attachment[];
+        // Use the artifact-based approach that supports ZIP files and folders
+        let fileEntries: FileEntry[];
         try {
           const timeoutMs = 30000; // 30 second timeout
-          console.log(`Setting ${timeoutMs}ms timeout for getAttachments call...`);
+          console.log(`Setting ${timeoutMs}ms timeout for artifact discovery...`);
 
-          attachments = await Promise.race([
-            buildClient.getAttachments(webContext.project.id, buildId, 'bicepwhatifreport'),
+          fileEntries = await Promise.race([
+            getArtifactsFileEntries(buildClient, webContext.project.id, buildId),
             new Promise<never>((_, reject) =>
               setTimeout(
-                () => reject(new Error(`getAttachments call timed out after ${timeoutMs}ms`)),
+                () => reject(new Error(`Artifact discovery timed out after ${timeoutMs}ms`)),
                 timeoutMs
               )
             ),
           ]);
 
-          console.log(`getAttachments call completed successfully.`);
+          console.log(`Artifact discovery completed successfully.`);
         } catch (timeoutError) {
-          console.error('getAttachments call failed:', timeoutError);
+          console.error('Artifact discovery failed:', timeoutError);
 
-          // Try a diagnostic call with a standard attachment type to test API connectivity
-          console.log('Attempting diagnostic call with standard attachment type "logs"...');
+          // Try a diagnostic call to test API connectivity
+          console.log('Attempting diagnostic call to getArtifacts...');
           try {
-            const diagnosticAttachments = await Promise.race([
-              buildClient.getAttachments(webContext.project.id, buildId, 'logs'),
+            const diagnosticArtifacts = await Promise.race([
+              buildClient.getArtifacts(webContext.project.id, buildId),
               new Promise<never>((_, reject) =>
                 setTimeout(() => reject(new Error('Diagnostic call timed out')), 10000)
               ),
             ]);
             console.log(
-              `Diagnostic call successful: found ${diagnosticAttachments.length} log attachments`
+              `Diagnostic call successful: found ${diagnosticArtifacts.length} artifacts`
             );
 
-            // If diagnostic call works, the issue is specific to 'bicepwhatifreport' type
+            // If diagnostic call works, the issue might be with artifact filtering or extraction
             throw new Error(
-              `Failed to retrieve 'bicepwhatifreport' attachments (call timed out after 30s), ` +
-                `but API connectivity is working (diagnostic call found ${diagnosticAttachments.length} log attachments). ` +
+              `Failed to discover Bicep What-If report files in artifacts (discovery timed out after 30s), ` +
+                `but API connectivity is working (found ${diagnosticArtifacts.length} artifacts total). ` +
                 `This suggests:\n` +
-                `1. No attachments of type 'bicepwhatifreport' exist for this build\n` +
-                `2. The attachment type name may be case-sensitive or misspelled\n` +
-                `3. The pipeline task may not have uploaded attachments correctly\n` +
-                `Please verify the pipeline task uploaded attachments with exact type 'bicepwhatifreport'.`
+                `1. No artifacts contain Bicep What-If markdown files\n` +
+                `2. The artifact names don't match expected patterns\n` +
+                `3. The artifacts are not in expected ZIP format\n` +
+                `Please verify the pipeline publishes artifacts containing Bicep What-If markdown files.`
             );
           } catch (diagnosticError) {
             // Both calls failed - likely an API/permission issue
             throw new Error(
-              `Both main and diagnostic API calls failed. This indicates an API connectivity or permissions issue:\n` +
+              `Both artifact discovery and diagnostic API calls failed. This indicates an API connectivity or permissions issue:\n` +
                 `- Main error: ${timeoutError instanceof Error ? timeoutError.message : String(timeoutError)}\n` +
                 `- Diagnostic error: ${diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError)}\n` +
                 `Please check:\n` +
@@ -257,24 +257,21 @@ const BicepReportExtension: React.FC = () => {
           }
         }
 
-        console.log(`Found ${attachments.length} attachments for build ${buildId}`);
+        console.log(`Found ${fileEntries.length} Bicep What-If markdown files in artifacts`);
 
-        // Filter for markdown report attachments (pipeline task prefixes with 'md/')
-        const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
-
-        if (reportAttachments.length === 0) {
-          console.log('No Bicep What-If report attachments found.');
+        if (fileEntries.length === 0) {
+          console.log('No Bicep What-If report files found in artifacts.');
           setNoReports(true);
           return;
         }
 
         console.log(
-          `Found ${reportAttachments.length} Bicep What-If report attachments:`,
-          reportAttachments.map(a => a.name)
+          `Found ${fileEntries.length} Bicep What-If report files:`,
+          fileEntries.map(f => `${f.artifactName}/${f.filePath}`)
         );
 
-        // Display the reports from the attachments
-        await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
+        // Process the artifact files into reports
+        await processArtifactFiles(fileEntries);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -283,66 +280,26 @@ const BicepReportExtension: React.FC = () => {
     }
   };
 
-  const displayReports = async (
-    attachments: Build.Attachment[],
-    projectId: string,
-    buildId: number,
-    buildClient: BuildRestClient
-  ): Promise<void> => {
-    // Since BuildRestClient.getAttachment requires timelineId and recordId,
-    // we need to get the timeline first to find the record IDs for our attachments
-    let timeline: Build.Timeline | null = null;
-    try {
-      timeline = await buildClient.getBuildTimeline(projectId, buildId);
-    } catch (error) {
-      console.error('Failed to get build timeline:', error);
-      setError('Failed to get build timeline information needed to retrieve attachment content.');
-      return;
-    }
-
-    if (!timeline || !timeline.records) {
-      setError('Build timeline is not available or contains no records.');
-      return;
-    }
-
-    const reportPromises = attachments.map(async attachment => {
+  const processArtifactFiles = async (fileEntries: FileEntry[]): Promise<void> => {
+    const reportPromises = fileEntries.map(async fileEntry => {
       try {
-        // Find a timeline record that might contain this attachment
-        // This is a heuristic approach since we don't have exact timeline/record mapping
-        for (const record of timeline.records) {
-          try {
-            const contentBuffer = await buildClient.getAttachment(
-              projectId,
-              buildId,
-              timeline.id,
-              record.id,
-              'bicepwhatifreport',
-              attachment.name
-            );
-
-            // Convert ArrayBuffer to string
-            const content = new TextDecoder().decode(contentBuffer);
-            return {
-              name: attachment.name,
-              content: content,
-            };
-          } catch (recordError: unknown) {
-            // This record doesn't have the attachment, try the next one
-            console.log(
-              `Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`
-            );
-            continue;
-          }
-        }
-
-        // If we reach here, no record had the attachment
-        throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
-      } catch (error) {
-        console.error('Error loading report:', attachment.name, error);
+        const content = await fileEntry.contentsPromise;
         return {
-          name: attachment.name,
+          name: fileEntry.name,
+          content: content,
+          artifactName: fileEntry.artifactName,
+          filePath: fileEntry.filePath,
+          buildId: fileEntry.buildId,
+        };
+      } catch (error) {
+        console.error('Error loading report:', fileEntry.name, error);
+        return {
+          name: fileEntry.name,
           content: '',
           error: error instanceof Error ? error.message : String(error),
+          artifactName: fileEntry.artifactName,
+          filePath: fileEntry.filePath,
+          buildId: fileEntry.buildId,
         };
       }
     });
@@ -491,8 +448,27 @@ const BicepReportExtension: React.FC = () => {
     }
   };
 
-  const getDisplayName = (name: string): string => {
-    return name.replace('md/', '').replace(/^[0-9]+/g, '');
+  const getDisplayName = (report: ReportItem): string => {
+    // First try to clean up the file name from the artifact
+    let displayName = report.name;
+    
+    // Remove common prefixes that might be added by the artifact structure
+    displayName = displayName.replace('md/', '');
+    displayName = displayName.replace(/^[0-9]+[-_]/, ''); // Remove number prefixes
+    
+    // If we have multiple reports from the same artifact, show the artifact name too
+    if (reports.length > 1) {
+      const reportsFromSameArtifact = reports.filter(r => r.artifactName === report.artifactName);
+      if (reportsFromSameArtifact.length === 1 && report.artifactName) {
+        // Single report from this artifact, show artifact name
+        return `${report.artifactName}: ${displayName}`;
+      } else if (report.artifactName) {
+        // Multiple reports from this artifact, show both artifact and file name
+        return `${report.artifactName}/${displayName}`;
+      }
+    }
+    
+    return displayName;
   };
 
   useEffect(() => {
@@ -535,7 +511,7 @@ const BicepReportExtension: React.FC = () => {
         <div className="page-content page-content-top">
           <ZeroData
             primaryText="No Bicep What-If reports found"
-            secondaryText="No Bicep What-If reports found for this build."
+            secondaryText="No Bicep What-If markdown files found in build artifacts. Ensure your pipeline publishes artifacts containing Bicep What-If reports."
             imageAltText="No reports found"
           />
         </div>
@@ -554,7 +530,7 @@ const BicepReportExtension: React.FC = () => {
               collapsible={true}
               collapsed={false}
               titleProps={{
-                text: getDisplayName(report.name),
+                text: getDisplayName(report),
                 size: TitleSize.Medium,
               }}
               contentProps={{

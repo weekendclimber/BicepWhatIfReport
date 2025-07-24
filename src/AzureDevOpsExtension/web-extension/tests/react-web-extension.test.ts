@@ -181,7 +181,7 @@ describe('React Web Extension Tests', () => {
       // Should have the same core functions
       expect(extensionContent).to.include('initializeExtension');
       expect(extensionContent).to.include('loadReports');
-      expect(extensionContent).to.include('displayReports');
+      expect(extensionContent).to.include('processArtifactFiles'); // Updated from displayReports
       expect(extensionContent).to.include('parseMarkdown');
       expect(extensionContent).to.include('getDisplayName');
     });

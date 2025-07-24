@@ -49,8 +49,10 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@types/jszip": "^3.4.0",
     "azure-devops-extension-sdk": "^4.0.2",
     "azure-devops-ui": "^2.259.0",
+    "jszip": "^3.10.1",
     "prettier": "^3.6.2",
     "react": "^16.14.0",
     "react-dom": "^16.14.0"
