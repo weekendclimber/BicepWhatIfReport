@@ -58,20 +58,25 @@ src/AzureDevOpsExtension/
 The web extension uses an artifact-based methodology to discover Bicep What-If reports, following best practices established by the [SARIF Azure DevOps extension](https://github.com/weekendclimber/sarif-azuredevops-extension):
 
 #### Supported Artifact Types
+
 - **Individual Markdown Files**: Direct `.md` files in artifacts
 - **ZIP Archives**: Markdown files extracted from ZIP artifacts using JSZip
 - **Folder Structures**: Nested directory structures containing markdown files
 
 #### Artifact Filtering
+
 The extension searches for artifacts with names that indicate Bicep What-If content:
+
 - Exact matches: `BicepWhatIfReport`, `bicep-what-if-logs`
 - Contains keywords: `bicep`, `whatif`, `what-if` (case-insensitive)
 
 #### Migration from Attachments
+
 **Previous Approach** (deprecated): Used `getBuildAttachments`/`getAttachment` APIs with timeline record iteration  
 **Current Approach**: Uses `getArtifacts` API with direct artifact enumeration and ZIP extraction
 
 This migration provides:
+
 - ✅ Broader artifact support (ZIP files, folders)
 - ✅ Better performance (no timeline iteration)
 - ✅ Future-proof architecture
