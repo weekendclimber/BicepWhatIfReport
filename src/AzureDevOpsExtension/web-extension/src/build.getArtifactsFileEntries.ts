@@ -14,8 +14,11 @@ export async function getArtifactsFileEntries(
   project: string,
   buildId: number
 ): Promise<FileEntry[]> {
+  console.log(`Fetching artifacts for build ${buildId} in project ${project}`);
   const artifacts = await buildClient.getArtifacts(project, buildId);
+  console.log(`Found ${artifacts.length} artifacts for build ${buildId}`);
 
+  console.log('Processing artifacts to find Bicep What-If reports...');
   const files = await Promise.all(
     artifacts
       .filter(artifact => {
@@ -30,6 +33,9 @@ export async function getArtifactsFileEntries(
         );
       })
       .map(async artifact => {
+        console.log(
+          `Processing artifact: ${artifact.name} (URL: ${artifact.resource.downloadUrl})`
+        );
         const requestUrl = artifact.resource.downloadUrl;
         const arrayBuffer = await getArtifactContentZip(requestUrl);
 
@@ -37,6 +43,7 @@ export async function getArtifactsFileEntries(
           try {
             const zip = await JSZip.loadAsync(arrayBuffer);
 
+            console.log(`Loaded JSZip artifact ${artifact.name} from build ${buildId}`);
             return Object.values(zip.files)
               .filter(entry => !entry.dir && entry.name.endsWith('.md'))
               .map(entry => ({
