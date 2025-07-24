@@ -7,7 +7,7 @@ import {
 } from 'azure-devops-extension-api/Build';
 import { BuildRestClient } from 'azure-devops-extension-api/Build';
 import { getClient } from 'azure-devops-extension-api';
-import * as Build from 'azure-devops-extension-api/Build/Build';
+//import * as Build from 'azure-devops-extension-api/Build/Build';
 import {
   ReportItem,
   FileEntry,
@@ -451,11 +451,11 @@ const BicepReportExtension: React.FC = () => {
   const getDisplayName = (report: ReportItem): string => {
     // First try to clean up the file name from the artifact
     let displayName = report.name;
-    
+
     // Remove common prefixes that might be added by the artifact structure
     displayName = displayName.replace('md/', '');
     displayName = displayName.replace(/^[0-9]+[-_]/, ''); // Remove number prefixes
-    
+
     // If we have multiple reports from the same artifact, show the artifact name too
     if (reports.length > 1) {
       const reportsFromSameArtifact = reports.filter(r => r.artifactName === report.artifactName);
@@ -467,7 +467,7 @@ const BicepReportExtension: React.FC = () => {
         return `${report.artifactName}/${displayName}`;
       }
     }
-    
+
     return displayName;
   };
 
