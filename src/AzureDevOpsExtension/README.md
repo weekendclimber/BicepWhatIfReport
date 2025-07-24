@@ -49,8 +49,33 @@ src/AzureDevOpsExtension/
   - **Azure DevOps UI Integration**: Uses official `azure-devops-ui` components for consistent styling
   - **Professional Components**: Header, Spinner, MessageBar, Card, and ZeroData components
   - **Responsive Design**: Adapts to Azure DevOps theme and layout standards
+  - **Artifact-Based Discovery**: Uses Azure DevOps artifacts API for flexible report discovery (supports ZIP files and folder structures)
 - **Artifact Publishing**: Publishes Markdown files as build artifacts for download
 - **Output Directory**: Reports are saved to `Build.ArtifactStagingDirectory` by default
+
+### Report Discovery
+
+The web extension uses an artifact-based methodology to discover Bicep What-If reports, following best practices established by the [SARIF Azure DevOps extension](https://github.com/weekendclimber/sarif-azuredevops-extension):
+
+#### Supported Artifact Types
+- **Individual Markdown Files**: Direct `.md` files in artifacts
+- **ZIP Archives**: Markdown files extracted from ZIP artifacts using JSZip
+- **Folder Structures**: Nested directory structures containing markdown files
+
+#### Artifact Filtering
+The extension searches for artifacts with names that indicate Bicep What-If content:
+- Exact matches: `BicepWhatIfReport`, `bicep-what-if-logs`
+- Contains keywords: `bicep`, `whatif`, `what-if` (case-insensitive)
+
+#### Migration from Attachments
+**Previous Approach** (deprecated): Used `getBuildAttachments`/`getAttachment` APIs with timeline record iteration  
+**Current Approach**: Uses `getArtifacts` API with direct artifact enumeration and ZIP extraction
+
+This migration provides:
+- ✅ Broader artifact support (ZIP files, folders)
+- ✅ Better performance (no timeline iteration)
+- ✅ Future-proof architecture
+- ✅ Consistent with Azure DevOps best practices
 
 ## Building and Testing
 
