@@ -1,19 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import * as SDK from 'azure-devops-extension-sdk';
-import {
-  IBuildPageDataService,
-  BuildServiceIds,
-  //IBuildPageData,
-} from 'azure-devops-extension-api/Build';
+import { IBuildPageDataService, BuildServiceIds } from 'azure-devops-extension-api/Build';
 import { BuildRestClient } from 'azure-devops-extension-api/Build';
 import { getClient } from 'azure-devops-extension-api';
-//import * as Build from 'azure-devops-extension-api/Build/Build';
-import {
-  ReportItem,
-  FileEntry,
-  //IExtendedPageContext,
-  //IPageDataService,
-} from './types';
+import { ReportItem, FileEntry } from './types';
 import { getArtifactsFileEntries } from './build.getArtifactsFileEntries';
 
 // Azure DevOps UI Components
@@ -24,11 +14,7 @@ import { Card } from 'azure-devops-ui/Card';
 import { ZeroData } from 'azure-devops-ui/ZeroData';
 
 // Azure DevOps UI Core and utilities
-//import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/_platformCommon.scss';
-
-// Constants for service names
-//const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
 
 const BicepReportExtension: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -188,13 +174,8 @@ const BicepReportExtension: React.FC = () => {
           console.log('BuildRestClient is available.');
         }
 
-        // Use artifact-based approach to discover Bicep What-If reports
-        console.log(
-          `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
-        );
-
         // Add detailed parameter logging for troubleshooting
-        console.log('Parameters for getArtifacts call:');
+        console.log('Parameters for getArtifactsFileEntries call:');
         console.log(
           `  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`
         );
