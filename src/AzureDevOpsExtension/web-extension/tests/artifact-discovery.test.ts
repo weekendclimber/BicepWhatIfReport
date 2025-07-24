@@ -59,7 +59,7 @@ describe('Artifact Discovery Tests', () => {
         getArtifacts: async (project: string, buildId: number) => {
           expect(project).to.equal('test-project');
           expect(buildId).to.equal(123);
-          
+
           return [
             {
               name: 'BicepWhatIfReport',
@@ -93,14 +93,14 @@ describe('Artifact Discovery Tests', () => {
       expect(fileEntries[0].artifactName).to.equal('BicepWhatIfReport');
       expect(fileEntries[0].filePath).to.equal('report1.md');
       expect(fileEntries[0].buildId).to.equal(123);
-      
+
       expect(fileEntries[1].name).to.equal('report2.md');
       expect(fileEntries[1].artifactName).to.equal('BicepWhatIfReport');
 
       // Test that content can be retrieved
       const content1 = await fileEntries[0].contentsPromise;
       const content2 = await fileEntries[1].contentsPromise;
-      
+
       expect(content1).to.equal('# Test Report 1\nThis is test content.');
       expect(content2).to.equal('# Test Report 2\nThis is test content 2.');
 
@@ -227,9 +227,9 @@ describe('Artifact Discovery Tests', () => {
 
       testCases.forEach(testCase => {
         const artifact = { name: testCase.name };
-        
+
         // Simulate the filter logic from getArtifactsFileEntries
-        const matches = 
+        const matches =
           artifact.name === 'BicepWhatIfReport' ||
           artifact.name === 'bicep-what-if-logs' ||
           artifact.name.toLowerCase().includes('bicep') ||
