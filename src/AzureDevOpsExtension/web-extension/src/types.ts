@@ -27,4 +27,15 @@ export interface ReportItem {
   name: string;
   content: string;
   error?: string;
+  artifactName?: string;
+  filePath?: string;
+  buildId?: number;
+}
+
+export interface FileEntry {
+  name: string;
+  artifactName: string;
+  filePath: string;
+  buildId: number;
+  contentsPromise: Promise<string>;
 }

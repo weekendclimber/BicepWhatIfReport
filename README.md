@@ -140,7 +140,9 @@ This repository has comprehensive security and quality measures in place:
 #### Feature List
 
 - **Pipeline Task**: Generates markdown reports from Bicep what-if JSON output
-- **Web Extension**: Displays reports in Azure DevOps build summary tab
+- **Web Extension**: Displays reports in Azure DevOps build summary tab using artifact-based discovery
+  - **Flexible Artifact Support**: Discovers markdown reports in ZIP files, folders, and individual files
+  - **Modern React UI**: Built with Azure DevOps UI components for consistent styling
 - **Artifact Publishing**: Publishes markdown files as build artifacts for download
 - **Output Directory**: Reports are saved to `Build.ArtifactStagingDirectory` by default
 
