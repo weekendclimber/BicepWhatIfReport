@@ -29,11 +29,7 @@ export async function getArtifactContentZip(downloadUrl: string): Promise<ArrayB
       if (redirectUrl) {
         return await getArtifactContentZip(redirectUrl);
       }
-    } else if (
-      response.status === undefined ||
-      response.status < 200 ||
-      response.status >= 300
-    ) {
+    } else if (response.status === undefined || response.status < 200 || response.status >= 300) {
       console.error(`Failed to download artifact: HTTP ${response.status}`);
       return undefined;
     }
