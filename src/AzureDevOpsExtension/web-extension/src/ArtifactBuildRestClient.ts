@@ -3,7 +3,7 @@ import { getAccessToken } from 'azure-devops-extension-sdk';
 
 export type ArtifactBuildRestClient = Pick<BuildRestClient, 'getArtifacts'>;
 
-export async function getArtifactContentZip(downloadUrl: string): Promise<ArrayBuffer | undefined> {
+export async function getArtifactContentZip(downloadUrl: string): Promise<ArrayBuffer> {
   const accessToken = await getAccessToken();
   const acceptType = 'application/zip';
   const acceptHeaderValue = `${acceptType};excludeUrls=true;enumsAsNumbers=true;msDateFormat=true;noArrayWrap=true`;
@@ -21,22 +21,16 @@ export async function getArtifactContentZip(downloadUrl: string): Promise<ArrayB
     headers: headers,
   };
 
-  try {
-    const response = await fetch(downloadUrl, options);
+  const response = await fetch(downloadUrl, options);
 
-    if (response.status === 302) {
-      const redirectUrl = response.headers.get('location');
-      if (redirectUrl) {
-        return await getArtifactContentZip(redirectUrl);
-      }
-    } else if (response.status === undefined || response.status < 200 || response.status >= 300) {
-      console.error(`Failed to download artifact: HTTP ${response.status}`);
-      return undefined;
+  if (response.status === 302) {
+    const redirectUrl = response.headers.get('location');
+    if (redirectUrl) {
+      return await getArtifactContentZip(redirectUrl);
     }
-
-    return response.arrayBuffer();
-  } catch (error) {
-    console.error('Error downloading artifact:', error);
-    return undefined;
+  } else if (response.status === undefined || response.status < 200 || response.status >= 300) {
+    throw new Error(`Failed to download artifact: HTTP ${response.status}`);
   }
+
+  return response.arrayBuffer();
 }
