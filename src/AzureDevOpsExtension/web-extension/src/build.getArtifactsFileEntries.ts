@@ -1,4 +1,4 @@
-import JSZip from 'jszip';
+import * as JSZip from 'jszip';
 import { ArtifactBuildRestClient, getArtifactContentZip } from './ArtifactBuildRestClient';
 
 interface FileEntry {
@@ -37,28 +37,23 @@ export async function getArtifactsFileEntries(
           `Processing artifact: ${artifact.name} (URL: ${artifact.resource.downloadUrl})`
         );
         const requestUrl = artifact.resource.downloadUrl;
-        const arrayBuffer = await getArtifactContentZip(requestUrl);
 
-        if (arrayBuffer) {
-          try {
-            const zip = await JSZip.loadAsync(arrayBuffer);
+        try {
+          const arrayBuffer = await getArtifactContentZip(requestUrl);
+          const zip = await JSZip.loadAsync(arrayBuffer);
 
-            console.log(`Loaded JSZip artifact ${artifact.name} from build ${buildId}`);
-            return Object.values(zip.files)
-              .filter(entry => !entry.dir && entry.name.endsWith('.md'))
-              .map(entry => ({
-                name: entry.name.replace(`${artifact.name}/`, ''),
-                artifactName: artifact.name,
-                filePath: entry.name.replace(`${artifact.name}/`, ''),
-                buildId: buildId,
-                contentsPromise: entry.async('string'),
-              }));
-          } catch (e) {
-            console.error(`Error loading artifact ${artifact.name} from build ${buildId}:`, e);
-            return [];
-          }
-        } else {
-          console.warn(`Failed to download artifact ${artifact.name} from build ${buildId}`);
+          console.log(`Loaded JSZip artifact ${artifact.name} from build ${buildId}`);
+          return Object.values(zip.files)
+            .filter(entry => !entry.dir && entry.name.endsWith('.md'))
+            .map(entry => ({
+              name: entry.name.replace(`${artifact.name}/`, ''),
+              artifactName: artifact.name,
+              filePath: entry.name.replace(`${artifact.name}/`, ''),
+              buildId: buildId,
+              contentsPromise: entry.async('string'),
+            }));
+        } catch (e) {
+          console.error(`Error loading artifact ${artifact.name} from build ${buildId}:`, e);
           return [];
         }
       })
