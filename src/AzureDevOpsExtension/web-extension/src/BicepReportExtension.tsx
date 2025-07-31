@@ -267,7 +267,7 @@ const BicepReportExtension: React.FC = () => {
         );
 
         // Display the reports from the artifacts
-        await displayReports(reportArtifacts, projectName, buildId, buildClient);
+        await displayReports(reportArtifacts); //, projectName, buildId, buildClient);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -277,10 +277,10 @@ const BicepReportExtension: React.FC = () => {
   };
 
   const displayReports = async (
-    artifacts: Build.BuildArtifact[],
-    projectName: string,
-    buildId: number,
-    buildClient: BuildRestClient
+    artifacts: Build.BuildArtifact[]
+    //projectName: string,
+    //buildId: number,
+    //buildClient: BuildRestClient
   ): Promise<void> => {
     // Process each artifact to extract markdown reports
     const reportPromises = artifacts.map(async artifact => {
@@ -310,6 +310,7 @@ const BicepReportExtension: React.FC = () => {
 
         if (isZip) {
           // Use JSZip to extract the ZIP content (following SpotCheck pattern)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const JSZip = (window as any).JSZip;
           if (!JSZip) {
             throw new Error('JSZip library not available. Please ensure jszip is loaded.');
