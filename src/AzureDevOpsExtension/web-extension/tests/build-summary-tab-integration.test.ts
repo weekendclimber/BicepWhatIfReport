@@ -25,7 +25,7 @@ describe('Build Summary Tab Integration Tests', () => {
         properties: {
           name: 'Bicep What If Report',
           uri: 'web-extension/contents/bicep-what-if-tab.html',
-        }
+        },
       };
 
       // Verify the expected structure is valid
@@ -42,7 +42,7 @@ describe('Build Summary Tab Integration Tests', () => {
 
     it('should validate artifact name consistency', () => {
       const artifactName = 'BicepWhatIfReports';
-      
+
       // This should match what's used in both task and web extension
       expect(artifactName).to.equal('BicepWhatIfReports');
       expect(artifactName).to.be.a('string');
@@ -105,7 +105,9 @@ describe('Build Summary Tab Integration Tests', () => {
         }
       } catch (error) {
         errorThrown = true;
-        expect(error instanceof Error ? error.message : '').to.include('Build client could not be initialized');
+        expect(error instanceof Error ? error.message : '').to.include(
+          'Build client could not be initialized'
+        );
       }
 
       expect(errorThrown).to.be.true;
@@ -114,13 +116,16 @@ describe('Build Summary Tab Integration Tests', () => {
     it('should handle artifact retrieval timeout', async () => {
       // Test timeout handling for long-running artifact requests
       const timeoutMs = 100; // Short timeout for testing
-      
-      const longRunningPromise = new Promise((resolve) => {
+
+      const longRunningPromise = new Promise(resolve => {
         setTimeout(() => resolve('data'), timeoutMs + 50);
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`getArtifacts call timed out after ${timeoutMs}ms`)), timeoutMs);
+        setTimeout(
+          () => reject(new Error(`getArtifacts call timed out after ${timeoutMs}ms`)),
+          timeoutMs
+        );
       });
 
       let errorMessage = '';
@@ -137,29 +142,30 @@ describe('Build Summary Tab Integration Tests', () => {
   describe('Security Validation', () => {
     it('should sanitize HTML content properly', () => {
       // Mock HTML sanitization test (similar to the implementation)
-      const maliciousHtml = '<script>alert("xss")</script><p>Safe content</p><img src="javascript:alert(1)" onerror="alert(2)">';
-      
+      const maliciousHtml =
+        '<script>alert("xss")</script><p>Safe content</p><img src="javascript:alert(1)" onerror="alert(2)">';
+
       // Simulate the sanitization logic from BicepReportExtension.tsx
       const allowedTags = ['p', 'img'];
       const dangerousProtocols = ['javascript:', 'data:', 'vbscript:'];
-      
+
       // Create temp element for testing
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = maliciousHtml;
-      
+
       // Remove script tags
       const scripts = tempDiv.querySelectorAll('script');
       scripts.forEach(script => script.remove());
-      
+
       // Check that script was removed but safe content remains
       expect(tempDiv.innerHTML).to.not.include('<script>');
       expect(tempDiv.innerHTML).to.include('<p>Safe content</p>');
-      
+
       // Verify dangerous protocols would be blocked
       const imgElement = tempDiv.querySelector('img');
       if (imgElement) {
         const src = imgElement.getAttribute('src') || '';
-        const isDangerous = dangerousProtocols.some(protocol => 
+        const isDangerous = dangerousProtocols.some(protocol =>
           src.toLowerCase().includes(protocol)
         );
         expect(isDangerous).to.be.true; // Should detect dangerous protocol
@@ -171,12 +177,12 @@ describe('Build Summary Tab Integration Tests', () => {
     it('should handle large markdown content efficiently', () => {
       // Simulate large markdown content
       const largeMarkdown = 'x'.repeat(1000000); // 1MB of text
-      
+
       // Mock markdown parsing (similar to marked library behavior)
       const parseStart = Date.now();
       const parsedHtml = `<p>${largeMarkdown}</p>`;
       const parseTime = Date.now() - parseStart;
-      
+
       // Should parse reasonably quickly (under 1 second)
       expect(parseTime).to.be.lessThan(1000);
       expect(parsedHtml).to.include('<p>');
@@ -185,7 +191,7 @@ describe('Build Summary Tab Integration Tests', () => {
 
     it('should handle multiple concurrent report loading', async () => {
       // Simulate multiple reports being loaded concurrently
-      const reportPromises = Array.from({ length: 5 }, (_, i) => 
+      const reportPromises = Array.from({ length: 5 }, (_, i) =>
         Promise.resolve({
           name: `report-${i}.md`,
           content: `# Report ${i}\nContent for report ${i}`,
@@ -195,7 +201,7 @@ describe('Build Summary Tab Integration Tests', () => {
       const startTime = Date.now();
       const reports = await Promise.all(reportPromises);
       const loadTime = Date.now() - startTime;
-      
+
       expect(reports).to.have.length(5);
       expect(loadTime).to.be.lessThan(100); // Should complete quickly
       expect(reports[0].name).to.equal('report-0.md');

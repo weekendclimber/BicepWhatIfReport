@@ -42,7 +42,7 @@ const BicepReportExtension: React.FC = () => {
     try {
       // Initialize SDK using SpotCheck pattern for better compatibility
       console.log('Initializing Bicep What-If Report Extension...');
-      
+
       // Simple SDK initialization following SpotCheck pattern
       SDK.init();
       await SDK.ready();
@@ -52,7 +52,6 @@ const BicepReportExtension: React.FC = () => {
       console.log('Loading Bicep What-If reports...');
       await loadReports();
       console.log('Bicep What-If reports loaded successfully.');
-
     } catch (error) {
       // Handle missing Build ID context gracefully - this is an expected scenario
       // when the extension is accessed outside of a build pipeline context
@@ -217,13 +216,16 @@ const BicepReportExtension: React.FC = () => {
         console.log(`Found ${artifacts.length} artifacts for build ${buildId}`);
 
         // Filter for BicepWhatIfReports artifacts (matches task artifact name)
-        const reportArtifacts = artifacts.filter(artifact => 
-          artifact.name === 'BicepWhatIfReports'
+        const reportArtifacts = artifacts.filter(
+          artifact => artifact.name === 'BicepWhatIfReports'
         );
 
         if (reportArtifacts.length === 0) {
           console.log('No BicepWhatIfReports artifacts found.');
-          console.log('Available artifacts:', artifacts.map(a => a.name));
+          console.log(
+            'Available artifacts:',
+            artifacts.map(a => a.name)
+          );
           setNoReports(true);
           return;
         }
@@ -253,14 +255,14 @@ const BicepReportExtension: React.FC = () => {
     const reportPromises = artifacts.map(async artifact => {
       try {
         console.log(`Processing artifact: ${artifact.name}`);
-        
+
         // Get the download URL from the artifact resource
         if (!artifact.resource?.downloadUrl) {
           throw new Error(`Artifact ${artifact.name} has no download URL`);
         }
 
         console.log(`Downloading artifact from: ${artifact.resource.downloadUrl}`);
-        
+
         // Download the artifact content
         const response = await fetch(artifact.resource.downloadUrl);
         if (!response.ok) {
@@ -273,7 +275,7 @@ const BicepReportExtension: React.FC = () => {
 
         // Check if this is a ZIP file (artifacts are typically zipped)
         const uint8Array = new Uint8Array(arrayBuffer);
-        const isZip = uint8Array[0] === 0x50 && uint8Array[1] === 0x4B; // ZIP file signature
+        const isZip = uint8Array[0] === 0x50 && uint8Array[1] === 0x4b; // ZIP file signature
 
         if (isZip) {
           // Use JSZip to extract the ZIP content (following SpotCheck pattern)
@@ -302,27 +304,31 @@ const BicepReportExtension: React.FC = () => {
         } else {
           // If it's not a ZIP, treat it as a single markdown file
           const content = new TextDecoder().decode(arrayBuffer);
-          return [{
-            name: artifact.name + '.md',
-            content: content,
-          }];
+          return [
+            {
+              name: artifact.name + '.md',
+              content: content,
+            },
+          ];
         }
       } catch (error) {
         console.error('Error processing artifact:', artifact.name, error);
-        return [{
-          name: artifact.name,
-          content: '',
-          error: error instanceof Error ? error.message : String(error),
-        }];
+        return [
+          {
+            name: artifact.name,
+            content: '',
+            error: error instanceof Error ? error.message : String(error),
+          },
+        ];
       }
     });
 
     // Wait for all artifacts to be processed
     const artifactResults = await Promise.all(reportPromises);
-    
+
     // Flatten the results (each artifact might contain multiple markdown files)
     const allReports = artifactResults.flat();
-    
+
     console.log(`Extracted ${allReports.length} total reports from artifacts`);
     setReports(allReports);
 
