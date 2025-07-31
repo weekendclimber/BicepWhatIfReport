@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as SDK from 'azure-devops-extension-sdk';
+import { getAccessToken } from 'azure-devops-extension-sdk';
 import {
   IBuildPageDataService,
   BuildServiceIds,
@@ -13,6 +14,7 @@ import {
   //IExtendedPageContext,
   //IPageDataService,
 } from './types';
+import { CommonServiceIds, IProjectPageService } from 'azure-devops-extension-api';
 
 // Azure DevOps UI Components
 import { Header, TitleSize } from 'azure-devops-ui/Header';
@@ -40,10 +42,10 @@ const BicepReportExtension: React.FC = () => {
 
   const initializeExtension = async (): Promise<void> => {
     try {
-      // Initialize SDK using SpotCheck pattern for better compatibility
+      // Initialize SDK following SpotCheck pattern exactly
       console.log('Initializing Bicep What-If Report Extension...');
       
-      // Simple SDK initialization following SpotCheck pattern
+      // SpotCheck pattern: simple init then ready
       SDK.init();
       await SDK.ready();
       console.log('Azure DevOps SDK initialized successfully.');
@@ -96,6 +98,23 @@ const BicepReportExtension: React.FC = () => {
       errors.push('Project context is missing from web context');
     } else {
       console.log(`Web context project ID: ${webContext.project.id}`);
+      console.log(`Web context project name: ${webContext.project.name}`);
+    }
+
+    // Get project information using SpotCheck approach as fallback
+    let projectName = webContext?.project?.name;
+    if (!projectName) {
+      try {
+        console.log('Attempting to get project via ProjectPageService...');
+        const projectPageService = await SDK.getService<IProjectPageService>(CommonServiceIds.ProjectPageService);
+        const project = await projectPageService.getProject();
+        if (project?.name) {
+          projectName = project.name;
+          console.log(`Project name obtained from ProjectPageService: ${projectName}`);
+        }
+      } catch (projectError) {
+        console.warn('Could not get project from ProjectPageService:', projectError);
+      }
     }
 
     // Try multiple approaches to get the Build ID
@@ -139,15 +158,21 @@ const BicepReportExtension: React.FC = () => {
       );
     }
 
+    if (!projectName) {
+      errors.push('Project name is not available from web context or ProjectPageService');
+    }
+
     if (errors.length > 0) {
       const detailedError =
         `Required context not available. Missing:\n\t${errors.join('\n\t')}\n` +
         `This extension must be used within an Azure DevOps build pipeline tab.\n` +
         `Debug info: Current URL: ${window.location.href}\n` +
         `Configuration: ${JSON.stringify(config)}\n` +
-        `Web context project: ${webContext?.project?.id || 'undefined'}`;
+        `Web context project: ${webContext?.project?.id || 'undefined'}\n` +
+        `Project name: ${projectName || 'undefined'}`;
       throw new Error(detailedError);
     } else {
+      console.log(`Project name confirmed: ${projectName}`);
       console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
     }
 
@@ -172,27 +197,35 @@ const BicepReportExtension: React.FC = () => {
           console.log('BuildRestClient is available.');
         }
 
-        // Get build artifacts for Bicep What-If reports (following SpotCheck pattern)
+        // Check if we can get access token for authentication diagnostics
+        try {
+          const accessToken = await getAccessToken();
+          console.log('Access token obtained successfully:', accessToken ? 'Yes' : 'No');
+        } catch (tokenError) {
+          console.warn('Could not obtain access token:', tokenError);
+        }
+
+        // Get build artifacts for Bicep What-If reports (following SpotCheck pattern exactly)
         console.log(
-          `Fetching artifacts for build ID '${buildId}' and project '${webContext.project.id}'...`
+          `Fetching artifacts for build ID '${buildId}' and project '${projectName}'...`
         );
 
         // Add detailed parameter logging for troubleshooting
         console.log('Parameters for getArtifacts call:');
         console.log(
-          `  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`
+          `  - project: "${projectName}" (type: ${typeof projectName})`
         );
         console.log(`  - buildId: ${buildId} (type: ${typeof buildId})`);
 
         // Use the artifact-based approach that matches the pipeline task upload method
-        // Following SpotCheck pattern with getArtifacts instead of getAttachments
+        // Following SpotCheck pattern with getArtifacts using project name (not ID)
         let artifacts: Build.BuildArtifact[];
         try {
           const timeoutMs = 30000; // 30 second timeout
           console.log(`Setting ${timeoutMs}ms timeout for getArtifacts call...`);
 
           artifacts = await Promise.race([
-            buildClient.getArtifacts(webContext.project.id, buildId),
+            buildClient.getArtifacts(projectName, buildId),
             new Promise<never>((_, reject) =>
               setTimeout(
                 () => reject(new Error(`getArtifacts call timed out after ${timeoutMs}ms`)),
@@ -234,7 +267,7 @@ const BicepReportExtension: React.FC = () => {
         );
 
         // Display the reports from the artifacts
-        await displayReports(reportArtifacts, webContext.project.id, buildId, buildClient);
+        await displayReports(reportArtifacts, projectName, buildId, buildClient);
       } catch (error) {
         throw new Error(
           `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
@@ -245,7 +278,7 @@ const BicepReportExtension: React.FC = () => {
 
   const displayReports = async (
     artifacts: Build.BuildArtifact[],
-    projectId: string,
+    projectName: string,
     buildId: number,
     buildClient: BuildRestClient
   ): Promise<void> => {
