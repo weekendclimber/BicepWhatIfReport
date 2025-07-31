@@ -40,13 +40,13 @@ describe('Build Summary Tab Integration Tests', () => {
       expect(requiredScopes).to.include('vso.build');
     });
 
-    it('should validate attachment type consistency', () => {
-      const attachmentType = 'bicepwhatifreport';
+    it('should validate artifact name consistency', () => {
+      const artifactName = 'BicepWhatIfReports';
       
       // This should match what's used in both task and web extension
-      expect(attachmentType).to.equal('bicepwhatifreport');
-      expect(attachmentType).to.be.a('string');
-      expect(attachmentType.length).to.be.greaterThan(0);
+      expect(artifactName).to.equal('BicepWhatIfReports');
+      expect(artifactName).to.be.a('string');
+      expect(artifactName.length).to.be.greaterThan(0);
     });
   });
 
@@ -54,9 +54,8 @@ describe('Build Summary Tab Integration Tests', () => {
     it('should handle missing Azure DevOps context gracefully', async () => {
       // Mock SDK that provides no context
       const mockSDKNoContext = {
-        init: async () => ({ loaded: true }),
-        notifyLoadSucceeded: async () => {},
-        notifyLoadFailed: async () => {},
+        init: () => {},
+        ready: async () => {},
         getWebContext: () => null,
         getConfiguration: () => ({}),
         getService: async () => null,
@@ -81,9 +80,8 @@ describe('Build Summary Tab Integration Tests', () => {
     it('should handle build client unavailable scenario', async () => {
       // Mock SDK that fails to provide build client
       const mockSDKNoBuildClient = {
-        init: async () => ({ loaded: true }),
-        notifyLoadSucceeded: async () => {},
-        notifyLoadFailed: async () => {},
+        init: () => {},
+        ready: async () => {},
         getWebContext: () => ({
           project: { id: 'test-project' },
         }),
@@ -113,8 +111,8 @@ describe('Build Summary Tab Integration Tests', () => {
       expect(errorThrown).to.be.true;
     });
 
-    it('should handle attachment retrieval timeout', async () => {
-      // Test timeout handling for long-running attachment requests
+    it('should handle artifact retrieval timeout', async () => {
+      // Test timeout handling for long-running artifact requests
       const timeoutMs = 100; // Short timeout for testing
       
       const longRunningPromise = new Promise((resolve) => {
@@ -122,7 +120,7 @@ describe('Build Summary Tab Integration Tests', () => {
       });
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs);
+        setTimeout(() => reject(new Error(`getArtifacts call timed out after ${timeoutMs}ms`)), timeoutMs);
       });
 
       let errorMessage = '';
@@ -132,7 +130,7 @@ describe('Build Summary Tab Integration Tests', () => {
         errorMessage = error instanceof Error ? error.message : 'Unknown error';
       }
 
-      expect(errorMessage).to.include('Operation timed out');
+      expect(errorMessage).to.include('getArtifacts call timed out');
     });
   });
 
