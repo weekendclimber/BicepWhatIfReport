@@ -145,11 +145,7 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should call the same SDK methods
-      expect(extensionContent).to.include('SDK.init');
-      expect(extensionContent).to.include('SDK.getWebContext');
-      expect(extensionContent).to.include('SDK.getConfiguration');
-      expect(extensionContent).to.include('SDK.getService');
+      // Should call the same SDK methods - updated for SpotCheck pattern
       expect(extensionContent).to.include('SDK.init');
       expect(extensionContent).to.include('SDK.ready');
       expect(extensionContent).to.include('SDK.resize');
@@ -178,10 +174,10 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should have the same core functions
+      // Should have the same core functions - updated for SpotCheck pattern
       expect(extensionContent).to.include('initializeExtension');
       expect(extensionContent).to.include('loadReports');
-      expect(extensionContent).to.include('displayReports');
+      expect(extensionContent).to.include('downloadArtifacts'); // Now using SpotCheck pattern
       expect(extensionContent).to.include('parseMarkdown');
       expect(extensionContent).to.include('getDisplayName');
     });
