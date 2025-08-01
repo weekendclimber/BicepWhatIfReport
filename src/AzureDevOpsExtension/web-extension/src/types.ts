@@ -14,13 +14,17 @@ export interface IPageDataService {
 
 export interface IBuildService {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getBuildAttachments(projectId: string, buildId: number, type: string): Promise<any[]>;
-  getAttachment(projectId: string, buildId: number, type: string, name: string): Promise<string>;
+  getBuildArtifacts(projectId: string, buildId: number): Promise<any[]>;
+  getArtifact(projectId: string, buildId: number, artifactName: string): Promise<string>;
 }
 
-export interface BuildAttachment {
+export interface BuildArtifact {
   name: string;
-  type: string;
+  resource?: {
+    downloadUrl: string;
+    url: string;
+    data: string;
+  };
 }
 
 export interface ReportItem {

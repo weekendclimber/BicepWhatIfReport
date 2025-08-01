@@ -49,8 +49,31 @@ src/AzureDevOpsExtension/
   - **Azure DevOps UI Integration**: Uses official `azure-devops-ui` components for consistent styling
   - **Professional Components**: Header, Spinner, MessageBar, Card, and ZeroData components
   - **Responsive Design**: Adapts to Azure DevOps theme and layout standards
+  - **Build Summary Tab**: ✅ **FULLY IMPLEMENTED** - Automatically displays markdown reports as a dedicated tab
 - **Artifact Publishing**: Publishes Markdown files as build artifacts for download
 - **Output Directory**: Reports are saved to `Build.ArtifactStagingDirectory` by default
+
+## Build Summary Tab Implementation ✅
+
+The extension **fully implements** the build summary tab feature as requested in [Issue #92](https://github.com/weekendclimber/BicepWhatIfReport/issues/92). This implementation follows the SpotCheck pattern and includes:
+
+### ✅ Feature Complete
+- **Build Summary Tab Registration**: Properly registered in `vss-extension.json` as `bicep-what-if-build-results-tab`
+- **SDK Integration**: Uses `azure-devops-extension-sdk` with proper `SDK.init()` initialization
+- **Artifact Retrieval**: Retrieves build attachments using Azure DevOps REST APIs via `BuildRestClient`
+- **Markdown Rendering**: Uses `marked` library with comprehensive HTML sanitization for security
+- **Azure DevOps UI Components**: Professional UI using `azure-devops-ui` (Header, Spinner, MessageBar, Card, ZeroData)
+- **Error Handling**: Comprehensive error handling for missing artifacts, API failures, and context issues
+- **Loading States**: Professional loading spinner while fetching artifacts
+- **Multi-Report Support**: Handles multiple markdown reports with collapsible cards
+- **Security**: HTML sanitization prevents XSS attacks
+
+### Implementation Details
+- **Extension Type**: `ms.vss-build-web.build-results-tab`
+- **Target**: `ms.vss-build-web.build-results-view`
+- **Attachment Type**: `bicepwhatifreport` (consistent between task and web extension)
+- **UI Framework**: React 16.x + TypeScript + Webpack (required for azure-devops-ui compatibility)
+- **Build Artifacts**: Automatically retrieved and displayed from build attachments
 
 ## Building and Testing
 
@@ -94,8 +117,9 @@ npm test
 
 The test suite includes:
 
-- **42 task tests**: JSON parsing, report generation, file enumeration
-- **19 web extension tests**: React components, azure-devops-ui integration, DOM manipulation
+- **49 task tests**: JSON parsing, report generation, file enumeration
+- **20 web extension tests**: React components, azure-devops-ui integration, DOM manipulation, build summary tab integration
+- **Build Summary Tab Integration Tests**: Extension manifest validation, error handling edge cases, security validation, performance testing
 
 ## Azure DevOps UI Integration
 

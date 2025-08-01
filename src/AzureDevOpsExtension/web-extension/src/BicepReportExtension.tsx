@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as SDK from 'azure-devops-extension-sdk';
-import {
-  IBuildPageDataService,
-  BuildServiceIds,
-  //IBuildPageData,
-} from 'azure-devops-extension-api/Build';
-import { BuildRestClient } from 'azure-devops-extension-api/Build';
-import { getClient } from 'azure-devops-extension-api';
-import * as Build from 'azure-devops-extension-api/Build/Build';
-import {
-  ReportItem,
-  //IExtendedPageContext,
-  //IPageDataService,
-} from './types';
+import { ReportItem } from './types';
+import { downloadArtifacts } from './ArtifactService';
 
 // Azure DevOps UI Components
 import { Header, TitleSize } from 'azure-devops-ui/Header';
@@ -22,11 +11,7 @@ import { Card } from 'azure-devops-ui/Card';
 import { ZeroData } from 'azure-devops-ui/ZeroData';
 
 // Azure DevOps UI Core and utilities
-//import 'azure-devops-ui/Core/override.css';
 import 'azure-devops-ui/Core/_platformCommon.scss';
-
-// Constants for service names
-//const PAGE_DATA_SERVICE = 'ms.vss-tfs-web.tfs-page-data-service';
 
 const BicepReportExtension: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -40,37 +25,23 @@ const BicepReportExtension: React.FC = () => {
 
   const initializeExtension = async (): Promise<void> => {
     try {
-      // Modern SDK initialization with double-loading protection
+      // Initialize SDK following SpotCheck pattern exactly
       console.log('Initializing Bicep What-If Report Extension...');
 
-      // Check if SDK is already initialized to prevent double loading
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (!(window as any).VSS_SDK_INITIALIZED) {
-        await SDK.init({ loaded: false, applyTheme: true });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).VSS_SDK_INITIALIZED = true;
-        console.log('Azure DevOps SDK initialized successfully.');
-      } else {
-        console.log('Azure DevOps SDK already initialized, skipping initialization.');
-      }
+      // SpotCheck pattern: simple init then ready
+      SDK.init();
+      await SDK.ready();
+      console.log('Azure DevOps SDK initialized successfully.');
 
-      // Load and display reports
+      // Load and display reports using SpotCheck pattern
       console.log('Loading Bicep What-If reports...');
       await loadReports();
       console.log('Bicep What-If reports loaded successfully.');
-
-      // Notify successful load
-      console.log('Notifying Azure DevOps SDK of successful load.');
-      await SDK.notifyLoadSucceeded();
-      console.log('Azure DevOps SDK notified of successful load.');
     } catch (error) {
       // Handle missing Build ID context gracefully - this is an expected scenario
       // when the extension is accessed outside of a build pipeline context
       if (error instanceof Error && error.message.includes('Required context not available')) {
         setError(error.message);
-        // Still notify successful load since the extension loaded correctly,
-        // it just can't display reports due to missing context
-        await SDK.notifyLoadSucceeded();
         return;
       }
 
@@ -89,269 +60,46 @@ const BicepReportExtension: React.FC = () => {
       }
 
       setError(errorMessage);
-      await SDK.notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
     }
   };
 
   const loadReports = async (): Promise<void> => {
-    const webContext = SDK.getWebContext();
-    const config = SDK.getConfiguration();
-
-    // Enhanced context validation with detailed error messages
-    const errors: string[] = [];
-
-    if (!webContext) {
-      console.log('Azure DevOps web context is not available');
-      errors.push('Azure DevOps web context is not available');
-    } else if (!webContext.project) {
-      console.log('Project context is missing from web context');
-      errors.push('Project context is missing from web context');
-    } else {
-      console.log(`Web context project ID: ${webContext.project.id}`);
-    }
-
-    // Try multiple approaches to get the Build ID
-    let buildId: number | undefined;
-    let buildIdSource = '';
-
-    // Method 1: From BuildPageDataService (primary method for build summary pages)
     try {
-      console.log('Attempting to get Build ID from BuildPageDataService...');
-      const buildPageService: IBuildPageDataService = await SDK.getService(
-        BuildServiceIds.BuildPageDataService
-      );
-      console.log('BuildPageDataService obtained successfully.');
+      console.log('Starting SpotCheck-pattern artifact retrieval...');
 
-      // Use the BuildPageDataService to get build data
-      console.log('Fetching build page data...');
-      const buildPageData = await buildPageService.getBuildPageData();
-      if (buildPageData) {
-        if (buildPageData.build) {
-          buildId = buildPageData.build.id;
-          buildIdSource = 'build page data service';
-          console.log('Build ID obtained from BuildPageDataService:', buildPageData.build.id);
-        } else {
-          // Send a log with all the build page data written out to the console
-          console.log('Build ID is not available in BuildPageDataService.');
-          console.log(`Build Page Data:\n${JSON.stringify(buildPageData, null, 2)}`);
-          errors.push('Build ID is not available in BuildPageDataService.');
-        }
-      } else {
-        console.log('Build page data is not available.');
-        errors.push('Build page data is not available.');
+      // Use SpotCheck's exact downloadArtifacts pattern
+      const artifactEntries = await downloadArtifacts('BicepWhatIfReports');
+
+      if (!artifactEntries || artifactEntries.length === 0) {
+        console.log('No BicepWhatIfReports artifacts found.');
+        setNoReports(true);
+        return;
       }
-    } catch (error) {
-      console.log('Failed to get build page data service:', error);
-      errors.push('Failed to get build page data service.');
-    }
 
-    if (buildId === undefined) {
-      errors.push(
-        'Build ID is not available from any source (configuration, URL, or page context)'
+      console.log(
+        `Found ${artifactEntries.length} report files:`,
+        artifactEntries.map(e => e.name)
+      );
+
+      // Convert artifact entries to report items
+      const reportItems: ReportItem[] = artifactEntries.map(entry => ({
+        name: entry.name,
+        content: entry.content,
+      }));
+
+      console.log(`Successfully loaded ${reportItems.length} reports`);
+      setReports(reportItems);
+
+      // Auto-resize to fit content
+      SDK.resize();
+    } catch (error) {
+      console.error('Failed to load reports using SpotCheck pattern:', error);
+      throw new Error(
+        `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
       );
     }
-
-    if (errors.length > 0) {
-      const detailedError =
-        `Required context not available. Missing:\n\t${errors.join('\n\t')}\n` +
-        `This extension must be used within an Azure DevOps build pipeline tab.\n` +
-        `Debug info: Current URL: ${window.location.href}\n` +
-        `Configuration: ${JSON.stringify(config)}\n` +
-        `Web context project: ${webContext?.project?.id || 'undefined'}`;
-      throw new Error(detailedError);
-    } else {
-      console.log(`Build ID obtained from ${buildIdSource}: ${buildId}`);
-    }
-
-    if (buildId !== undefined) {
-      try {
-        // Use the proper Azure DevOps Extension API client instead of SDK.getService()
-        console.log('Getting BuildRestClient...');
-        const buildClient = getClient(BuildRestClient);
-        console.log('BuildRestClient obtained successfully.');
-
-        // The BuildRestClient is always available when properly initialized
-        if (!buildClient) {
-          throw new Error(
-            `Build client could not be initialized. ` +
-              `This may occur when:\n` +
-              `- The extension is not running in a proper Azure DevOps context\n` +
-              `- The required permissions are missing\n` +
-              `- The Azure DevOps SDK version is incompatible\n` +
-              `Please ensure this extension is accessed from a build pipeline results page.`
-          );
-        } else {
-          console.log('BuildRestClient is available.');
-        }
-
-        // Get build attachments for Bicep What-If reports (matches how pipeline task uploads them)
-        console.log(
-          `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type 'bicepwhatifreport'...`
-        );
-
-        // Add detailed parameter logging for troubleshooting
-        console.log('Parameters for getAttachments call:');
-        console.log(
-          `  - projectId: "${webContext.project.id}" (type: ${typeof webContext.project.id})`
-        );
-        console.log(`  - buildId: ${buildId} (type: ${typeof buildId})`);
-        console.log(`  - type: "bicepwhatifreport" (case-sensitive)`);
-
-        // Use the attachment-based approach that matches the pipeline task upload method
-        // Wrap in timeout to prevent indefinite hanging
-        let attachments: Build.Attachment[];
-        try {
-          const timeoutMs = 30000; // 30 second timeout
-          console.log(`Setting ${timeoutMs}ms timeout for getAttachments call...`);
-
-          attachments = await Promise.race([
-            buildClient.getAttachments(webContext.project.id, buildId, 'bicepwhatifreport'),
-            new Promise<never>((_, reject) =>
-              setTimeout(
-                () => reject(new Error(`getAttachments call timed out after ${timeoutMs}ms`)),
-                timeoutMs
-              )
-            ),
-          ]);
-
-          console.log(`getAttachments call completed successfully.`);
-        } catch (timeoutError) {
-          console.error('getAttachments call failed:', timeoutError);
-
-          // Try a diagnostic call with a standard attachment type to test API connectivity
-          console.log('Attempting diagnostic call with standard attachment type "logs"...');
-          try {
-            const diagnosticAttachments = await Promise.race([
-              buildClient.getAttachments(webContext.project.id, buildId, 'logs'),
-              new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('Diagnostic call timed out')), 10000)
-              ),
-            ]);
-            console.log(
-              `Diagnostic call successful: found ${diagnosticAttachments.length} log attachments`
-            );
-
-            // If diagnostic call works, the issue is specific to 'bicepwhatifreport' type
-            throw new Error(
-              `Failed to retrieve 'bicepwhatifreport' attachments (call timed out after 30s), ` +
-                `but API connectivity is working (diagnostic call found ${diagnosticAttachments.length} log attachments). ` +
-                `This suggests:\n` +
-                `1. No attachments of type 'bicepwhatifreport' exist for this build\n` +
-                `2. The attachment type name may be case-sensitive or misspelled\n` +
-                `3. The pipeline task may not have uploaded attachments correctly\n` +
-                `Please verify the pipeline task uploaded attachments with exact type 'bicepwhatifreport'.`
-            );
-          } catch (diagnosticError) {
-            // Both calls failed - likely an API/permission issue
-            throw new Error(
-              `Both main and diagnostic API calls failed. This indicates an API connectivity or permissions issue:\n` +
-                `- Main error: ${timeoutError instanceof Error ? timeoutError.message : String(timeoutError)}\n` +
-                `- Diagnostic error: ${diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError)}\n` +
-                `Please check:\n` +
-                `1. Extension permissions for Build API access\n` +
-                `2. Network connectivity to Azure DevOps APIs\n` +
-                `3. Build ID ${buildId} exists and is accessible in project ${webContext.project.id}`
-            );
-          }
-        }
-
-        console.log(`Found ${attachments.length} attachments for build ${buildId}`);
-
-        // Filter for markdown report attachments (pipeline task prefixes with 'md/')
-        const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
-
-        if (reportAttachments.length === 0) {
-          console.log('No Bicep What-If report attachments found.');
-          setNoReports(true);
-          return;
-        }
-
-        console.log(
-          `Found ${reportAttachments.length} Bicep What-If report attachments:`,
-          reportAttachments.map(a => a.name)
-        );
-
-        // Display the reports from the attachments
-        await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
-      } catch (error) {
-        throw new Error(
-          `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
-    }
-  };
-
-  const displayReports = async (
-    attachments: Build.Attachment[],
-    projectId: string,
-    buildId: number,
-    buildClient: BuildRestClient
-  ): Promise<void> => {
-    // Since BuildRestClient.getAttachment requires timelineId and recordId,
-    // we need to get the timeline first to find the record IDs for our attachments
-    let timeline: Build.Timeline | null = null;
-    try {
-      timeline = await buildClient.getBuildTimeline(projectId, buildId);
-    } catch (error) {
-      console.error('Failed to get build timeline:', error);
-      setError('Failed to get build timeline information needed to retrieve attachment content.');
-      return;
-    }
-
-    if (!timeline || !timeline.records) {
-      setError('Build timeline is not available or contains no records.');
-      return;
-    }
-
-    const reportPromises = attachments.map(async attachment => {
-      try {
-        // Find a timeline record that might contain this attachment
-        // This is a heuristic approach since we don't have exact timeline/record mapping
-        for (const record of timeline.records) {
-          try {
-            const contentBuffer = await buildClient.getAttachment(
-              projectId,
-              buildId,
-              timeline.id,
-              record.id,
-              'bicepwhatifreport',
-              attachment.name
-            );
-
-            // Convert ArrayBuffer to string
-            const content = new TextDecoder().decode(contentBuffer);
-            return {
-              name: attachment.name,
-              content: content,
-            };
-          } catch (recordError: unknown) {
-            // This record doesn't have the attachment, try the next one
-            console.log(
-              `Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`
-            );
-            continue;
-          }
-        }
-
-        // If we reach here, no record had the attachment
-        throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
-      } catch (error) {
-        console.error('Error loading report:', attachment.name, error);
-        return {
-          name: attachment.name,
-          content: '',
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-    });
-
-    const loadedReports = await Promise.all(reportPromises);
-    setReports(loadedReports);
-
-    // Auto-resize to fit content
-    SDK.resize();
   };
 
   const sanitizeHtml = (html: string): string => {
