@@ -71,7 +71,10 @@ export async function getArtifactsFileEntries(
   const artifacts: BuildArtifact[] = await Promise.race([
     buildClient.getArtifacts(project, buildId),
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(`getArtifacts timed out after ${timeoutMs}ms`)), timeoutMs)
+      setTimeout(
+        () => reject(new Error(`v0.2.22 getArtifacts timed out after ${timeoutMs}ms`)),
+        timeoutMs
+      )
     ),
   ]);
 
