@@ -2,6 +2,7 @@ import {
   BuildRestClient,
   BuildServiceIds,
   IBuildPageDataService,
+  BuildArtifact,
 } from 'azure-devops-extension-api/Build';
 import { getAccessToken } from 'azure-devops-extension-sdk';
 import { getClient } from 'azure-devops-extension-api';
@@ -65,7 +66,15 @@ export async function getArtifactsFileEntries(
   );
 
   // Get all artifacts for the build
-  const artifacts = await buildClient.getArtifacts(project, buildId);
+  //let artifacts: BuildArtifact[];
+  const timeoutMs = 30000; // 30 seconds timeout
+  const artifacts: BuildArtifact[] = await Promise.race([
+    buildClient.getArtifacts(project, buildId),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`getArtifacts timed out after ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
+
   console.log(
     `Found ${artifacts.length} total artifacts:`,
     artifacts.map(a => a.name)
