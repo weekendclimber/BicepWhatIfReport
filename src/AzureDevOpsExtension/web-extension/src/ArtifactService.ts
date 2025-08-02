@@ -54,6 +54,7 @@ async function getArtifactContentZip(downloadUrl: string): Promise<ArrayBuffer> 
 
 /**
  * Get artifacts and extract markdown files using SpotCheck's exact pattern
+ * Removed artificial timeout wrapper that was causing issues
  */
 export async function getArtifactsFileEntries(
   buildClient: BuildRestClient,
@@ -65,18 +66,8 @@ export async function getArtifactsFileEntries(
     `Getting artifacts for project: ${project}, buildId: ${buildId}, artifactName: ${artifactName}`
   );
 
-  // Get all artifacts for the build
-  //let artifacts: BuildArtifact[];
-  const timeoutMs = 30000; // 30 seconds timeout
-  const artifacts: BuildArtifact[] = await Promise.race([
-    buildClient.getArtifacts(project, buildId),
-    new Promise<never>((_, reject) =>
-      setTimeout(
-        () => reject(new Error(`v0.2.22 getArtifacts timed out after ${timeoutMs}ms`)),
-        timeoutMs
-      )
-    ),
-  ]);
+  // Get all artifacts for the build - SpotCheck pattern without timeout wrapper
+  const artifacts: BuildArtifact[] = await buildClient.getArtifacts(project, buildId);
 
   console.log(
     `Found ${artifacts.length} total artifacts:`,

@@ -20,54 +20,14 @@ const BicepReportExtension: React.FC = () => {
   const [noReports, setNoReports] = useState(false);
 
   useEffect(() => {
-    initializeExtension();
+    // SDK should already be initialized by BicepReportApp.tsx
+    // Just wait a moment and then load reports
+    setTimeout(loadReports, 100);
   }, []);
-
-  const initializeExtension = async (): Promise<void> => {
-    try {
-      // Initialize SDK following SpotCheck pattern exactly
-      console.log('Initializing Bicep What-If Report Extension...');
-
-      // SpotCheck pattern: simple init then ready
-      SDK.init();
-      await SDK.ready();
-      console.log('Azure DevOps SDK initialized successfully.');
-
-      // Load and display reports using SpotCheck pattern
-      console.log('Loading Bicep What-If reports...');
-      await loadReports();
-      console.log('Bicep What-If reports loaded successfully.');
-    } catch (error) {
-      // Handle missing Build ID context gracefully - this is an expected scenario
-      // when the extension is accessed outside of a build pipeline context
-      if (error instanceof Error && error.message.includes('Required context not available')) {
-        setError(error.message);
-        return;
-      }
-
-      // Log unexpected errors to console for debugging
-      console.error('Extension initialization failed:', error);
-
-      // Handle other initialization errors that indicate real failures
-      let errorMessage = 'Failed to initialize the extension.';
-      if (error instanceof Error) {
-        if (error.message.includes('SDK')) {
-          errorMessage =
-            'Failed to initialize Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.';
-        } else {
-          errorMessage = `Extension error: ${error.message}`;
-        }
-      }
-
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadReports = async (): Promise<void> => {
     try {
-      console.log('Starting SpotCheck-pattern artifact retrieval...');
+      console.log('Loading Bicep What-If reports using SpotCheck pattern...');
 
       // Use SpotCheck's exact downloadArtifacts pattern
       const artifactEntries = await downloadArtifacts('BicepWhatIfReports');
@@ -75,6 +35,7 @@ const BicepReportExtension: React.FC = () => {
       if (!artifactEntries || artifactEntries.length === 0) {
         console.log('No BicepWhatIfReports artifacts found.');
         setNoReports(true);
+        setLoading(false);
         return;
       }
 
@@ -96,9 +57,29 @@ const BicepReportExtension: React.FC = () => {
       SDK.resize();
     } catch (error) {
       console.error('Failed to load reports using SpotCheck pattern:', error);
-      throw new Error(
-        `Failed to load Bicep What-If reports: ${error instanceof Error ? error.message : String(error)}`
-      );
+
+      // Handle missing Build ID context gracefully - this is an expected scenario
+      // when the extension is accessed outside of a build pipeline context
+      if (error instanceof Error && error.message.includes('Required context not available')) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      // Handle other initialization errors that indicate real failures
+      let errorMessage = 'Failed to load Bicep What-If reports.';
+      if (error instanceof Error) {
+        if (error.message.includes('SDK')) {
+          errorMessage =
+            'Failed to access Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.';
+        } else {
+          errorMessage = `Extension error: ${error.message}`;
+        }
+      }
+
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
