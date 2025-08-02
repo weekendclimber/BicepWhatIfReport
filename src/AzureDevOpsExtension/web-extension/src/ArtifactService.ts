@@ -145,6 +145,8 @@ export async function downloadArtifacts(artifactName: string): Promise<FileEntry
   if (!projectName) {
     console.error('No project name available');
     return [];
+  } else {
+    console.log(`Project name: ${projectName}`);
   }
 
   // Get build info following SpotCheck pattern
@@ -157,6 +159,8 @@ export async function downloadArtifacts(artifactName: string): Promise<FileEntry
   if (!buildId) {
     console.error('No build ID available');
     return [];
+  } else {
+    console.log(`Build ID: ${buildId}`);
   }
 
   console.log(
