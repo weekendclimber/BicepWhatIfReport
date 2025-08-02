@@ -198,6 +198,24 @@ cd src/AzureDevOpsExtension/task
 npm test
 ```
 
+#### Web Extension Architecture
+
+The web extension has been architected following proven Azure DevOps extension patterns:
+
+**Key Architecture Decisions:**
+
+- **Single SDK Initialization**: `BicepReportApp.tsx` handles Azure DevOps SDK initialization once to prevent conflicts
+- **SpotCheck Pattern**: Artifact retrieval follows the proven SpotCheck extension pattern for reliable authorization
+- **Direct API Calls**: No artificial timeout wrappers - direct `buildClient.getArtifacts()` calls for optimal performance
+- **Separation of Concerns**: Clear separation between app initialization and report rendering logic
+
+**Build Summary Tab Implementation:**
+
+```bash
+cd src/AzureDevOpsExtension/web-extension
+npm test
+```
+
 **Test Coverage:**
 
 - **49 comprehensive test cases** covering all functionality
