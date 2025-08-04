@@ -58,6 +58,7 @@ src/AzureDevOpsExtension/
 The extension **fully implements** the build summary tab feature as requested in [Issue #92](https://github.com/weekendclimber/BicepWhatIfReport/issues/92). This implementation follows the SpotCheck pattern and includes:
 
 ### ✅ Feature Complete
+
 - **Build Summary Tab Registration**: Properly registered in `vss-extension.json` as `bicep-what-if-build-results-tab`
 - **SDK Integration**: Uses `azure-devops-extension-sdk` with proper `SDK.init()` initialization
 - **Artifact Retrieval**: Retrieves build attachments using Azure DevOps REST APIs via `BuildRestClient`
@@ -69,6 +70,7 @@ The extension **fully implements** the build summary tab feature as requested in
 - **Security**: HTML sanitization prevents XSS attacks
 
 ### Implementation Details
+
 - **Extension Type**: `ms.vss-build-web.build-results-tab`
 - **Target**: `ms.vss-build-web.build-results-view`
 - **Attachment Type**: `bicepwhatifreport` (consistent between task and web extension)
