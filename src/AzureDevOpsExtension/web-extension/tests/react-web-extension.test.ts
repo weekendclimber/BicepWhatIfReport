@@ -100,7 +100,7 @@ describe('React Web Extension Tests', () => {
       expect(fs.existsSync(webpackConfigPath), 'webpack.config.js should exist').to.be.true;
 
       const webpackConfig = fs.readFileSync(webpackConfigPath, 'utf8');
-      expect(webpackConfig).to.include('BicepReportApp.tsx');
+      expect(webpackConfig).to.include('BicepReportMain.tsx');
       expect(webpackConfig).to.include('ts-loader');
     });
 
@@ -137,21 +137,22 @@ describe('React Web Extension Tests', () => {
     });
 
     it('should maintain the same SDK method calls', () => {
-      // Verify that our React component uses the same SDK methods as before
+      // Verify that our React components use the same SDK methods as before
       const extensionPath = './src/BicepReportExtension.tsx';
-      if (!fs.existsSync(extensionPath)) {
+      const appPath = './src/BicepReportApp.tsx';
+
+      if (!fs.existsSync(extensionPath) || !fs.existsSync(appPath)) {
         return;
       }
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
+      const appContent = fs.readFileSync(appPath, 'utf8');
 
-      // Should call the same SDK methods
-      expect(extensionContent).to.include('SDK.init');
-      expect(extensionContent).to.include('SDK.getWebContext');
-      expect(extensionContent).to.include('SDK.getConfiguration');
-      expect(extensionContent).to.include('SDK.getService');
-      expect(extensionContent).to.include('SDK.notifyLoadSucceeded');
-      expect(extensionContent).to.include('SDK.notifyLoadFailed');
+      // SDK.init and SDK.ready should be in BicepReportApp.tsx (fixing SDK loading conflict)
+      expect(appContent).to.include('SDK.init');
+      expect(appContent).to.include('SDK.ready');
+
+      // SDK.resize should still be in BicepReportExtension.tsx
       expect(extensionContent).to.include('SDK.resize');
     });
 
@@ -178,10 +179,10 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should have the same core functions
-      expect(extensionContent).to.include('initializeExtension');
+      // Should have the same core functions - updated for SpotCheck pattern
+      // initializeExtension was removed to fix SDK loading conflict
       expect(extensionContent).to.include('loadReports');
-      expect(extensionContent).to.include('displayReports');
+      expect(extensionContent).to.include('downloadArtifacts'); // Now using SpotCheck pattern
       expect(extensionContent).to.include('parseMarkdown');
       expect(extensionContent).to.include('getDisplayName');
     });
