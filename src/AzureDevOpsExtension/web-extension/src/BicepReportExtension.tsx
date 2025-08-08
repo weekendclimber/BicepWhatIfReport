@@ -13,35 +13,106 @@ import { ZeroData } from 'azure-devops-ui/ZeroData';
 // Azure DevOps UI Core and utilities
 import 'azure-devops-ui/Core/_platformCommon.scss';
 
+interface BicepReportState {
+  phase: 'init' | 'sdk-loading' | 'loading-artifacts' | 'processing' | 'done' | 'error';
+  loading: boolean;
+  error: string | null;
+  reports: ReportItem[];
+  noReports: boolean;
+  debugInfo: string[];
+}
+
 const BicepReportExtension: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reports, setReports] = useState<ReportItem[]>([]);
-  const [noReports, setNoReports] = useState(false);
+  const [state, setState] = useState<BicepReportState>({
+    phase: 'init',
+    loading: true,
+    error: null,
+    reports: [],
+    noReports: false,
+    debugInfo: [],
+  });
+
+  const addDebugInfo = (message: string) => {
+    const timestamp = new Date().toISOString();
+    const debugMessage = `[${timestamp}] ${message}`;
+    console.log(debugMessage);
+    setState(prev => ({
+      ...prev,
+      debugInfo: [...prev.debugInfo, debugMessage],
+    }));
+  };
 
   useEffect(() => {
-    // SDK should already be initialized by BicepReportApp.tsx
-    // Just wait a moment and then load reports
-    setTimeout(loadReports, 100);
+    initializeExtension();
   }, []);
+
+  const initializeExtension = async (): Promise<void> => {
+    try {
+      addDebugInfo('Starting Bicep Report Extension initialization (SpotCheck pattern)');
+
+      setState(prev => ({ ...prev, phase: 'sdk-loading' }));
+      addDebugInfo('Initializing Azure DevOps SDK...');
+
+      // SpotCheck pattern: SDK.init() followed by await SDK.ready()
+      SDK.init();
+      await SDK.ready();
+
+      addDebugInfo('Azure DevOps SDK ready');
+      setState(prev => ({ ...prev, phase: 'loading-artifacts' }));
+
+      // Auto-resize to fit content
+      SDK.resize();
+
+      // Small delay before loading artifacts (like SpotCheck does)
+      setTimeout(loadReports, 500);
+    } catch (error) {
+      addDebugInfo(`SDK initialization failed: ${error}`);
+      setState(prev => ({
+        ...prev,
+        phase: 'error',
+        loading: false,
+        error: `Failed to initialize Azure DevOps SDK: ${error}`,
+      }));
+    }
+  };
 
   const loadReports = async (): Promise<void> => {
     try {
-      console.log('Loading Bicep What-If reports using SpotCheck pattern...');
+      addDebugInfo('Starting artifact download using SpotCheck pattern...');
+      setState(prev => ({ ...prev, phase: 'processing' }));
 
-      // Use SpotCheck's exact downloadArtifacts pattern
-      const artifactEntries = await downloadArtifacts('BicepWhatIfReports');
+      // Use SpotCheck's exact downloadArtifacts pattern with timeout
+      const timeoutMs = 45000; // 45 seconds timeout
+      const artifactPromise = downloadArtifacts('BicepWhatIfReports');
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(
+            new Error(
+              `Artifact download timed out after ${timeoutMs / 1000} seconds. This may indicate an authorization or network issue.`
+            )
+          );
+        }, timeoutMs);
+      });
+
+      addDebugInfo(`Downloading artifacts with ${timeoutMs / 1000}s timeout...`);
+      const artifactEntries = await Promise.race([artifactPromise, timeoutPromise]);
+
+      addDebugInfo(`Download completed. Found ${artifactEntries?.length || 0} files`);
 
       if (!artifactEntries || artifactEntries.length === 0) {
-        console.log('No BicepWhatIfReports artifacts found.');
-        setNoReports(true);
-        setLoading(false);
+        addDebugInfo('No BicepWhatIfReports artifacts found.');
+        setState(prev => ({
+          ...prev,
+          phase: 'done',
+          noReports: true,
+          loading: false,
+        }));
         return;
       }
 
-      console.log(
-        `Found ${artifactEntries.length} report files:`,
-        artifactEntries.map(e => e.name)
+      addDebugInfo(
+        `Found ${artifactEntries.length} report files: ${artifactEntries.map(e => e.name).join(', ')}`
       );
 
       // Convert artifact entries to report items
@@ -50,19 +121,39 @@ const BicepReportExtension: React.FC = () => {
         content: entry.content,
       }));
 
-      console.log(`Successfully loaded ${reportItems.length} reports`);
-      setReports(reportItems);
+      addDebugInfo(`Successfully loaded ${reportItems.length} reports`);
+      setState(prev => ({
+        ...prev,
+        phase: 'done',
+        reports: reportItems,
+        loading: false,
+      }));
 
       // Auto-resize to fit content
       SDK.resize();
     } catch (error) {
-      console.error('Failed to load reports using SpotCheck pattern:', error);
+      addDebugInfo(`Failed to load reports: ${error}`);
 
       // Handle missing Build ID context gracefully - this is an expected scenario
       // when the extension is accessed outside of a build pipeline context
       if (error instanceof Error && error.message.includes('Required context not available')) {
-        setError(error.message);
-        setLoading(false);
+        setState(prev => ({
+          ...prev,
+          phase: 'error',
+          error: error.message,
+          loading: false,
+        }));
+        return;
+      }
+
+      // Handle timeout specifically
+      if (error instanceof Error && error.message.includes('timed out')) {
+        setState(prev => ({
+          ...prev,
+          phase: 'error',
+          error: `Artifact download timeout: ${error.message}. Please check the debug logs below for more details.`,
+          loading: false,
+        }));
         return;
       }
 
@@ -77,9 +168,12 @@ const BicepReportExtension: React.FC = () => {
         }
       }
 
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+      setState(prev => ({
+        ...prev,
+        phase: 'error',
+        error: errorMessage,
+        loading: false,
+      }));
     }
   };
 
@@ -227,7 +321,9 @@ const BicepReportExtension: React.FC = () => {
   useEffect(() => {
     // Auto-resize when content changes
     SDK.resize();
-  }, [reports, error, noReports]);
+  }, [state.reports, state.error, state.noReports]);
+
+  const { phase, loading, error, reports, noReports, debugInfo } = state;
 
   if (loading) {
     return (
@@ -236,9 +332,26 @@ const BicepReportExtension: React.FC = () => {
         <div className="page-content page-content-top">
           <Spinner
             size={SpinnerSize.large}
-            label="Loading Bicep What-If reports..."
+            label={`Loading Bicep What-If reports... (${phase})`}
             ariaLabel="Loading Bicep What-If reports"
           />
+          {debugInfo.length > 0 && (
+            <Card
+              collapsible={true}
+              collapsed={true}
+              titleProps={{
+                text: 'Debug Information',
+                size: TitleSize.Small,
+              }}
+              contentProps={{
+                contentPadding: true,
+              }}
+            >
+              <div style={{ fontFamily: 'monospace', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
+                {debugInfo.join('\n')}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     );
@@ -252,6 +365,23 @@ const BicepReportExtension: React.FC = () => {
           <MessageBar severity={MessageBarSeverity.Error} messageClassName="font-family-monospace">
             {error}
           </MessageBar>
+          {debugInfo.length > 0 && (
+            <Card
+              collapsible={true}
+              collapsed={false}
+              titleProps={{
+                text: 'Debug Information',
+                size: TitleSize.Small,
+              }}
+              contentProps={{
+                contentPadding: true,
+              }}
+            >
+              <div style={{ fontFamily: 'monospace', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
+                {debugInfo.join('\n')}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     );
@@ -267,6 +397,23 @@ const BicepReportExtension: React.FC = () => {
             secondaryText="No Bicep What-If reports found for this build."
             imageAltText="No reports found"
           />
+          {debugInfo.length > 0 && (
+            <Card
+              collapsible={true}
+              collapsed={true}
+              titleProps={{
+                text: 'Debug Information',
+                size: TitleSize.Small,
+              }}
+              contentProps={{
+                contentPadding: true,
+              }}
+            >
+              <div style={{ fontFamily: 'monospace', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
+                {debugInfo.join('\n')}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     );
@@ -307,6 +454,23 @@ const BicepReportExtension: React.FC = () => {
               )}
             </Card>
           ))}
+          {debugInfo.length > 0 && (
+            <Card
+              collapsible={true}
+              collapsed={true}
+              titleProps={{
+                text: 'Debug Information',
+                size: TitleSize.Small,
+              }}
+              contentProps={{
+                contentPadding: true,
+              }}
+            >
+              <div style={{ fontFamily: 'monospace', fontSize: '12px', whiteSpace: 'pre-wrap' }}>
+                {debugInfo.join('\n')}
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>

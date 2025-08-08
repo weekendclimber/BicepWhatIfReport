@@ -100,7 +100,7 @@ describe('React Web Extension Tests', () => {
       expect(fs.existsSync(webpackConfigPath), 'webpack.config.js should exist').to.be.true;
 
       const webpackConfig = fs.readFileSync(webpackConfigPath, 'utf8');
-      expect(webpackConfig).to.include('BicepReportApp.tsx');
+      expect(webpackConfig).to.include('BicepReportMain.tsx');
       expect(webpackConfig).to.include('ts-loader');
     });
 

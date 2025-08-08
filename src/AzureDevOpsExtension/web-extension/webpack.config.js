@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/BicepReportApp.tsx',
+  entry: './src/BicepReportMain.tsx',
   output: {
     filename: 'bicep-report-extension.js',
     path: path.resolve(__dirname, 'contents'),
