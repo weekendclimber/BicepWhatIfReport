@@ -40,27 +40,19 @@ export class BicepReportSpotCheck extends React.Component<{}, IPanelContentState
 
   public async componentDidMount() {
     try {
-      this.addDebugInfo('Starting Bicep Report Extension (checking SDK loading state)');
+      this.addDebugInfo('Starting Bicep Report Extension (SpotCheck pattern)');
 
-      // Fix for "SDK already loaded" error - check if SDK is already initialized
-      // Reference: https://www.marcveens.nl/posts/azure-devops-extension-sdk-fix-already-loaded
-      const isSDKLoaded = !!(window as any).VSS && !!(window as any).VSS.SDK;
+      // SpotCheck pattern: Simple SDK initialization
+      this.addDebugInfo('Initializing Azure DevOps SDK...');
+      SDK.init();
+      await SDK.ready();
 
-      if (isSDKLoaded) {
-        this.addDebugInfo('Azure DevOps SDK already loaded by host page - waiting for ready state');
-        await SDK.ready();
-      } else {
-        this.addDebugInfo('Initializing Azure DevOps SDK...');
-        SDK.init();
-        await SDK.ready();
-      }
-
-      this.addDebugInfo('Azure DevOps SDK initialized and ready');
+      this.addDebugInfo('Azure DevOps SDK ready');
 
       // Auto-resize to fit content
       SDK.resize();
 
-      // Load reports without artificial timeout
+      // Load reports
       await this.loadReports();
     } catch (error) {
       this.addDebugInfo(`SDK initialization failed: ${error}`);
@@ -73,10 +65,10 @@ export class BicepReportSpotCheck extends React.Component<{}, IPanelContentState
 
   private async loadReports(): Promise<void> {
     try {
-      this.addDebugInfo('Starting artifact download (SpotCheck pattern - no timeout wrapper)');
+      this.addDebugInfo('Starting artifact download (SpotCheck pattern)');
       this.setState({ phase: 'loading' });
 
-      // Call downloadArtifacts directly without Promise.race timeout - SpotCheck pattern
+      // Call downloadArtifacts directly - SpotCheck pattern (no timeout wrapper)
       const artifactEntries = await downloadArtifacts('BicepWhatIfReports');
 
       this.addDebugInfo(`Download completed. Found ${artifactEntries?.length || 0} files`);
