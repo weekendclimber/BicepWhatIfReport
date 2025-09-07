@@ -13,7 +13,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Close "Done" issues after 1 week in project
         uses: actions/github-script@v8
