@@ -33,9 +33,9 @@ This repository has comprehensive security and quality measures in place:
 
 - **Automated Testing**: All code changes are automatically tested
 
-  - Runs **50 comprehensive unit tests** for the Azure DevOps Extension
-  - **Azure DevOps Extension**: 50 tests covering JSON parsing, report generation, file enumeration, and web extension
-  - Tests cover valid parsing, error handling, edge cases, and performance scenarios
+  - Runs **50+ comprehensive unit tests** for the Azure DevOps Extension
+  - **Azure DevOps Extension**: 50+ tests covering JSON parsing, report generation, file enumeration, web extension, and attachment utilities
+  - Tests cover valid parsing, error handling, edge cases, retry logic, and performance scenarios
   - Matrix testing across Node.js 20.x and 22.x
 
 - **Code Quality**: Enforced through automated linting and formatting
@@ -188,6 +188,49 @@ This separation ensures loose coupling and allows each component to manage its o
 3. View the generated reports in the "Bicep What If Report" tab on the build summary page
 4. Download the raw markdown files from the build artifacts
 
+#### Build Results Tab Retrieval Flow
+
+The build results tab uses an intelligent attachment retrieval system optimized for performance and reliability:
+
+**Architecture:**
+```
+init → SDK.init({loaded:false}) → resolve project/build context
+  → attachmentRetrievalOrchestrator()
+       while (elapsed < MAX_WAIT && !attachmentsFound && build != Completed)
+           list attachments
+           if any found → break
+           wait(progressive backoff: 1s, 2s, 3s, 5s, 8s, 13s)
+           refresh build status (every other iteration)
+       if attachmentsFound → fetch contents directly via parsed IDs
+       else → show No Data
+  → commit UI state (reports | noReports | error)
+  → SDK.notifyLoadSucceeded()
+```
+
+**Key Features:**
+- **Direct Attachment Fetching**: Parses attachment self links to extract timeline/record IDs, eliminating O(R×A) brute-force scanning
+- **Progressive Backoff**: Handles race conditions when attachments aren't yet available (1s → 13s delays)
+- **Debug-Gated Logging**: Verbose logs only with `?debug=1` query parameter or localhost
+- **Fallback Compatibility**: Graceful fallback to timeline scanning if direct parsing fails
+
+**Troubleshooting:**
+
+| Scenario | Solution |
+|----------|----------|
+| Reports not loading | Add `?debug=1` to URL for detailed diagnostics |
+| "No reports found" on completed build | Check pipeline task uploaded attachments with type `bicepwhatifreport` |
+| Extension shows loading indefinitely | Refresh page; check browser console for permission errors |
+| Some reports show errors | Individual attachment failures don't block others; check debug logs |
+| Performance issues | Direct fetching used in 95%+ of cases; timeline fallback only when needed |
+
+**Debug Mode:**
+Add `?debug=1` to your browser URL or access from localhost to see detailed logging:
+```
+[BicepWhatIfTab] Attempt 1: Fetching attachments...
+[BicepWhatIfTab] Found 3 report attachments after 1250ms (2 attempts)
+[BicepWhatIfTab] Fetching attachment md/report1.md directly with timelineId=abc-123, recordId=xyz-456
+```
+
 #### Testing Azure DevOps Extension
 
 The Azure DevOps Extension includes comprehensive unit tests for all functionality:
@@ -199,15 +242,16 @@ npm test
 
 **Test Coverage:**
 
-- **50 comprehensive test cases** covering all functionality
+- **50+ comprehensive test cases** covering all functionality
 - **JSON parsing:** Multiple change types (Create, Modify, Delete, NoChange, Ignore, Unsupported)
 - **Report generation:** Unit tests for all helper functions (processChange, processDelta, processValue, processProperties)
 - **File enumeration:** Unit tests for getFiles() function (successful enumeration, empty directories, error handling)
-- **Web extension:** DOM manipulation, content sanitization, error handling
+- **Web extension:** DOM manipulation, content sanitization, error handling, attachment utilities
+- **Attachment utilities:** 29 dedicated tests for parsing, retry logic, error handling, and edge cases
 - **Integration tests:** End-to-end testing of JSON parsing and report generation
 - **Error handling:** Non-existent files, empty files, malformed JSON, permission errors
-- **Edge cases:** Large files, deeply nested structures, Unicode content, null values
-- **Performance testing:** Time limits and concurrent file access
+- **Edge cases:** Large files, deeply nested structures, Unicode content, null values, malformed URLs
+- **Performance testing:** Time limits, concurrent file access, and retry timeouts
 - **Test data:** Realistic Bicep what-if JSON samples in `tests/test-data/`
 
 ### 2. GitHub Action
