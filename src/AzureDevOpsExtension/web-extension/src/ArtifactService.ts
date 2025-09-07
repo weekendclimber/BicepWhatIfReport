@@ -117,7 +117,7 @@ export async function getArtifactsFileEntries(
   );
 
   try {
-    // Get all artifacts for the build - SpotCheck pattern
+    // Get all artifacts for the build - Following SpotCheck's exact pattern
     console.log('[getArtifactsFileEntries] Calling buildClient.getArtifacts...');
     const startTime = Date.now();
 
@@ -130,7 +130,7 @@ export async function getArtifactsFileEntries(
       artifacts.map(a => `"${a.name}"`)
     );
 
-    // Filter for our specific artifact
+    // Filter for our specific artifact - SpotCheck pattern
     const targetArtifacts = artifacts.filter(a => a.name === artifactName);
     console.log(
       `[getArtifactsFileEntries] Filtered to ${targetArtifacts.length} matching artifacts for "${artifactName}"`
@@ -154,10 +154,6 @@ export async function getArtifactsFileEntries(
 
     console.log(`[getArtifactsFileEntries] Processing artifact: "${artifact.name}"`);
     console.log(`[getArtifactsFileEntries] Download URL: ${artifact.resource.downloadUrl}`);
-    console.log(
-      `[getArtifactsFileEntries] Resource details:`,
-      JSON.stringify(artifact.resource, null, 2)
-    );
 
     const requestUrl = artifact.resource.downloadUrl;
     console.log('[getArtifactsFileEntries] Starting ZIP download...');
@@ -196,7 +192,7 @@ export async function getArtifactsFileEntries(
     const zipFiles = Object.keys(zip.files);
     console.log(`[getArtifactsFileEntries] ZIP contains ${zipFiles.length} files:`, zipFiles);
 
-    // Extract all markdown files from the ZIP
+    // Extract all markdown files from the ZIP - following SpotCheck pattern
     let markdownCount = 0;
     for (const fileName in zip.files) {
       const file = zip.files[fileName];
@@ -237,7 +233,7 @@ export async function getArtifactsFileEntries(
 }
 
 /**
- * Download artifacts using SpotCheck's exact pattern with comprehensive debugging
+ * Download artifacts using SpotCheck's exact pattern - no artificial timeouts
  */
 export async function downloadArtifacts(artifactName: string): Promise<FileEntry[]> {
   console.log(`[ArtifactService] Starting downloadArtifacts for: ${artifactName}`);
@@ -253,7 +249,7 @@ export async function downloadArtifacts(artifactName: string): Promise<FileEntry
     console.log(`[ArtifactService] Project details - Name: "${projectName}", ID: "${projectId}"`);
 
     if (!projectName) {
-      throw new Error('No project name available from ProjectPageService');
+      throw new Error('Required context not available: No project name from ProjectPageService');
     }
 
     // Step 2: Get build info following SpotCheck pattern
@@ -271,17 +267,19 @@ export async function downloadArtifacts(artifactName: string): Promise<FileEntry
     );
 
     if (!buildId) {
-      throw new Error('No build ID available from BuildPageDataService');
+      throw new Error(
+        'Required context not available: No build ID from BuildPageDataService. Please access this extension from a build summary page.'
+      );
     }
 
-    // Step 3: Get access token for authorization debugging
+    // Step 3: Get access token for authorization
     console.log('[ArtifactService] Getting access token...');
     const accessToken = await getAccessToken();
     const tokenLength = accessToken ? accessToken.length : 0;
     console.log(`[ArtifactService] Access token length: ${tokenLength} characters`);
 
     if (!accessToken) {
-      throw new Error('No access token available');
+      throw new Error('No access token available for authorization');
     }
 
     // Step 4: Use SpotCheck's client pattern
@@ -293,6 +291,7 @@ export async function downloadArtifacts(artifactName: string): Promise<FileEntry
       `[ArtifactService] Calling getArtifactsFileEntries with project="${projectName}", buildId=${buildId}, artifactName="${artifactName}"`
     );
 
+    // Call directly without artificial timeout - SpotCheck pattern
     const fileEntries = await getArtifactsFileEntries(
       buildClient,
       projectName,
