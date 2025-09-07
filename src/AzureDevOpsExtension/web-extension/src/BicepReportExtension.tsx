@@ -81,6 +81,7 @@ const fetchReportsWithRetry = async (
 ): Promise<Build.Attachment[]> => {
   const startTime = Date.now();
   let attempt = 0;
+  let lastError: Error | null = null;
   
   while (Date.now() - startTime < MAX_WAIT_MS) {
     try {
@@ -90,7 +91,8 @@ const fetchReportsWithRetry = async (
       const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
       
       if (reportAttachments.length > 0) {
-        infoLog(`Found ${reportAttachments.length} report attachments after ${Date.now() - startTime}ms`);
+        const elapsed = Date.now() - startTime;
+        infoLog(`Found ${reportAttachments.length} report attachments after ${elapsed}ms (${attempt + 1} attempts)`);
         return reportAttachments;
       }
       
@@ -111,13 +113,15 @@ const fetchReportsWithRetry = async (
       }
       
     } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
       debugLog(`Attempt ${attempt + 1} failed:`, error);
       
       // If this is a permissions or connectivity issue, don't retry
       if (error instanceof Error && (
-        error.message.includes('permission') || 
-        error.message.includes('unauthorized') ||
-        error.message.includes('forbidden')
+        error.message.toLowerCase().includes('permission') || 
+        error.message.toLowerCase().includes('unauthorized') ||
+        error.message.toLowerCase().includes('forbidden') ||
+        error.message.toLowerCase().includes('access denied')
       )) {
         throw error;
       }
@@ -137,7 +141,14 @@ const fetchReportsWithRetry = async (
     }
   }
   
-  debugLog(`Timeout reached after ${Date.now() - startTime}ms`);
+  const elapsed = Date.now() - startTime;
+  debugLog(`Timeout reached after ${elapsed}ms (${attempt + 1} attempts)`);
+  
+  // Log summary for troubleshooting
+  if (lastError) {
+    debugLog('Last error encountered:', lastError.message);
+  }
+  
   return []; // Return empty array if no attachments found within timeout
 };
 
@@ -328,6 +339,7 @@ const BicepReportExtension: React.FC = () => {
     buildId: number,
     buildClient: BuildRestClient
   ): Promise<void> => {
+    const startTime = Date.now();
     const reportPromises = attachments.map(async attachment => {
       try {
         // Try to parse attachment self link for direct access
@@ -337,26 +349,34 @@ const BicepReportExtension: React.FC = () => {
           // Direct fetch using parsed IDs
           debugLog(`Fetching attachment ${attachment.name} directly with timelineId=${parsedIds.timelineId}, recordId=${parsedIds.recordId}`);
           
-          const contentBuffer = await buildClient.getAttachment(
-            projectId,
-            buildId,
-            parsedIds.timelineId,
-            parsedIds.recordId,
-            ATTACHMENT_TYPE,
-            attachment.name
-          );
+          try {
+            const contentBuffer = await buildClient.getAttachment(
+              projectId,
+              buildId,
+              parsedIds.timelineId,
+              parsedIds.recordId,
+              ATTACHMENT_TYPE,
+              attachment.name
+            );
 
-          // Convert ArrayBuffer to string
-          const content = new TextDecoder().decode(contentBuffer);
-          return {
-            name: attachment.name,
-            content: content,
-          };
-        } else {
-          // Fallback to timeline-based approach for compatibility
-          debugLog(`Falling back to timeline scan for attachment ${attachment.name}`);
-          return await fetchAttachmentViaTimeline(attachment, projectId, buildId, buildClient);
+            // Convert ArrayBuffer to string
+            const content = new TextDecoder().decode(contentBuffer);
+            debugLog(`Successfully fetched attachment ${attachment.name} (${content.length} chars) via direct access`);
+            
+            return {
+              name: attachment.name,
+              content: content,
+            };
+          } catch (directError) {
+            debugLog(`Direct fetch failed for ${attachment.name}, falling back to timeline scan:`, directError);
+            // Fall through to timeline-based approach
+          }
         }
+        
+        // Fallback to timeline-based approach for compatibility
+        debugLog(`Using timeline scan fallback for attachment ${attachment.name}`);
+        return await fetchAttachmentViaTimeline(attachment, projectId, buildId, buildClient);
+        
       } catch (error) {
         console.error('[BicepWhatIfTab] Error loading report:', attachment.name, error);
         return {
@@ -368,6 +388,19 @@ const BicepReportExtension: React.FC = () => {
     });
 
     const loadedReports = await Promise.all(reportPromises);
+    
+    // Log summary
+    const successCount = loadedReports.filter(r => !r.error).length;
+    const errorCount = loadedReports.filter(r => r.error).length;
+    const elapsed = Date.now() - startTime;
+    
+    infoLog(`Report loading completed: ${successCount} successful, ${errorCount} failed (${elapsed}ms total)`);
+    
+    if (errorCount > 0) {
+      const errorMessages = loadedReports.filter(r => r.error).map(r => `${r.name}: ${r.error}`);
+      debugLog('Attachment errors:', errorMessages);
+    }
+    
     setReports(loadedReports);
 
     // Auto-resize to fit content
@@ -381,47 +414,65 @@ const BicepReportExtension: React.FC = () => {
     buildId: number,
     buildClient: BuildRestClient
   ): Promise<{ name: string; content: string; error?: string }> => {
-    try {
-      const timeline = await buildClient.getBuildTimeline(projectId, buildId);
-      
-      if (!timeline || !timeline.records) {
-        throw new Error('Build timeline is not available or contains no records.');
-      }
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let retry = 0; retry < maxRetries; retry++) {
+      try {
+        const timeline = await buildClient.getBuildTimeline(projectId, buildId);
+        
+        if (!timeline || !timeline.records) {
+          throw new Error('Build timeline is not available or contains no records.');
+        }
 
-      // Find a timeline record that might contain this attachment
-      for (const record of timeline.records) {
-        try {
-          const contentBuffer = await buildClient.getAttachment(
-            projectId,
-            buildId,
-            timeline.id,
-            record.id,
-            ATTACHMENT_TYPE,
-            attachment.name
-          );
+        // Find a timeline record that might contain this attachment
+        for (const record of timeline.records) {
+          try {
+            const contentBuffer = await buildClient.getAttachment(
+              projectId,
+              buildId,
+              timeline.id,
+              record.id,
+              ATTACHMENT_TYPE,
+              attachment.name
+            );
 
-          // Convert ArrayBuffer to string
-          const content = new TextDecoder().decode(contentBuffer);
-          return {
-            name: attachment.name,
-            content: content,
-          };
-        } catch (recordError: unknown) {
-          // This record doesn't have the attachment, try the next one
-          debugLog(`Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`);
-          continue;
+            // Convert ArrayBuffer to string
+            const content = new TextDecoder().decode(contentBuffer);
+            debugLog(`Successfully fetched attachment ${attachment.name} (${content.length} chars) via timeline scan on attempt ${retry + 1}`);
+            
+            return {
+              name: attachment.name,
+              content: content,
+            };
+          } catch (recordError: unknown) {
+            // This record doesn't have the attachment, try the next one
+            debugLog(`Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`);
+            continue;
+          }
+        }
+
+        // If we reach here, no record had the attachment
+        throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
+        
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        
+        if (retry < maxRetries - 1) {
+          const delay = Math.min(1000 * Math.pow(2, retry), 5000); // Exponential backoff up to 5s
+          debugLog(`Timeline fetch attempt ${retry + 1} failed for ${attachment.name}, retrying in ${delay}ms:`, error);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          debugLog(`All timeline fetch attempts failed for ${attachment.name}:`, error);
         }
       }
-
-      // If we reach here, no record had the attachment
-      throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
-    } catch (error) {
-      return {
-        name: attachment.name,
-        content: '',
-        error: error instanceof Error ? error.message : String(error),
-      };
     }
+    
+    return {
+      name: attachment.name,
+      content: '',
+      error: lastError?.message || 'Unknown error during timeline-based attachment retrieval',
+    };
   };
 
   const sanitizeHtml = (html: string): string => {
