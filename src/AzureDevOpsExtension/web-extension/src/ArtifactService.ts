@@ -117,7 +117,7 @@ export async function getArtifactsFileEntries(
 
   try {
     // Use project name only - SpotCheck pattern
-    console.log('[getArtifactsFileEntries] Calling getArtifacts with project name...');
+    console.log('[getArtifactsFileEntries v0.2.28] Calling getArtifacts with project name...');
 
     const startTime = Date.now();
     const artifacts = await buildClient.getArtifacts(project, buildId);
