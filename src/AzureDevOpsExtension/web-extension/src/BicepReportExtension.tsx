@@ -395,7 +395,7 @@ const BicepReportExtension: React.FC = () => {
         debugLog(`Using timeline scan fallback for attachment ${attachment.name}`);
         return await fetchAttachmentViaTimeline(attachment, projectId, buildId, buildClient);
       } catch (error) {
-        console.error('[BicepWhatIfTab] Error loading report:', attachment.name, error);
+        debugLog('[BicepWhatIfTab] Error loading report:', attachment.name, error);
         return {
           name: attachment.name,
           content: '',
