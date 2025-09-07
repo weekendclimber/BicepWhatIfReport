@@ -380,7 +380,7 @@ export class BicepReportSpotCheck extends React.Component<{}, IPanelContentState
         <Header title="Bicep What-If Report" titleSize={TitleSize.Large} />
         <div className="page-content page-content-top">
           <div className="flex-column rhythm-vertical-16">
-            {reports!.map((report, index) => (
+            {reports?.map((report, index) => (
               <Card
                 key={index}
                 collapsible={true}
