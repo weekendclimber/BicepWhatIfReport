@@ -59,14 +59,14 @@ interface ParsedAttachmentIds {
 const parseAttachmentLink = (selfHref: string): ParsedAttachmentIds | null => {
   const timelineRecordPattern = /\/timeline\/([^/]+)\/records\/([^/]+)\/attachments\//;
   const match = selfHref.match(timelineRecordPattern);
-  
+
   if (match && match[1] && match[2]) {
     return {
       timelineId: match[1],
-      recordId: match[2]
+      recordId: match[2],
     };
   }
-  
+
   debugLog('Failed to parse attachment link', { selfHref, match });
   return null;
 };
@@ -82,22 +82,24 @@ const fetchReportsWithRetry = async (
   const startTime = Date.now();
   let attempt = 0;
   let lastError: Error | null = null;
-  
+
   while (Date.now() - startTime < MAX_WAIT_MS) {
     try {
       debugLog(`Attempt ${attempt + 1}: Fetching attachments...`);
-      
+
       const attachments = await buildClient.getAttachments(projectId, buildId, ATTACHMENT_TYPE);
       const reportAttachments = attachments.filter(att => att.name.startsWith('md/'));
-      
+
       if (reportAttachments.length > 0) {
         const elapsed = Date.now() - startTime;
-        infoLog(`Found ${reportAttachments.length} report attachments after ${elapsed}ms (${attempt + 1} attempts)`);
+        infoLog(
+          `Found ${reportAttachments.length} report attachments after ${elapsed}ms (${attempt + 1} attempts)`
+        );
         return reportAttachments;
       }
-      
+
       debugLog('No report attachments found, checking build status...');
-      
+
       // Every other attempt, check if build is completed
       if (attempt % 2 === 1) {
         try {
@@ -111,22 +113,22 @@ const fetchReportsWithRetry = async (
           debugLog('Failed to check build status:', buildError);
         }
       }
-      
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       debugLog(`Attempt ${attempt + 1} failed:`, error);
-      
+
       // If this is a permissions or connectivity issue, don't retry
-      if (error instanceof Error && (
-        error.message.toLowerCase().includes('permission') || 
-        error.message.toLowerCase().includes('unauthorized') ||
-        error.message.toLowerCase().includes('forbidden') ||
-        error.message.toLowerCase().includes('access denied')
-      )) {
+      if (
+        error instanceof Error &&
+        (error.message.toLowerCase().includes('permission') ||
+          error.message.toLowerCase().includes('unauthorized') ||
+          error.message.toLowerCase().includes('forbidden') ||
+          error.message.toLowerCase().includes('access denied'))
+      ) {
         throw error;
       }
     }
-    
+
     // Wait before next attempt (with jitter)
     if (attempt < BACKOFF_DELAYS.length - 1) {
       const delay = BACKOFF_DELAYS[attempt] + Math.random() * 1000;
@@ -140,15 +142,15 @@ const fetchReportsWithRetry = async (
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-  
+
   const elapsed = Date.now() - startTime;
   debugLog(`Timeout reached after ${elapsed}ms (${attempt + 1} attempts)`);
-  
+
   // Log summary for troubleshooting
   if (lastError) {
     debugLog('Last error encountered:', lastError.message);
   }
-  
+
   return []; // Return empty array if no attachments found within timeout
 };
 
@@ -311,9 +313,15 @@ const BicepReportExtension: React.FC = () => {
         }
 
         // Get build attachments for Bicep What-If reports using retry logic
-        infoLog(`Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type '${ATTACHMENT_TYPE}'...`);
+        infoLog(
+          `Fetching attachments for build ID '${buildId}' and project '${webContext.project.id}' with type '${ATTACHMENT_TYPE}'...`
+        );
 
-        const reportAttachments = await fetchReportsWithRetry(buildClient, webContext.project.id, buildId);
+        const reportAttachments = await fetchReportsWithRetry(
+          buildClient,
+          webContext.project.id,
+          buildId
+        );
 
         if (reportAttachments.length === 0) {
           infoLog('No Bicep What-If report attachments found.');
@@ -321,7 +329,10 @@ const BicepReportExtension: React.FC = () => {
           return;
         }
 
-        infoLog(`Found ${reportAttachments.length} Bicep What-If report attachments:`, reportAttachments.map(a => a.name));
+        infoLog(
+          `Found ${reportAttachments.length} Bicep What-If report attachments:`,
+          reportAttachments.map(a => a.name)
+        );
 
         // Display the reports from the attachments
         await displayReports(reportAttachments, webContext.project.id, buildId, buildClient);
@@ -344,11 +355,13 @@ const BicepReportExtension: React.FC = () => {
       try {
         // Try to parse attachment self link for direct access
         const parsedIds = parseAttachmentLink(attachment._links?.self?.href || '');
-        
+
         if (parsedIds) {
           // Direct fetch using parsed IDs
-          debugLog(`Fetching attachment ${attachment.name} directly with timelineId=${parsedIds.timelineId}, recordId=${parsedIds.recordId}`);
-          
+          debugLog(
+            `Fetching attachment ${attachment.name} directly with timelineId=${parsedIds.timelineId}, recordId=${parsedIds.recordId}`
+          );
+
           try {
             const contentBuffer = await buildClient.getAttachment(
               projectId,
@@ -361,22 +374,26 @@ const BicepReportExtension: React.FC = () => {
 
             // Convert ArrayBuffer to string
             const content = new TextDecoder().decode(contentBuffer);
-            debugLog(`Successfully fetched attachment ${attachment.name} (${content.length} chars) via direct access`);
-            
+            debugLog(
+              `Successfully fetched attachment ${attachment.name} (${content.length} chars) via direct access`
+            );
+
             return {
               name: attachment.name,
               content: content,
             };
           } catch (directError) {
-            debugLog(`Direct fetch failed for ${attachment.name}, falling back to timeline scan:`, directError);
+            debugLog(
+              `Direct fetch failed for ${attachment.name}, falling back to timeline scan:`,
+              directError
+            );
             // Fall through to timeline-based approach
           }
         }
-        
+
         // Fallback to timeline-based approach for compatibility
         debugLog(`Using timeline scan fallback for attachment ${attachment.name}`);
         return await fetchAttachmentViaTimeline(attachment, projectId, buildId, buildClient);
-        
       } catch (error) {
         console.error('[BicepWhatIfTab] Error loading report:', attachment.name, error);
         return {
@@ -388,19 +405,21 @@ const BicepReportExtension: React.FC = () => {
     });
 
     const loadedReports = await Promise.all(reportPromises);
-    
+
     // Log summary
     const successCount = loadedReports.filter(r => !r.error).length;
     const errorCount = loadedReports.filter(r => r.error).length;
     const elapsed = Date.now() - startTime;
-    
-    infoLog(`Report loading completed: ${successCount} successful, ${errorCount} failed (${elapsed}ms total)`);
-    
+
+    infoLog(
+      `Report loading completed: ${successCount} successful, ${errorCount} failed (${elapsed}ms total)`
+    );
+
     if (errorCount > 0) {
       const errorMessages = loadedReports.filter(r => r.error).map(r => `${r.name}: ${r.error}`);
       debugLog('Attachment errors:', errorMessages);
     }
-    
+
     setReports(loadedReports);
 
     // Auto-resize to fit content
@@ -416,11 +435,11 @@ const BicepReportExtension: React.FC = () => {
   ): Promise<{ name: string; content: string; error?: string }> => {
     const maxRetries = 3;
     let lastError: Error | null = null;
-    
+
     for (let retry = 0; retry < maxRetries; retry++) {
       try {
         const timeline = await buildClient.getBuildTimeline(projectId, buildId);
-        
+
         if (!timeline || !timeline.records) {
           throw new Error('Build timeline is not available or contains no records.');
         }
@@ -439,35 +458,41 @@ const BicepReportExtension: React.FC = () => {
 
             // Convert ArrayBuffer to string
             const content = new TextDecoder().decode(contentBuffer);
-            debugLog(`Successfully fetched attachment ${attachment.name} (${content.length} chars) via timeline scan on attempt ${retry + 1}`);
-            
+            debugLog(
+              `Successfully fetched attachment ${attachment.name} (${content.length} chars) via timeline scan on attempt ${retry + 1}`
+            );
+
             return {
               name: attachment.name,
               content: content,
             };
           } catch (recordError: unknown) {
             // This record doesn't have the attachment, try the next one
-            debugLog(`Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`);
+            debugLog(
+              `Attachment ${attachment.name} not found in record ${record.id}, trying next record: ${String(recordError)}`
+            );
             continue;
           }
         }
 
         // If we reach here, no record had the attachment
         throw new Error(`Attachment ${attachment.name} not found in any timeline record`);
-        
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         if (retry < maxRetries - 1) {
           const delay = Math.min(1000 * Math.pow(2, retry), 5000); // Exponential backoff up to 5s
-          debugLog(`Timeline fetch attempt ${retry + 1} failed for ${attachment.name}, retrying in ${delay}ms:`, error);
+          debugLog(
+            `Timeline fetch attempt ${retry + 1} failed for ${attachment.name}, retrying in ${delay}ms:`,
+            error
+          );
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
           debugLog(`All timeline fetch attempts failed for ${attachment.name}:`, error);
         }
       }
     }
-    
+
     return {
       name: attachment.name,
       content: '',
