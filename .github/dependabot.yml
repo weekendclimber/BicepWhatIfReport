@@ -6,7 +6,7 @@ updates:
           interval: "weekly"
       labels:
           - "dependabot"
-          - "github-actions"
+          - "github_actions"
     - package-ecosystem: "npm"
       directory: "/src/AzureDevOpsExtension/BicepWhatIfReport"
       schedule:
