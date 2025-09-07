@@ -119,7 +119,7 @@ export async function getArtifactsFileEntries(
 
   try {
     // Try project ID first, then project name if that fails
-    console.log('[getArtifactsFileEntries] Attempting getArtifacts with project ID...');
+    console.log('[getArtifactsFileEntries v0.2.27] Attempting getArtifacts with project ID...');
     let artifacts: BuildArtifact[] = [];
 
     try {
