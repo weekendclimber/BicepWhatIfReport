@@ -40,11 +40,20 @@ export class BicepReportSpotCheck extends React.Component<{}, IPanelContentState
 
   public async componentDidMount() {
     try {
-      this.addDebugInfo('Starting Bicep Report Extension (SpotCheck pattern)');
+      this.addDebugInfo('Starting Bicep Report Extension (checking SDK loading state)');
 
-      // SpotCheck's exact pattern: SDK.init() followed by await SDK.ready()
-      SDK.init();
-      await SDK.ready();
+      // Fix for "SDK already loaded" error - check if SDK is already initialized
+      // Reference: https://www.marcveens.nl/posts/azure-devops-extension-sdk-fix-already-loaded
+      const isSDKLoaded = !!(window as any).VSS && !!(window as any).VSS.SDK;
+
+      if (isSDKLoaded) {
+        this.addDebugInfo('Azure DevOps SDK already loaded by host page - waiting for ready state');
+        await SDK.ready();
+      } else {
+        this.addDebugInfo('Initializing Azure DevOps SDK...');
+        SDK.init();
+        await SDK.ready();
+      }
 
       this.addDebugInfo('Azure DevOps SDK initialized and ready');
 

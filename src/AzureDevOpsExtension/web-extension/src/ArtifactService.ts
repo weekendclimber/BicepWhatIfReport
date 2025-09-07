@@ -109,22 +109,45 @@ async function getArtifactContentZip(downloadUrl: string): Promise<ArrayBuffer> 
 export async function getArtifactsFileEntries(
   buildClient: BuildRestClient,
   project: string,
+  projectId: string,
   buildId: number,
   artifactName: string
 ): Promise<FileEntry[]> {
   console.log(
-    `[getArtifactsFileEntries] Starting - project: "${project}", buildId: ${buildId}, artifactName: "${artifactName}"`
+    `[getArtifactsFileEntries] Starting - project: "${project}", projectId: "${projectId}", buildId: ${buildId}, artifactName: "${artifactName}"`
   );
 
   try {
-    // Get all artifacts for the build - Following SpotCheck's exact pattern
-    console.log('[getArtifactsFileEntries] Calling buildClient.getArtifacts...');
-    const startTime = Date.now();
+    // Try project ID first, then project name if that fails
+    console.log('[getArtifactsFileEntries] Attempting getArtifacts with project ID...');
+    let artifacts: BuildArtifact[] = [];
 
-    const artifacts: BuildArtifact[] = await buildClient.getArtifacts(project, buildId);
+    try {
+      const startTime = Date.now();
+      artifacts = await buildClient.getArtifacts(projectId, buildId);
+      const duration = Date.now() - startTime;
+      console.log(
+        `[getArtifactsFileEntries] getArtifacts with project ID completed in ${duration}ms`
+      );
+    } catch (error) {
+      console.log(`[getArtifactsFileEntries] getArtifacts with project ID failed: ${error}`);
+      console.log('[getArtifactsFileEntries] Attempting getArtifacts with project name...');
 
-    const duration = Date.now() - startTime;
-    console.log(`[getArtifactsFileEntries] buildClient.getArtifacts completed in ${duration}ms`);
+      try {
+        const projectNameStartTime = Date.now();
+        artifacts = await buildClient.getArtifacts(project, buildId);
+        const projectNameDuration = Date.now() - projectNameStartTime;
+        console.log(
+          `[getArtifactsFileEntries] getArtifacts with project name completed in ${projectNameDuration}ms`
+        );
+      } catch (error2) {
+        console.error(
+          `[getArtifactsFileEntries] Both getArtifacts calls failed. Project ID error: ${error}, Project name error: ${error2}`
+        );
+        throw error2;
+      }
+    }
+
     console.log(
       `[getArtifactsFileEntries] Found ${artifacts.length} total artifacts:`,
       artifacts.map(a => `"${a.name}"`)
@@ -288,13 +311,14 @@ export async function downloadArtifacts(artifactName: string): Promise<FileEntry
     console.log('[ArtifactService] BuildRestClient created successfully');
 
     console.log(
-      `[ArtifactService] Calling getArtifactsFileEntries with project="${projectName}", buildId=${buildId}, artifactName="${artifactName}"`
+      `[ArtifactService] Calling getArtifactsFileEntries with project="${projectName}", projectId="${projectId}", buildId=${buildId}, artifactName="${artifactName}"`
     );
 
     // Call directly without artificial timeout - SpotCheck pattern
     const fileEntries = await getArtifactsFileEntries(
       buildClient,
       projectName,
+      projectId,
       buildId,
       artifactName
     );
