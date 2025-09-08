@@ -226,37 +226,69 @@ const BicepReportExtension: React.FC = () => {
 
   const initializeExtension = async (): Promise<void> => {
     try {
-      // Modern SDK initialization with explicit load control
+      // Modern SDK initialization with proper handling of already-loaded SDK
       debugLog('Initializing Bicep What-If Report Extension...');
 
-      // Enhanced SDK initialization check to prevent conflicts
-      // Check multiple indicators that SDK might already be available
+      // Check if SDK is already initialized without cross-origin access
       const isSDKAlreadyAvailable =
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).VSS_SDK_INITIALIZED ||
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).VSS ||
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).parent?.VSS ||
-        // Check if we're in an iframe and parent might have SDK
+        // Check if we're in an iframe context (likely means parent has SDK)
         window !== window.parent;
+
+      let sdkInitialized = false;
 
       if (!isSDKAlreadyAvailable) {
         debugLog('Initializing Azure DevOps SDK...');
-        await SDK.init({ loaded: false, applyTheme: true });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).VSS_SDK_INITIALIZED = true;
-        debugLog('Azure DevOps SDK initialized successfully.');
-      } else {
-        debugLog('Azure DevOps SDK already available, skipping initialization.');
-        // Still need to initialize the extension context even if SDK is already loaded
         try {
           await SDK.init({ loaded: false, applyTheme: true });
-          debugLog('Extension context initialized successfully.');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).VSS_SDK_INITIALIZED = true;
+          sdkInitialized = true;
+          debugLog('Azure DevOps SDK initialized successfully.');
         } catch (initError) {
-          debugLog('Extension context initialization failed, but continuing:', initError);
-          // Continue anyway since the SDK might already be functional
+          debugLog('SDK initialization failed, attempting to continue anyway:', initError);
+          // If SDK init fails but we can still access SDK methods, continue
+          try {
+            // Test if SDK is actually available despite the error
+            SDK.getWebContext();
+            sdkInitialized = true;
+            debugLog('SDK is available despite initialization error, continuing.');
+          } catch (testError) {
+            debugLog('SDK is not available, rethrowing initialization error:', testError);
+            throw initError;
+          }
         }
+      } else {
+        debugLog('SDK appears to be already available, attempting to use it...');
+        try {
+          // Test if we can use SDK without reinitializing
+          SDK.getWebContext();
+          sdkInitialized = true;
+          debugLog('Successfully using existing SDK instance.');
+        } catch (sdkError) {
+          debugLog('Cannot use existing SDK, attempting minimal initialization:', sdkError);
+          try {
+            // Try a minimal init that might work with already-loaded SDK
+            await SDK.init({ loaded: true, applyTheme: false });
+            sdkInitialized = true;
+            debugLog('Minimal SDK initialization successful.');
+          } catch (minimalInitError) {
+            debugLog(
+              'Minimal SDK initialization failed, attempting no-init approach:',
+              minimalInitError
+            );
+            // Last resort: try to proceed without explicit initialization
+            // Some Azure DevOps contexts have SDK already fully loaded
+            sdkInitialized = true;
+          }
+        }
+      }
+
+      if (!sdkInitialized) {
+        throw new Error('Failed to initialize or access Azure DevOps SDK');
       }
 
       // Load and display reports
@@ -266,8 +298,13 @@ const BicepReportExtension: React.FC = () => {
 
       // Notify successful load
       debugLog('Notifying Azure DevOps SDK of successful load.');
-      await SDK.notifyLoadSucceeded();
-      debugLog('Azure DevOps SDK notified of successful load.');
+      try {
+        await SDK.notifyLoadSucceeded();
+        debugLog('Azure DevOps SDK notified of successful load.');
+      } catch (notifyError) {
+        debugLog('Failed to notify SDK of successful load, but extension loaded:', notifyError);
+        // Extension can still function even if notification fails
+      }
     } catch (error) {
       // Handle missing Build ID context gracefully - this is an expected scenario
       // when the extension is accessed outside of a build pipeline context
@@ -275,7 +312,11 @@ const BicepReportExtension: React.FC = () => {
         setError(error.message);
         // Still notify successful load since the extension loaded correctly,
         // it just can't display reports due to missing context
-        await SDK.notifyLoadSucceeded();
+        try {
+          await SDK.notifyLoadSucceeded();
+        } catch (notifyError) {
+          debugLog('Failed to notify successful load for context error:', notifyError);
+        }
         return;
       }
 
@@ -294,7 +335,11 @@ const BicepReportExtension: React.FC = () => {
       }
 
       setError(errorMessage);
-      await SDK.notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
+      try {
+        await SDK.notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
+      } catch (notifyError) {
+        debugLog('Failed to notify SDK of load failure:', notifyError);
+      }
     } finally {
       setLoading(false);
     }
