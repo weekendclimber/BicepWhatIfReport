@@ -30,6 +30,7 @@ Consider the following when communicating with the staff.
 - Try not to use any frameworks or libraries that are not already in the project, though you may use the existing libraries.
 - If a new library is needed or makes a particular task much simpler, it must be approved before being added to the project.
 - Any changes need to be documented in the README.md file at the root of the project.
+- When a change is made to the Azure DevOps extension make sure to update the version number in the vss-extension.json file.
 - Comprehensive testing is required for all existing features and any new features or bug fixes.
 - Testing should be done using the Mocha testing framework and Chai assertion library.
 - Tests should be written in TypeScript and should be easy to understand.
