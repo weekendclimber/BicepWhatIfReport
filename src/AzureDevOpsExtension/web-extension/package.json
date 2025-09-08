@@ -4,14 +4,14 @@
   "description": "Azure DevOps web extension for Bicep What-If Reports",
   "main": "bicep-report-extension.js",
   "scripts": {
+    "pretest": "npm run lint && npm run format:check",
+    "test:all": "npm run build && npm run test",
+    "format": "prettier --write .",
     "build": "webpack --mode production",
     "build:dev": "webpack --mode development",
     "watch": "webpack --mode development --watch",
-    "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext .ts,.tsx",
-    "pretest": "npm run lint && npm run format:check",
-    "test:all": "npm run build && npm run test",
     "test": "mocha tests/react-web-extension.test.ts --require ts-node/register/transpile-only --project tsconfig.test.json --timeout 10000"
   },
   "keywords": [
