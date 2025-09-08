@@ -2,7 +2,7 @@
 	"manifestVersion": 1,
 	"id": "bicep-what-if-markdown-report",
 	"name": "Bicep What-If Markdown Report",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"publisher": "weekendclimber",
 	"public": false,
 	"targets": [
