@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import * as SDK from 'azure-devops-extension-sdk';
+// Note: Do not import SDK to avoid conflicts with pre-loaded SDK in Azure DevOps
+// import * as SDK from 'azure-devops-extension-sdk';
 import {
   IBuildPageDataService,
   BuildServiceIds,
@@ -13,6 +14,29 @@ import {
   //IExtendedPageContext,
   //IPageDataService,
 } from './types';
+
+// TypeScript declarations for global Azure DevOps SDK
+// (available in Azure DevOps iframe environment)
+declare global {
+  interface Window {
+    VSS: any;
+    SDK: any;
+  }
+}
+
+// Global SDK interface for accessing pre-loaded Azure DevOps SDK
+interface GlobalSDK {
+  init(options?: { loaded?: boolean; applyTheme?: boolean }): Promise<void>;
+  ready(): Promise<void>;
+  notifyLoadSucceeded(): Promise<void>;
+  notifyLoadFailed(error: any): Promise<void>;
+  getWebContext(): any;
+  getConfiguration(): any;
+  getService(serviceId: string): Promise<any>;
+  getAccessToken(): Promise<string>;
+  getExtensionContext(): any;
+  resize?(): void;
+}
 
 // Azure DevOps UI Components
 import { Header, TitleSize } from 'azure-devops-ui/Header';
@@ -31,6 +55,60 @@ const ATTACHMENT_TYPE = 'bicepwhatifreport';
 const MAX_WAIT_MS = 45000; // 45 seconds maximum wait time
 const INDIVIDUAL_API_TIMEOUT_MS = 30000; // 30 seconds per API call
 const BACKOFF_DELAYS = [1000, 2000, 3000, 5000, 8000, 13000]; // Progressive backoff in ms
+
+// Function to safely access the global Azure DevOps SDK
+// This accesses the SDK that's already loaded in the Azure DevOps environment
+function getGlobalSDK(): GlobalSDK | null {
+  try {
+    // Check for SDK in current window
+    if (typeof window !== 'undefined' && (window as any).SDK) {
+      return (window as any).SDK as GlobalSDK;
+    }
+
+    // Check for VSS global object (legacy approach)
+    if (typeof window !== 'undefined' && (window as any).VSS) {
+      const vss = (window as any).VSS;
+      // Create SDK-like interface from VSS
+      return {
+        init: (options?: any) => {
+          return new Promise<void>((resolve, reject) => {
+            try {
+              vss.init({
+                explicitNotifyLoaded: options?.loaded === false,
+                usePlatformStyles: options?.applyTheme !== false,
+              });
+              vss.ready(() => resolve());
+            } catch (error) {
+              reject(error);
+            }
+          });
+        },
+        ready: () => {
+          return new Promise<void>(resolve => {
+            vss.ready(() => resolve());
+          });
+        },
+        notifyLoadSucceeded: () => {
+          return Promise.resolve(vss.notifyLoadSucceeded?.() || undefined);
+        },
+        notifyLoadFailed: (error: any) => {
+          return Promise.resolve(vss.notifyLoadFailed?.(error) || undefined);
+        },
+        getWebContext: () => vss.getWebContext(),
+        getConfiguration: () => vss.getConfiguration(),
+        getService: (serviceId: string) => vss.getService(serviceId) as Promise<any>,
+        getAccessToken: () => vss.getAccessToken() as Promise<string>,
+        getExtensionContext: () => vss.getExtensionContext(),
+        resize: () => vss.resize?.(),
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.warn('Could not access global SDK:', error);
+    return null;
+  }
+}
 
 // Custom error classes for better error handling
 class TimeoutError extends Error {
@@ -226,128 +304,68 @@ const BicepReportExtension: React.FC = () => {
 
   const initializeExtension = async (): Promise<void> => {
     try {
-      // Modern SDK initialization with proper handling of already-loaded SDK
       debugLog('Initializing Bicep What-If Report Extension...');
 
-      // Check if SDK is already initialized without cross-origin access
-      const isSDKAlreadyAvailable =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).VSS_SDK_INITIALIZED ||
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).VSS ||
-        // Check if we're in an iframe context (likely means parent has SDK)
-        window !== window.parent;
+      // Access the global SDK that's already available in Azure DevOps
+      const sdk = getGlobalSDK();
 
-      let sdkInitialized = false;
+      if (!sdk) {
+        throw new Error(
+          'Azure DevOps SDK not available in global scope. Extension must run within Azure DevOps environment.'
+        );
+      }
 
-      if (!isSDKAlreadyAvailable) {
-        debugLog('Initializing Azure DevOps SDK...');
+      debugLog('Found global Azure DevOps SDK, initializing extension...');
+
+      // Initialize using the global SDK
+      try {
+        await sdk.init({ loaded: false, applyTheme: true });
+        debugLog('Global SDK initialized successfully');
+      } catch (initError) {
+        // If init fails, the SDK might already be initialized
+        debugLog('SDK init failed, attempting to use pre-initialized SDK:', initError);
         try {
-          await SDK.init({ loaded: false, applyTheme: true });
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).VSS_SDK_INITIALIZED = true;
-          sdkInitialized = true;
-          debugLog('Azure DevOps SDK initialized successfully.');
-        } catch (initError) {
-          debugLog('SDK initialization failed, attempting to continue anyway:', initError);
-          // If SDK init fails but we can still access SDK methods, continue
-          try {
-            // Test if SDK is actually available despite the error
-            SDK.getWebContext();
-            sdkInitialized = true;
-            debugLog('SDK is available despite initialization error, continuing.');
-          } catch (testError) {
-            debugLog('SDK is not available, rethrowing initialization error:', testError);
-            throw initError;
-          }
-        }
-      } else {
-        debugLog('SDK appears to be already available, attempting to use it...');
-        try {
-          // Test if we can use SDK without reinitializing
-          SDK.getWebContext();
-          sdkInitialized = true;
-          debugLog('Successfully using existing SDK instance.');
-        } catch (sdkError) {
-          debugLog('Cannot use existing SDK, attempting minimal initialization:', sdkError);
-          try {
-            // Try a minimal init that might work with already-loaded SDK
-            await SDK.init({ loaded: true, applyTheme: false });
-            sdkInitialized = true;
-            debugLog('Minimal SDK initialization successful.');
-          } catch (minimalInitError) {
-            debugLog(
-              'Minimal SDK initialization failed, attempting no-init approach:',
-              minimalInitError
-            );
-            // Last resort: try to proceed without explicit initialization
-            // Some Azure DevOps contexts have SDK already fully loaded
-            sdkInitialized = true;
-          }
+          await sdk.ready();
+          debugLog('Using pre-initialized SDK successfully');
+        } catch (readyError) {
+          debugLog('SDK ready failed, proceeding without explicit initialization:', readyError);
         }
       }
 
-      if (!sdkInitialized) {
-        throw new Error('Failed to initialize or access Azure DevOps SDK');
-      }
+      debugLog('Loading build context and reports...');
+      await loadBuildReports(sdk);
 
-      // Load and display reports
-      debugLog('Loading Bicep What-If reports...');
-      await loadReports();
-      debugLog('Bicep What-If reports loaded successfully.');
+      debugLog('Extension initialization completed successfully');
 
       // Notify successful load
-      debugLog('Notifying Azure DevOps SDK of successful load.');
       try {
-        await SDK.notifyLoadSucceeded();
-        debugLog('Azure DevOps SDK notified of successful load.');
+        await sdk.notifyLoadSucceeded();
       } catch (notifyError) {
-        debugLog('Failed to notify SDK of successful load, but extension loaded:', notifyError);
-        // Extension can still function even if notification fails
+        debugLog('Failed to notify load success (non-critical):', notifyError);
       }
-    } catch (error) {
-      // Handle missing Build ID context gracefully - this is an expected scenario
-      // when the extension is accessed outside of a build pipeline context
-      if (error instanceof Error && error.message.includes('Required context not available')) {
-        setError(error.message);
-        // Still notify successful load since the extension loaded correctly,
-        // it just can't display reports due to missing context
-        try {
-          await SDK.notifyLoadSucceeded();
-        } catch (notifyError) {
-          debugLog('Failed to notify successful load for context error:', notifyError);
-        }
-        return;
-      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      debugLog('Extension initialization failed:', errorMessage);
+      console.error('[BicepWhatIfTab] Extension initialization failed:', err);
 
-      // Log unexpected errors to console for debugging
-      console.error('[BicepWhatIfTab] Extension initialization failed:', error);
-
-      // Handle other initialization errors that indicate real failures
-      let errorMessage = 'Failed to initialize the extension.';
-      if (error instanceof Error) {
-        if (error.message.includes('SDK')) {
-          errorMessage =
-            'Failed to initialize Azure DevOps SDK. Please ensure this extension is running within Azure DevOps.';
-        } else {
-          errorMessage = `Extension error: ${error.message}`;
-        }
-      }
-
-      setError(errorMessage);
-      try {
-        await SDK.notifyLoadFailed(error instanceof Error ? error : new Error(String(error)));
-      } catch (notifyError) {
-        debugLog('Failed to notify SDK of load failure:', notifyError);
-      }
-    } finally {
+      setError(`Failed to load Bicep What-If reports: ${errorMessage}`);
       setLoading(false);
+
+      // Try to notify load failure
+      try {
+        const sdk = getGlobalSDK();
+        if (sdk) {
+          await sdk.notifyLoadFailed(err);
+        }
+      } catch (notifyError) {
+        debugLog('Failed to notify load failure (non-critical):', notifyError);
+      }
     }
   };
 
-  const loadReports = async (): Promise<void> => {
-    const webContext = SDK.getWebContext();
-    const config = SDK.getConfiguration();
+  const loadBuildReports = async (sdk: GlobalSDK): Promise<void> => {
+    const webContext = sdk.getWebContext();
+    const config = sdk.getConfiguration();
 
     // Enhanced context validation with detailed error messages
     const errors: string[] = [];
@@ -369,7 +387,7 @@ const BicepReportExtension: React.FC = () => {
     // Method 1: From BuildPageDataService (primary method for build summary pages)
     try {
       debugLog('Attempting to get Build ID from BuildPageDataService...');
-      const buildPageService: IBuildPageDataService = await SDK.getService(
+      const buildPageService: IBuildPageDataService = await sdk.getService(
         BuildServiceIds.BuildPageDataService
       );
       debugLog('BuildPageDataService obtained successfully.');
@@ -555,7 +573,14 @@ const BicepReportExtension: React.FC = () => {
     setReports(loadedReports);
 
     // Auto-resize to fit content
-    SDK.resize();
+    try {
+      const sdk = getGlobalSDK();
+      if (sdk?.resize) {
+        sdk.resize();
+      }
+    } catch (resizeError) {
+      debugLog('Failed to resize extension (non-critical):', resizeError);
+    }
   };
 
   // Fallback function for attachment retrieval when direct parsing fails
@@ -783,7 +808,14 @@ const BicepReportExtension: React.FC = () => {
 
   useEffect(() => {
     // Auto-resize when content changes
-    SDK.resize();
+    try {
+      const sdk = getGlobalSDK();
+      if (sdk?.resize) {
+        sdk.resize();
+      }
+    } catch (resizeError) {
+      debugLog('Failed to resize extension (non-critical):', resizeError);
+    }
   }, [reports, error, noReports]);
 
   if (loading) {
