@@ -145,14 +145,15 @@ describe('React Web Extension Tests', () => {
 
       const extensionContent = fs.readFileSync(extensionPath, 'utf8');
 
-      // Should call the same SDK methods
-      expect(extensionContent).to.include('SDK.init');
-      expect(extensionContent).to.include('SDK.getWebContext');
-      expect(extensionContent).to.include('SDK.getConfiguration');
-      expect(extensionContent).to.include('SDK.getService');
-      expect(extensionContent).to.include('SDK.notifyLoadSucceeded');
-      expect(extensionContent).to.include('SDK.notifyLoadFailed');
-      expect(extensionContent).to.include('SDK.resize');
+      // Should call SDK methods through global SDK interface
+      expect(extensionContent).to.include('getGlobalSDK');
+      expect(extensionContent).to.include('.init');
+      expect(extensionContent).to.include('.getWebContext');
+      expect(extensionContent).to.include('.getConfiguration');
+      expect(extensionContent).to.include('.getService');
+      expect(extensionContent).to.include('.notifyLoadSucceeded');
+      expect(extensionContent).to.include('.notifyLoadFailed');
+      expect(extensionContent).to.include('.resize');
     });
 
     it('should use appropriate styling classes', () => {
@@ -180,7 +181,7 @@ describe('React Web Extension Tests', () => {
 
       // Should have the same core functions
       expect(extensionContent).to.include('initializeExtension');
-      expect(extensionContent).to.include('loadReports');
+      expect(extensionContent).to.include('loadBuildReports');
       expect(extensionContent).to.include('displayReports');
       expect(extensionContent).to.include('parseMarkdown');
       expect(extensionContent).to.include('getDisplayName');

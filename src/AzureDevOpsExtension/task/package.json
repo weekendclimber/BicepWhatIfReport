@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "pretest": "npm run lint && npm run format:check",
+    "test:all": "npm run build && npm run test:task",
+    "format": "prettier --write .",
     "build": "tsc",
-    "test": "npm run build && npm run test:task",
     "test:task": "mocha ./tests/_suite.js",
     "dev": "npm run build && node ./index.js",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "pretest": "npm run lint && npm run format:check",
     "watch": "tsc --watch"
   },
   "keywords": [],
